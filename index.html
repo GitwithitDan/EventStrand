@@ -1418,6 +1418,238 @@ footer {
   .qr-banner { grid-template-columns: 1fr; }
   .type-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── VIBE WHEEL ── */
+.vibe-wheel-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 12px 0 20px;
+}
+
+.vibe-wheel-svg-wrap {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  flex-shrink: 0;
+}
+
+.vibe-wheel-outer-glow {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: box-shadow 0.5s ease;
+}
+
+.vibe-wheel-svg {
+  transition: transform 2.2s cubic-bezier(0.17,0.67,0.12,1);
+  cursor: default;
+}
+
+.vibe-slice {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.vibe-slice:hover { opacity: 0.88; }
+
+.vibe-info-strip {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.vibe-info-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.vibe-info-desc { color: var(--text-faint); }
+
+.vibe-wheel-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.spin-btn {
+  background: linear-gradient(135deg, var(--primary), var(--violet));
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  box-shadow: 0 4px 16px var(--primary-glow);
+  transition: all 0.2s;
+}
+.spin-btn:hover { transform: translateY(-1px); }
+.spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.vibe-grid-flat {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  width: 100%;
+}
+
+.vibe-flat-all {
+  grid-column: span 4;
+  background: rgba(16,21,48,0.7);
+  border: 1.5px solid rgba(100,120,255,0.20);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  transition: all 0.18s;
+}
+.vibe-flat-all:hover { border-color: rgba(108,143,255,0.45); color: var(--text); }
+.vibe-flat-all.all-active {
+  background: linear-gradient(135deg, rgba(108,143,255,0.15), rgba(169,110,255,0.15));
+  border-color: rgba(108,143,255,0.6);
+  color: var(--text);
+}
+
+.vibe-flat-btn {
+  background: rgba(16,21,48,0.7);
+  border: 1.5px solid rgba(100,120,255,0.12);
+  border-radius: 10px;
+  padding: 9px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  transition: all 0.18s;
+}
+.vibe-flat-btn:hover { border-color: rgba(108,143,255,0.35); color: var(--text); }
+.vibe-flat-btn.v-active { color: var(--primary); border-color: rgba(108,143,255,0.6); }
+
+/* ── ACCOUNT MODAL / TABS ── */
+.auth-tabs {
+  display: flex;
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+.auth-tab {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.auth-tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+.auth-panel { display: none; }
+.auth-panel.active { display: block; }
+
+.auth-success {
+  display: none;
+  text-align: center;
+  padding: 32px 0;
+}
+.auth-success.show { display: block; }
+
+.user-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--violet));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 16px;
+}
+
+.portal-preview {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 20px;
+  text-align: left;
+}
+.portal-preview h4 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+
+.portal-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.portal-stat {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+.portal-stat-num {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  color: var(--primary);
+}
+.portal-stat-label {
+  font-size: 10px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 2px;
+}
+
+.installed-strand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.installed-strand:last-child { border-bottom: none; }
+.installed-strand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.installed-strand-name { color: var(--text); flex: 1; }
+.installed-strand-count { color: var(--text-faint); font-size: 11px; }
 </style>
 </head>
 <body>
@@ -2190,19 +2422,43 @@ footer {
         <div class="builder-panel" id="panel-4">
           <div class="field-group">
             <label class="field-label">What's the vibe? <span style="font-weight:400;color:var(--text-faint);">(select all that apply)</span></label>
-            <div class="vibe-grid" id="vibe-grid">
-              <button class="vibe-btn" onclick="toggleVibe(this)">🌿 Mellow</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">🎉 Social</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">⚡ Restless</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">🔮 Curious</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">💥 Spontaneous</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">🌙 Solo</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">🥂 Celebratory</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">🛋 Cozy</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">🏃 Active</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">🌅 Outdoor</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">🏠 Indoor</button>
-              <button class="vibe-btn" onclick="toggleVibe(this)">🆓 Free</button>
+
+            <div class="vibe-wheel-wrap">
+              <!-- SVG Wheel -->
+              <div class="vibe-wheel-svg-wrap">
+                <div class="vibe-wheel-outer-glow" id="wheel-glow"></div>
+                <svg id="vibe-wheel-svg" class="vibe-wheel-svg" viewBox="0 0 300 300" width="300" height="300"></svg>
+              </div>
+
+              <!-- Info strip -->
+              <div class="vibe-info-strip" id="vibe-info-strip">
+                <span style="color:var(--text-faint);font-size:12px;">Tap a slice · Spin to let fate decide</span>
+              </div>
+
+              <!-- Controls -->
+              <div class="vibe-wheel-controls">
+                <button class="spin-btn" id="spin-btn" onclick="spinWheel()">🎲 Spin for me</button>
+                <button class="btn btn-ghost" id="vibe-clear-btn" onclick="clearVibes()" style="display:none;font-size:13px;padding:10px 16px;">Clear</button>
+              </div>
+            </div>
+
+            <!-- Flat grid (synced with wheel) -->
+            <div class="vibe-grid-flat" id="vibe-grid-flat">
+              <button class="vibe-flat-all" id="vibe-all-btn" onclick="toggleAllVibes()">
+                <span>✦</span><span>All — Show me everything</span>
+              </button>
+              <button class="vibe-flat-btn" data-vibe="mellow"      onclick="toggleVibeById('mellow')"      ><span>🌿</span>Mellow</button>
+              <button class="vibe-flat-btn" data-vibe="social"      onclick="toggleVibeById('social')"      ><span>🎉</span>Social</button>
+              <button class="vibe-flat-btn" data-vibe="restless"    onclick="toggleVibeById('restless')"    ><span>⚡</span>Restless</button>
+              <button class="vibe-flat-btn" data-vibe="curious"     onclick="toggleVibeById('curious')"     ><span>🔮</span>Curious</button>
+              <button class="vibe-flat-btn" data-vibe="spontaneous" onclick="toggleVibeById('spontaneous')" ><span>💥</span>Spontaneous</button>
+              <button class="vibe-flat-btn" data-vibe="solo"        onclick="toggleVibeById('solo')"        ><span>🌙</span>Solo</button>
+              <button class="vibe-flat-btn" data-vibe="celebratory" onclick="toggleVibeById('celebratory')" ><span>🥂</span>Celebratory</button>
+              <button class="vibe-flat-btn" data-vibe="cozy"        onclick="toggleVibeById('cozy')"        ><span>🛋</span>Cozy</button>
+              <button class="vibe-flat-btn" data-vibe="active"      onclick="toggleVibeById('active')"      ><span>🏃</span>Active</button>
+              <button class="vibe-flat-btn" data-vibe="outdoor"     onclick="toggleVibeById('outdoor')"     ><span>🌅</span>Outdoor</button>
+              <button class="vibe-flat-btn" data-vibe="indoor"      onclick="toggleVibeById('indoor')"      ><span>🏠</span>Indoor</button>
+              <button class="vibe-flat-btn" data-vibe="free"        onclick="toggleVibeById('free')"        ><span>🆓</span>Free</button>
             </div>
           </div>
           <div class="field-group">
@@ -2634,51 +2890,154 @@ upcoming.forEach(event => {
 <div id="account" class="section-full" style="background:var(--bg2);">
   <div class="section-inner">
     <div class="section-label">Account</div>
-    <h2 class="section-title">Sign in or create<br>your account</h2>
-    <p class="section-sub">A free account lets you host live strands, manage your portal across devices, and track your strand installs.</p>
+    <h2 class="section-title">Your portal,<br><em style="font-style:italic;color:var(--primary)">any device</em></h2>
+    <p class="section-sub">A free account syncs your strands, preferences, and portal across phone, tablet, and desktop.</p>
 
     <div class="account-split">
-      <div class="login-box">
-        <h3 class="serif">Sign in to Eventstrand</h3>
-        <div class="sub">Access your portal, manage your strands, and publish to the web.</div>
 
-        <div class="login-methods">
-          <button class="login-method-btn" onclick="showToast('🍎 Apple Sign In...')">
-            <span style="font-size:20px;">🍎</span> Continue with Apple
-          </button>
-          <button class="login-method-btn" onclick="showToast('🔵 Google Sign In...')">
-            <span style="font-size:20px;">🔵</span> Continue with Google
-          </button>
-          <button class="login-method-btn" onclick="showToast('📘 Facebook Sign In...')">
-            <span style="font-size:20px;">📘</span> Continue with Facebook
-          </button>
+      <!-- AUTH BOX -->
+      <div class="login-box" id="auth-box">
+
+        <!-- Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab active" onclick="switchAuthTab('signin')">Sign In</button>
+          <button class="auth-tab" onclick="switchAuthTab('signup')">Create Account</button>
         </div>
 
-        <div class="login-divider">or</div>
-
-        <div class="field-group">
-          <label class="field-label">Email address</label>
-          <input class="field-input" type="email" placeholder="you@example.com">
+        <!-- Sign In Panel -->
+        <div class="auth-panel active" id="auth-signin">
+          <div class="login-methods">
+            <button class="login-method-btn" onclick="handleSocialAuth('Apple')">
+              <span style="font-size:20px;">🍎</span> Continue with Apple
+            </button>
+            <button class="login-method-btn" onclick="handleSocialAuth('Google')">
+              <span style="font-size:20px;">🔵</span> Continue with Google
+            </button>
+          </div>
+          <div class="login-divider">or</div>
+          <div class="field-group">
+            <label class="field-label">Email address</label>
+            <input class="field-input" type="email" placeholder="you@example.com" id="signin-email">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <input class="field-input" type="password" placeholder="••••••••" id="signin-password">
+          </div>
+          <div id="signin-error" style="color:var(--red);font-size:13px;margin-bottom:12px;display:none;"></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;" onclick="handleSignIn()">
+            Sign In
+          </button>
+          <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-dim);">
+            <a href="#" style="color:var(--primary);text-decoration:none;" onclick="switchAuthTab('signup');return false;">Forgot password?</a>
+          </div>
         </div>
-        <div class="field-group">
-          <label class="field-label">Password</label>
-          <input class="field-input" type="password" placeholder="••••••••">
+
+        <!-- Create Account Panel -->
+        <div class="auth-panel" id="auth-signup">
+          <div class="login-methods">
+            <button class="login-method-btn" onclick="handleSocialAuth('Apple')">
+              <span style="font-size:20px;">🍎</span> Sign up with Apple
+            </button>
+            <button class="login-method-btn" onclick="handleSocialAuth('Google')">
+              <span style="font-size:20px;">🔵</span> Sign up with Google
+            </button>
+          </div>
+          <div class="login-divider">or</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="field-group" style="margin-bottom:0;">
+              <label class="field-label">First name</label>
+              <input class="field-input" type="text" placeholder="Alex" id="signup-first">
+            </div>
+            <div class="field-group" style="margin-bottom:0;">
+              <label class="field-label">Last name</label>
+              <input class="field-input" type="text" placeholder="Rivera" id="signup-last">
+            </div>
+          </div>
+          <div class="field-group" style="margin-top:12px;">
+            <label class="field-label">Email address</label>
+            <input class="field-input" type="email" placeholder="you@example.com" id="signup-email">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <input class="field-input" type="password" placeholder="Min 8 characters" id="signup-password" oninput="checkPasswordStrength(this.value)">
+            <div id="pw-strength" style="margin-top:6px;height:4px;border-radius:2px;background:var(--border);overflow:hidden;">
+              <div id="pw-bar" style="height:100%;width:0%;background:var(--red);border-radius:2px;transition:all 0.3s;"></div>
+            </div>
+            <div id="pw-label" style="font-size:11px;color:var(--text-faint);margin-top:4px;"></div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Username <span style="color:var(--text-faint);font-weight:400;">(your strand URL)</span></label>
+            <div style="display:flex;align-items:center;gap:0;">
+              <span style="background:var(--surface2);border:1.5px solid var(--border2);border-right:none;border-radius:10px 0 0 10px;padding:12px 12px;font-size:13px;color:var(--text-faint);white-space:nowrap;">eventstrand.com/s/</span>
+              <input class="field-input" type="text" placeholder="yourname" id="signup-username" style="border-radius:0 10px 10px 0;border-left:none;" oninput="checkUsername(this.value)">
+            </div>
+            <div id="username-status" style="font-size:11px;margin-top:5px;"></div>
+          </div>
+          <div id="signup-error" style="color:var(--red);font-size:13px;margin-bottom:12px;display:none;"></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;" onclick="handleSignUp()">
+            Create Free Account
+          </button>
+          <p style="font-size:11px;color:var(--text-faint);text-align:center;margin-top:12px;line-height:1.6;">
+            By creating an account you agree to our Terms of Service and Privacy Policy.
+          </p>
         </div>
 
-        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;" onclick="showToast('👋 Welcome to Eventstrand!')">
-          Sign In
-        </button>
+        <!-- Signed In State -->
+        <div class="auth-success" id="auth-success">
+          <div class="user-avatar" id="user-avatar">👤</div>
+          <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px;" id="user-greeting">Welcome back!</div>
+          <div style="font-size:14px;color:var(--text-dim);margin-bottom:24px;" id="user-email-display"></div>
 
-        <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-dim);">
-          New to Eventstrand? <a href="#" style="color:var(--primary);text-decoration:none;" onclick="showToast('✨ Account creation...');return false;">Create an account →</a>
+          <div class="portal-preview">
+            <h4>Your Portal</h4>
+            <div class="portal-stat-row">
+              <div class="portal-stat">
+                <div class="portal-stat-num" id="stat-strands">0</div>
+                <div class="portal-stat-label">Strands</div>
+              </div>
+              <div class="portal-stat">
+                <div class="portal-stat-num" id="stat-events">0</div>
+                <div class="portal-stat-label">Events/wk</div>
+              </div>
+              <div class="portal-stat">
+                <div class="portal-stat-num" id="stat-devices">1</div>
+                <div class="portal-stat-label">Devices</div>
+              </div>
+            </div>
+            <div id="installed-strands-list">
+              <div class="installed-strand">
+                <div class="installed-strand-dot" style="background:var(--primary);"></div>
+                <div class="installed-strand-name">US Holidays 2026</div>
+                <div class="installed-strand-count">12 events</div>
+              </div>
+              <div class="installed-strand">
+                <div class="installed-strand-dot" style="background:var(--green);"></div>
+                <div class="installed-strand-name">Farmers Market Season</div>
+                <div class="installed-strand-count">24 events</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;justify-content:center;">
+            <a href="#" class="btn btn-primary" style="flex:1;justify-content:center;" onclick="showToast('🌀 Opening your portal...');return false;">Open Portal</a>
+            <button class="btn btn-ghost" onclick="handleSignOut()" style="flex:1;justify-content:center;">Sign Out</button>
+          </div>
         </div>
       </div>
 
-      <div>
+      <!-- PERKS COLUMN -->
+      <div id="perks-col">
         <div style="margin-bottom:20px;">
           <div class="section-label">Why create an account?</div>
         </div>
         <div class="account-perks">
+          <div class="perk">
+            <div class="perk-icon">🌐</div>
+            <div>
+              <h4>Desktop portal</h4>
+              <p>Access your full portal at eventstrand.com/app from any browser. Your strands, your vibes, your world — on any screen.</p>
+            </div>
+          </div>
           <div class="perk">
             <div class="perk-icon">📡</div>
             <div>
@@ -2687,28 +3046,36 @@ upcoming.forEach(event => {
             </div>
           </div>
           <div class="perk">
-            <div class="perk-icon">📊</div>
-            <div>
-              <h4>Strand analytics</h4>
-              <p>See how many people have installed your strand, where they are, and which events are getting the most attention.</p>
-            </div>
-          </div>
-          <div class="perk">
             <div class="perk-icon">🔄</div>
             <div>
               <h4>Sync across devices</h4>
-              <p>Your portal, personal strands, and preferences stay in sync across your phone, tablet, and the web app.</p>
+              <p>Install a strand on your phone, see it on your laptop instantly. Preferences and portal state follow you everywhere.</p>
             </div>
           </div>
           <div class="perk">
-            <div class="perk-icon">🌐</div>
+            <div class="perk-icon">📊</div>
             <div>
-              <h4>Strand directory listing</h4>
-              <p>Public strands get listed in the Eventstrand library — discoverable by anyone looking for events in your area or category.</p>
+              <h4>Strand analytics</h4>
+              <p>See how many people installed your strand, which events get the most attention, and where your audience is.</p>
             </div>
           </div>
         </div>
+
+        <!-- Desktop portal CTA -->
+        <div style="margin-top:28px;background:linear-gradient(135deg,rgba(108,143,255,0.12),rgba(169,110,255,0.10));border:1px solid rgba(108,143,255,0.25);border-radius:16px;padding:24px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:24px;">💻</span>
+            <span style="font-family:'Fraunces',serif;font-size:18px;color:var(--text);">eventstrand.com/app</span>
+          </div>
+          <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;line-height:1.65;">
+            The full desktop portal. Browse your possibility space, manage strands, and open your portal from any computer — no app install needed.
+          </p>
+          <a href="#" class="btn btn-outline-primary" style="width:100%;justify-content:center;" onclick="showToast('💻 Desktop portal coming soon!');return false;">
+            Open Desktop Portal →
+          </a>
+        </div>
       </div>
+
     </div>
   </div>
 </div>
@@ -2814,16 +3181,169 @@ function selectCategory(el, cat) {
   selectedCategory = cat;
 }
 
-// ── VIBE ──
+// ── VIBE WHEEL ──
+const VIBES = [
+  { id:'mellow',      emoji:'🌿', label:'Mellow',      color:'#10DDA8', desc:'Calm, low-key, unhurried' },
+  { id:'social',      emoji:'🎉', label:'Social',      color:'#6C8FFF', desc:'People, energy, connection' },
+  { id:'restless',    emoji:'⚡', label:'Restless',    color:'#FFD166', desc:'Need to move, get out' },
+  { id:'curious',     emoji:'🔮', label:'Curious',     color:'#A96EFF', desc:'Explore, discover, learn' },
+  { id:'spontaneous', emoji:'💥', label:'Spontaneous', color:'#FF6B9D', desc:'Right now, no plan needed' },
+  { id:'solo',        emoji:'🌙', label:'Solo',        color:'#7EB8FF', desc:'Just you, no crowd' },
+  { id:'celebratory', emoji:'🥂', label:'Celebratory', color:'#FFB347', desc:'Mark the moment, toast it' },
+  { id:'cozy',        emoji:'🛋', label:'Cozy',        color:'#FF8B6A', desc:'Warm, comfortable, indoors' },
+  { id:'active',      emoji:'🏃', label:'Active',      color:'#4ECDC4', desc:'Body moving, sweat welcome' },
+  { id:'outdoor',     emoji:'🌅', label:'Outdoor',     color:'#95E870', desc:'Fresh air, open space' },
+  { id:'indoor',      emoji:'🏠', label:'Indoor',      color:'#B8A0FF', desc:'Shelter, warmth, contained' },
+  { id:'free',        emoji:'🆓', label:'Free',        color:'#00E5FF', desc:'No cost, walk right in' },
+];
+
+const TOTAL = VIBES.length;
+const R_OUT = 130, R_IN = 54, CX = 150, CY = 150;
+let wheelAngle = 0, isSpinning = false;
+
+function polar(angleDeg, r) {
+  const a = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: CX + r * Math.cos(a), y: CY + r * Math.sin(a) };
+}
+
+function slicePath(i) {
+  const gap = 2.5, slice = 360 / TOTAL;
+  const s = i * slice + gap / 2, e = (i + 1) * slice - gap / 2;
+  const o1 = polar(s, R_OUT), o2 = polar(e, R_OUT);
+  const i1 = polar(s, R_IN),  i2 = polar(e, R_IN);
+  const la = slice > 180 ? 1 : 0;
+  return `M${i1.x} ${i1.y} L${o1.x} ${o1.y} A${R_OUT} ${R_OUT} 0 ${la} 1 ${o2.x} ${o2.y} L${i2.x} ${i2.y} A${R_IN} ${R_IN} 0 ${la} 0 ${i1.x} ${i1.y}Z`;
+}
+
+function emojiPos(i) {
+  const mid = i * (360 / TOTAL) + (180 / TOTAL);
+  return polar(mid, (R_OUT + R_IN) / 2);
+}
+
+function buildWheel() {
+  const svg = document.getElementById('vibe-wheel-svg');
+  if (!svg) return;
+  svg.innerHTML = '';
+  VIBES.forEach((v, i) => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.className = 'vibe-slice';
+    g.dataset.id = v.id;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', slicePath(i));
+    path.setAttribute('fill', v.color + '22');
+    path.setAttribute('stroke', v.color + '66');
+    path.setAttribute('stroke-width', '1.5');
+    path.style.transition = 'fill 0.2s, stroke 0.2s';
+
+    const ep = emojiPos(i);
+    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txt.setAttribute('x', ep.x);
+    txt.setAttribute('y', ep.y + 6);
+    txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('font-size', '17');
+    txt.setAttribute('pointer-events', 'none');
+    txt.textContent = v.emoji;
+
+    g.appendChild(path);
+    g.appendChild(txt);
+    g.addEventListener('click', () => toggleVibeById(v.id));
+    g.addEventListener('mouseenter', () => showVibeInfo(v));
+    g.addEventListener('mouseleave', () => clearVibeInfo());
+    svg.appendChild(g);
+  });
+}
+
+function renderWheelState() {
+  VIBES.forEach((v, i) => {
+    const g = document.querySelector(`[data-id="${v.id}"]`);
+    if (!g) return;
+    const path = g.querySelector('path');
+    const on = selectedVibes.includes(v.id);
+    path.setAttribute('fill', on ? v.color + '55' : v.color + '22');
+    path.setAttribute('stroke', on ? v.color : v.color + '55');
+    path.setAttribute('stroke-width', on ? '2.5' : '1.5');
+  });
+  // flat grid
+  document.querySelectorAll('.vibe-flat-btn').forEach(btn => {
+    const on = selectedVibes.includes(btn.dataset.vibe);
+    btn.classList.toggle('v-active', on);
+    const vibe = VIBES.find(v => v.id === btn.dataset.vibe);
+    btn.style.borderColor = on ? vibe.color + '88' : '';
+    btn.style.color = on ? vibe.color : '';
+    btn.style.background = on ? vibe.color + '18' : '';
+  });
+  // all button
+  const allBtn = document.getElementById('vibe-all-btn');
+  if (allBtn) {
+    const allOn = selectedVibes.length === TOTAL;
+    allBtn.classList.toggle('all-active', allOn);
+    allBtn.querySelector('span:last-child').textContent = allOn ? 'All Vibes Selected' : 'All — Show me everything';
+  }
+  // clear btn
+  const clearBtn = document.getElementById('vibe-clear-btn');
+  if (clearBtn) clearBtn.style.display = selectedVibes.length ? '' : 'none';
+  updatePreviewTags();
+}
+
+function toggleVibeById(id) {
+  const idx = selectedVibes.indexOf(id);
+  if (idx >= 0) selectedVibes.splice(idx, 1);
+  else selectedVibes.push(id);
+  renderWheelState();
+}
+
+function toggleAllVibes() {
+  if (selectedVibes.length === TOTAL) selectedVibes = [];
+  else selectedVibes = VIBES.map(v => v.id);
+  renderWheelState();
+}
+
+function clearVibes() {
+  selectedVibes = [];
+  renderWheelState();
+}
+
+function showVibeInfo(v) {
+  const strip = document.getElementById('vibe-info-strip');
+  if (strip) strip.innerHTML = `<span style="font-size:18px">${v.emoji}</span><span class="vibe-info-name" style="color:${v.color}">${v.label}</span><span class="vibe-info-desc">— ${v.desc}</span>`;
+}
+function clearVibeInfo() {
+  const strip = document.getElementById('vibe-info-strip');
+  if (strip && !isSpinning) strip.innerHTML = '<span style="color:var(--text-faint);font-size:12px;">Tap a slice · Spin to let fate decide</span>';
+}
+
+function spinWheel() {
+  if (isSpinning) return;
+  isSpinning = true;
+  const btn = document.getElementById('spin-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Spinning…'; }
+
+  const extra = 1440 + Math.random() * 720;
+  const targetAngle = wheelAngle + extra;
+  const svg = document.getElementById('vibe-wheel-svg');
+  if (svg) {
+    svg.style.transition = 'transform 2.4s cubic-bezier(0.17,0.67,0.12,1)';
+    svg.style.transform = `rotate(${targetAngle}deg)`;
+  }
+  wheelAngle = targetAngle;
+
+  setTimeout(() => {
+    isSpinning = false;
+    if (btn) { btn.disabled = false; btn.textContent = '🎲 Spin for me'; }
+    const normalized = ((wheelAngle % 360) + 360) % 360;
+    const idx = Math.floor(((360 - normalized) % 360) / (360 / TOTAL));
+    const landed = VIBES[idx % TOTAL];
+    if (!selectedVibes.includes(landed.id)) selectedVibes.push(landed.id);
+    renderWheelState();
+    showVibeInfo(landed);
+    setTimeout(clearVibeInfo, 2500);
+  }, 2450);
+}
+
+// Legacy shim (price buttons still use vibe-btn class)
 function toggleVibe(el) {
   el.classList.toggle('selected');
-  const label = el.textContent.replace(/^[^\s]+\s/,'').trim().toLowerCase();
-  if(el.classList.contains('selected')) {
-    if(!selectedVibes.includes(label)) selectedVibes.push(label);
-  } else {
-    selectedVibes = selectedVibes.filter(v => v !== label);
-  }
-  updatePreviewTags();
 }
 
 function selectPrice(el, price) {
@@ -3159,6 +3679,188 @@ window.addEventListener('scroll', () => {
 
 // ── INIT ──
 updateUpcoming();
+
+// ── AUTH STATE ──
+let currentUser = null;
+
+function loadUser() {
+  try {
+    const stored = sessionStorage.getItem('es_user');
+    if (stored) currentUser = JSON.parse(stored);
+  } catch(e) {}
+  renderAuthState();
+}
+
+function saveUser(user) {
+  currentUser = user;
+  try { sessionStorage.setItem('es_user', JSON.stringify(user)); } catch(e) {}
+  renderAuthState();
+}
+
+function renderAuthState() {
+  const success = document.getElementById('auth-success');
+  const signinPanel = document.getElementById('auth-signin');
+  const signupPanel = document.getElementById('auth-signup');
+  const tabs = document.querySelector('.auth-tabs');
+
+  if (!success) return;
+
+  if (currentUser) {
+    if (tabs) tabs.style.display = 'none';
+    if (signinPanel) signinPanel.classList.remove('active');
+    if (signupPanel) signupPanel.classList.remove('active');
+    success.classList.add('show');
+
+    const initials = (currentUser.first || '?')[0].toUpperCase();
+    const avatar = document.getElementById('user-avatar');
+    if (avatar) avatar.textContent = initials;
+    const greeting = document.getElementById('user-greeting');
+    if (greeting) greeting.textContent = 'Welcome back, ' + (currentUser.first || 'friend') + '!';
+    const emailDisplay = document.getElementById('user-email-display');
+    if (emailDisplay) emailDisplay.textContent = currentUser.email;
+    // Fake stats that grow with "installs"
+    const strands = (currentUser.strands || []).length;
+    const el1 = document.getElementById('stat-strands');
+    const el2 = document.getElementById('stat-events');
+    if (el1) el1.textContent = strands;
+    if (el2) el2.textContent = strands * 3;
+  } else {
+    if (tabs) tabs.style.display = '';
+    success.classList.remove('show');
+    switchAuthTab('signin');
+  }
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'signin') || (i === 1 && tab === 'signup'));
+  });
+  const si = document.getElementById('auth-signin');
+  const su = document.getElementById('auth-signup');
+  if (si) si.classList.toggle('active', tab === 'signin');
+  if (su) su.classList.toggle('active', tab === 'signup');
+  // clear errors
+  ['signin-error','signup-error'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function handleSocialAuth(provider) {
+  showToast(`🔐 ${provider} auth coming soon — backend in progress!`);
+}
+
+function handleSignIn() {
+  const email = document.getElementById('signin-email')?.value?.trim();
+  const pw = document.getElementById('signin-password')?.value;
+  const errEl = document.getElementById('signin-error');
+
+  if (!email || !pw) {
+    if (errEl) { errEl.textContent = 'Please enter your email and password.'; errEl.style.display = 'block'; }
+    return;
+  }
+
+  // Demo: check sessionStorage for a registered account
+  try {
+    const reg = JSON.parse(sessionStorage.getItem('es_registered') || 'null');
+    if (reg && reg.email === email && reg.password === pw) {
+      saveUser(reg);
+      showToast('👋 Welcome back, ' + (reg.first || 'friend') + '!');
+      return;
+    }
+  } catch(e) {}
+
+  if (errEl) { errEl.textContent = 'No account found. Create one below.'; errEl.style.display = 'block'; }
+}
+
+function handleSignUp() {
+  const first = document.getElementById('signup-first')?.value?.trim();
+  const last = document.getElementById('signup-last')?.value?.trim();
+  const email = document.getElementById('signup-email')?.value?.trim();
+  const pw = document.getElementById('signup-password')?.value;
+  const username = document.getElementById('signup-username')?.value?.trim();
+  const errEl = document.getElementById('signup-error');
+
+  if (!first || !email || !pw || !username) {
+    if (errEl) { errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; }
+    return;
+  }
+  if (pw.length < 8) {
+    if (errEl) { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = 'block'; }
+    return;
+  }
+
+  const user = { first, last, email, username, password: pw, strands: [], createdAt: Date.now() };
+  try {
+    sessionStorage.setItem('es_registered', JSON.stringify(user));
+  } catch(e) {}
+  saveUser(user);
+  showToast('✨ Account created! Welcome to Eventstrand, ' + first + '!');
+}
+
+function handleSignOut() {
+  currentUser = null;
+  try { sessionStorage.removeItem('es_user'); } catch(e) {}
+  renderAuthState();
+  showToast('👋 Signed out. See you next time!');
+}
+
+// Password strength meter
+function checkPasswordStrength(pw) {
+  const bar = document.getElementById('pw-bar');
+  const label = document.getElementById('pw-label');
+  if (!bar || !label) return;
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const levels = [
+    { w: '0%',   color: 'var(--border)',  text: '' },
+    { w: '25%',  color: '#FF6B6B',        text: 'Weak' },
+    { w: '50%',  color: '#FFD166',        text: 'Fair' },
+    { w: '75%',  color: '#10DDA8',        text: 'Good' },
+    { w: '100%', color: '#10DDA8',        text: 'Strong 💪' },
+  ];
+  const lvl = levels[Math.min(score, 4)];
+  bar.style.width = lvl.w;
+  bar.style.background = lvl.color;
+  label.textContent = lvl.text;
+  label.style.color = lvl.color;
+}
+
+// Username availability (demo)
+let usernameTimer = null;
+function checkUsername(val) {
+  const el = document.getElementById('username-status');
+  if (!el) return;
+  clearTimeout(usernameTimer);
+  if (!val) { el.textContent = ''; return; }
+  el.textContent = 'Checking…';
+  el.style.color = 'var(--text-faint)';
+  usernameTimer = setTimeout(() => {
+    const taken = ['admin','eventstrand','dan','test','user','app','api'].includes(val.toLowerCase());
+    if (taken) {
+      el.textContent = '✗ That username is taken';
+      el.style.color = '#FF6B6B';
+    } else if (!/^[a-zA-Z0-9_-]{3,}$/.test(val)) {
+      el.textContent = 'Letters, numbers, - and _ only (min 3 chars)';
+      el.style.color = '#FFD166';
+    } else {
+      el.textContent = '✓ ' + val + ' is available!';
+      el.style.color = '#10DDA8';
+    }
+  }, 600);
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  buildWheel();
+  renderWheelState();
+  loadUser();
+});
+
 </script>
 </body>
 </html>
