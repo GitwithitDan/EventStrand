@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eventstrand — Your World, When You Need It</title>
-<script src="https://app.termly.io/resource-blocker/fdb61ec0-5721-49c1-a186-8bf457e28455?autoBlock=on"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -3123,8 +3122,10 @@ upcoming.forEach(event => {
     <div class="footer-bottom">
       <div class="footer-copy">© 2026 Eventstrand. The .rcal format is open and free to use.</div>
       <div style="display:flex; align-items:center; gap:20px;">
-        <a href="/privacy-policy.html" style="font-size:13px; color:var(--text-faint); text-decoration:none;">Privacy Policy</a>
-        <a href="#" class="termly-display-preferences" style="font-size:13px; color:var(--text-faint); text-decoration:none;">Consent Preferences</a>
+        <a href="/privacy-policy.html" style="font-size:13px; color:var(--text-faint); text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-faint)'">Privacy Policy</a>
+        <a href="/terms-of-service.html" style="font-size:13px; color:var(--text-faint); text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-faint)'">Terms of Service</a>
+        <a href="/cookie-policy.html" style="font-size:13px; color:var(--text-faint); text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-faint)'">Cookie Policy</a>
+        <a href="#" onclick="openConsentModal();return false;" style="font-size:13px; color:var(--text-faint); text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-faint)'">Consent Preferences</a>
       </div>
       <div class="footer-tagline">Your world, when you need it</div>
     </div>
@@ -3860,12 +3861,156 @@ function checkUsername(val) {
 }
 
 // ── INIT ──
+
+<!-- ══ COOKIE CONSENT BANNER ══ -->
+<div id="cookie-banner" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;width:calc(100% - 48px);max-width:800px;background:#10163a;border:1px solid rgba(108,143,255,0.30);border-radius:16px;padding:24px 28px;box-shadow:0 16px 48px rgba(0,0,0,0.7);font-family:'Outfit',sans-serif;">
+  <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:260px;">
+      <div style="font-size:15px;font-weight:600;color:#ECF0FF;margin-bottom:6px;">🍪 We use cookies</div>
+      <div style="font-size:13px;color:#8290C0;line-height:1.65;">We use cookies to keep you signed in, remember your preferences, and understand how Eventstrand is used. You can accept all, manage your choices, or reject non-essential cookies. See our <a href="/cookie-policy.html" style="color:#6C8FFF;text-decoration:none;">Cookie Policy</a> and <a href="/privacy-policy.html" style="color:#6C8FFF;text-decoration:none;">Privacy Policy</a>.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;min-width:170px;justify-content:center;">
+      <button onclick="acceptAllCookies()" style="background:linear-gradient(135deg,#6C8FFF,#B06FFF);color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;">Accept All</button>
+      <button onclick="openConsentModal()" style="background:transparent;color:#ECF0FF;border:1px solid rgba(100,120,255,0.30);border-radius:8px;padding:10px 20px;font-size:13px;font-family:'Outfit',sans-serif;cursor:pointer;">Manage Preferences</button>
+      <button onclick="rejectAllCookies()" style="background:transparent;color:#454A72;border:none;padding:5px 20px;font-size:12px;font-family:'Outfit',sans-serif;cursor:pointer;">Reject Non-Essential</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONSENT MODAL ══ -->
+<div id="consent-modal" onclick="if(event.target===this)closeConsentModal()" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(4,6,26,0.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+  <div style="background:#10163a;border:1px solid rgba(108,143,255,0.25);border-radius:20px;padding:36px;width:calc(100% - 48px);max-width:520px;max-height:90vh;overflow-y:auto;font-family:'Outfit',sans-serif;">
+    <div style="font-family:'Fraunces',serif;font-size:22px;color:#ECF0FF;margin-bottom:6px;">Consent Preferences</div>
+    <div style="font-size:13px;color:#8290C0;margin-bottom:28px;line-height:1.65;">Control which cookies Eventstrand may use. Strictly necessary cookies are always on — they make the site work.</div>
+
+    <!-- Necessary -->
+    <div style="border:1px solid rgba(100,120,255,0.15);border-radius:12px;padding:18px 20px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:14px;font-weight:600;color:#ECF0FF;">Strictly Necessary</span>
+        <span style="font-size:11px;color:#454A72;background:#0b0d26;border-radius:6px;padding:3px 10px;letter-spacing:0.02em;">Always On</span>
+      </div>
+      <div style="font-size:13px;color:#8290C0;line-height:1.6;">Authentication, session management, CSRF protection, and core site functionality.</div>
+    </div>
+
+    <!-- Analytics -->
+    <div style="border:1px solid rgba(100,120,255,0.15);border-radius:12px;padding:18px 20px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:14px;font-weight:600;color:#ECF0FF;">Analytics</span>
+        <div id="toggle-analytics" onclick="togglePref('analytics')" style="width:44px;height:24px;border-radius:12px;border:1px solid rgba(100,120,255,0.3);background:#0b0d26;position:relative;cursor:pointer;transition:all 0.2s;">
+          <div id="knob-analytics" style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:#454A72;transition:all 0.2s;"></div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:#8290C0;line-height:1.6;">Helps us understand how visitors use Eventstrand so we can improve the experience. No data is sold.</div>
+    </div>
+
+    <!-- Preferences -->
+    <div style="border:1px solid rgba(100,120,255,0.15);border-radius:12px;padding:18px 20px;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:14px;font-weight:600;color:#ECF0FF;">Preferences</span>
+        <div id="toggle-preferences" onclick="togglePref('preferences')" style="width:44px;height:24px;border-radius:12px;border:1px solid rgba(100,120,255,0.3);background:#0b0d26;position:relative;cursor:pointer;transition:all 0.2s;">
+          <div id="knob-preferences" style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:#454A72;transition:all 0.2s;"></div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:#8290C0;line-height:1.6;">Remembers your UI settings, theme choices, and layout preferences across sessions.</div>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+      <button onclick="saveConsentPrefs()" style="flex:1;background:linear-gradient(135deg,#6C8FFF,#B06FFF);color:#fff;border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;">Save Preferences</button>
+      <button onclick="closeConsentModal()" style="background:transparent;color:#8290C0;border:1px solid rgba(100,120,255,0.2);border-radius:8px;padding:13px 20px;font-size:14px;font-family:'Outfit',sans-serif;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── COOKIE CONSENT ENGINE ──
+const CONSENT_KEY = 'es_consent_v1';
+const toggleStates = { analytics: false, preferences: false };
+
+function initCookieConsent() {
+  const stored = localStorage.getItem(CONSENT_KEY);
+  if (!stored) {
+    setTimeout(() => { document.getElementById('cookie-banner').style.display = 'flex'; }, 900);
+  } else {
+    applyConsent(JSON.parse(stored));
+  }
+}
+
+function acceptAllCookies() {
+  savePrefs({ necessary: true, analytics: true, preferences: true });
+  hideBanner();
+  showToast('✅ All cookies accepted');
+}
+
+function rejectAllCookies() {
+  savePrefs({ necessary: true, analytics: false, preferences: false });
+  hideBanner();
+  showToast('🚫 Non-essential cookies rejected');
+}
+
+function hideBanner() {
+  document.getElementById('cookie-banner').style.display = 'none';
+}
+
+function openConsentModal() {
+  hideBanner();
+  const stored = localStorage.getItem(CONSENT_KEY);
+  if (stored) {
+    const p = JSON.parse(stored);
+    setToggle('analytics', !!p.analytics);
+    setToggle('preferences', !!p.preferences);
+  } else {
+    setToggle('analytics', false);
+    setToggle('preferences', false);
+  }
+  document.getElementById('consent-modal').style.display = 'flex';
+}
+
+function closeConsentModal() {
+  document.getElementById('consent-modal').style.display = 'none';
+}
+
+function saveConsentPrefs() {
+  savePrefs({ necessary: true, analytics: toggleStates.analytics, preferences: toggleStates.preferences });
+  closeConsentModal();
+  showToast('✅ Preferences saved');
+}
+
+function savePrefs(prefs) {
+  localStorage.setItem(CONSENT_KEY, JSON.stringify(prefs));
+  applyConsent(prefs);
+}
+
+function applyConsent(prefs) {
+  // Wire analytics/preferences scripts here when ready
+}
+
+function togglePref(name) {
+  setToggle(name, !toggleStates[name]);
+}
+
+function setToggle(name, on) {
+  toggleStates[name] = on;
+  const track = document.getElementById('toggle-' + name);
+  const knob = document.getElementById('knob-' + name);
+  if (on) {
+    track.style.background = 'rgba(108,143,255,0.22)';
+    track.style.borderColor = 'rgba(108,143,255,0.6)';
+    knob.style.background = '#6C8FFF';
+    knob.style.left = '24px';
+  } else {
+    track.style.background = '#0b0d26';
+    track.style.borderColor = 'rgba(100,120,255,0.3)';
+    knob.style.background = '#454A72';
+    knob.style.left = '4px';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   buildWheel();
   renderWheelState();
   loadUser();
+  initCookieConsent();
 });
-
 </script>
 </body>
 </html>
