@@ -1663,7 +1663,8 @@ footer {
   <ul class="nav-links">
     <li><a href="#concept">About</a></li>
     <li><a href="#how">How It Works</a></li>
-    <li><a href="#format">.rcal Format</a></li>
+    <li><a href="#portal-demo">Portal</a></li>
+          <li><a href="#format">.rcal Format</a></li>
     <li><a href="#builder">Builder</a></li>
     <li><a href="#library">Library</a></li>
     <li><a href="#developer">Developers</a></li>
@@ -2075,6 +2076,13 @@ footer {
         </div>
       </div>
 
+      <div class="format-feature">
+        <div class="format-feature-icon fi-purple">🗓</div>
+        <div>
+          <h4>Specific &amp; irregular dates</h4>
+          <p>Not everything recurs on a pattern. Use the <code style="background:rgba(108,143,255,0.12);color:var(--primary);padding:1px 6px;border-radius:4px;">dates</code> pattern to list any set of one-off dates — each with its own location, address, and time. Perfect for popup series, conference circuits, seasonal markets, multi-city events, or anything else that doesn't follow a fixed schedule. Add future dates to an existing file without rebuilding from scratch.</p>
+        </div>
+      </div>
       <div style="margin-top:8px;">
         <a href="#developer" class="btn btn-outline-primary">Read Full Spec →</a>
       </div>
@@ -2161,6 +2169,86 @@ footer {
   ]
 }</pre>
     </div>
+  </div>
+
+  <!-- SPECIFIC DATES EXAMPLE -->
+  <div style="margin-top:48px;">
+    <div class="section-label" style="margin-bottom:16px;">Specific Dates Example</div>
+    <div class="code-block">
+      <div class="code-topbar">
+        <span class="code-file">popup-series.rcal</span>
+        <span class="code-badge">v0.1 — dates pattern</span>
+      </div>
+      <pre><span class="c-comment">// Any event with distinct dates at different locations</span>
+{
+  <span class="c-key">"rcal"</span>: <span class="c-str">"0.1"</span>,
+  <span class="c-key">"meta"</span>: {
+    <span class="c-key">"title"</span>: <span class="c-str">"Sunset Night Market — Spring 2026"</span>,
+    <span class="c-key">"type"</span>: <span class="c-str">"event"</span>,
+    <span class="c-key">"timezone"</span>: <span class="c-str">"America/New_York"</span>,
+    <span class="c-key">"live"</span>: <span class="c-bool">true</span>,
+    <span class="c-key">"live_url"</span>: <span class="c-str">"https://sunsetmarkets.com/spring-2026.rcal"</span>,
+    <span class="c-key">"color"</span>: <span class="c-str">"#6C8FFF"</span>
+  },
+  <span class="c-key">"strands"</span>: [
+    {
+      <span class="c-key">"id"</span>: <span class="c-str">"spring-2026-dates"</span>,
+      <span class="c-key">"name"</span>: <span class="c-str">"Spring 2026 Dates"</span>,
+      <span class="c-key">"category"</span>: <span class="c-str">"music"</span>,
+      <span class="c-key">"vibe_tags"</span>: [<span class="c-str">"social"</span>, <span class="c-str">"celebratory"</span>],
+      <span class="c-key">"price"</span>: <span class="c-str">"ticketed"</span>,
+      <span class="c-key">"ticket_url"</span>: <span class="c-str">"https://themidnight.com/tickets"</span>,
+      <span class="c-key">"recurrence"</span>: [
+        {
+          <span class="c-key">"pattern"</span>: <span class="c-str">"dates"</span>,
+          <span class="c-comment">// Each entry is a fully independent show with its own venue</span>
+          <span class="c-key">"dates"</span>: [
+            {
+              <span class="c-key">"date"</span>: <span class="c-str">"2026-04-18"</span>,
+              <span class="c-key">"time_start"</span>: <span class="c-str">"20:00"</span>,
+              <span class="c-key">"time_end"</span>: <span class="c-str">"23:30"</span>,
+              <span class="c-key">"venue"</span>: {
+                <span class="c-key">"name"</span>: <span class="c-str">"The Lot at Industry City"</span>,
+                <span class="c-key">"address"</span>: <span class="c-str">"220 36th St"</span>,
+                <span class="c-key">"city"</span>: <span class="c-str">"Brooklyn"</span>,
+                <span class="c-key">"state"</span>: <span class="c-str">"NY"</span>,
+                <span class="c-key">"country"</span>: <span class="c-str">"US"</span>,
+                <span class="c-key">"lat"</span>: <span class="c-num">40.7215</span>,
+                <span class="c-key">"lng"</span>: <span class="c-num">-73.9438</span>
+              }
+            },
+            {
+              <span class="c-key">"date"</span>: <span class="c-str">"2026-04-22"</span>,
+              <span class="c-key">"time_start"</span>: <span class="c-str">"20:00"</span>,
+              <span class="c-key">"venue"</span>: {
+                <span class="c-key">"name"</span>: <span class="c-str">"Reading Terminal Market Pavilion"</span>,
+                <span class="c-key">"address"</span>: <span class="c-str">"51 N 12th St"</span>,
+                <span class="c-key">"city"</span>: <span class="c-str">"Philadelphia"</span>,
+                <span class="c-key">"state"</span>: <span class="c-str">"PA"</span>,
+                <span class="c-key">"country"</span>: <span class="c-str">"US"</span>
+              }
+            },
+            {
+              <span class="c-key">"date"</span>: <span class="c-str">"2026-05-03"</span>,
+              <span class="c-key">"time_start"</span>: <span class="c-str">"21:00"</span>,
+              <span class="c-key">"venue"</span>: {
+                <span class="c-key">"name"</span>: <span class="c-str">"Millennium Park Great Lawn"</span>,
+                <span class="c-key">"address"</span>: <span class="c-str">"201 E Randolph St"</span>,
+                <span class="c-key">"city"</span>: <span class="c-str">"Chicago"</span>,
+                <span class="c-key">"state"</span>: <span class="c-str">"IL"</span>,
+                <span class="c-key">"country"</span>: <span class="c-str">"US"</span>
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}</pre>
+    </div>
+    <p style="font-size:13px;color:var(--text-faint);margin-top:12px;">
+      Because <code style="color:var(--primary)">live: true</code> is set with a <code style="color:var(--primary)">live_url</code>, new dates can be pushed to the hosted <code style="color:var(--primary)">.rcal</code> file as locations are confirmed — all subscribers auto-refresh without any action on their end.
+    </p>
   </div>
 </section>
 
@@ -2326,6 +2414,7 @@ footer {
                       <option value="daily">Every day</option>
                       <option value="annual">Once a year</option>
                       <option value="once">Just once</option>
+                      <option value="specific_dates">Specific dates (irregular schedule)</option>
                     </select>
                   </div>
                   <div class="rule-row" id="days-row-0">
@@ -2386,6 +2475,38 @@ footer {
                       <option>Jul</option><option>Aug</option><option>Sep</option>
                       <option>Oct</option><option>Nov</option><option>Dec</option>
                     </select>
+                  </div>
+
+                  <!-- SPECIFIC DATES UI -->
+                  <div id="specific-dates-panel" style="display:none;flex-direction:column;gap:0;width:100%;">
+                    <div style="font-size:13px;color:var(--text-dim);margin-bottom:14px;line-height:1.6;">
+                      Add each date individually. Each entry can have its own location, address, and time — useful for any schedule that doesn't follow a fixed pattern.
+                    </div>
+                    <div id="specific-dates-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
+                    <button onclick="addSpecificDate()" style="
+                      background:transparent;border:1px dashed rgba(108,143,255,0.35);
+                      border-radius:8px;color:var(--primary);font-size:13px;font-weight:500;
+                      font-family:'Outfit',sans-serif;padding:10px;cursor:pointer;
+                      transition:all 0.2s;width:100%;
+                    " onmouseover="this.style.background='rgba(108,143,255,0.08)'" onmouseout="this.style.background='transparent'">
+                      + Add Date
+                    </button>
+
+                    <!-- EXTEND EXISTING FILE -->
+                    <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
+                      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">📂 Extend an existing .rcal file</div>
+                      <div style="font-size:12px;color:var(--text-faint);margin-bottom:10px;">Drop a previously downloaded .rcal below to load its existing dates. Then add your new confirmed dates above and re-download.</div>
+                      <label style="
+                        display:flex;align-items:center;justify-content:center;gap:8px;
+                        border:1px dashed rgba(100,120,255,0.25);border-radius:8px;
+                        padding:12px;cursor:pointer;font-size:13px;color:var(--text-dim);
+                        transition:all 0.2s;
+                      " onmouseover="this.style.background='rgba(108,143,255,0.06)'" onmouseout="this.style.background=''">
+                        📁 Drop .rcal file here or click to browse
+                        <input type="file" accept=".rcal,.json" onchange="loadExistingRcal(event)" style="display:none;">
+                      </label>
+                      <div id="loaded-rcal-info" style="display:none;margin-top:8px;font-size:12px;color:var(--green);padding:8px 12px;background:rgba(17,219,166,0.08);border-radius:6px;border:1px solid rgba(17,219,166,0.2);"></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2688,6 +2809,552 @@ footer {
     </div>
   </div>
 </section>
+
+
+<div class="divider"></div>
+
+<!-- ══ PORTAL DEMO ══ -->
+<section id="portal-demo" style="padding:80px 0;">
+  <div class="section-inner" style="max-width:1200px;margin:0 auto;padding:0 32px;">
+    <div class="section-label">Your Portal</div>
+    <h2 class="section-title">See everything,<br>filter to what matters</h2>
+    <p class="section-sub" style="margin-bottom:48px;">Subscribe to as many strands as you want. Use the calendar to see what's coming up — then filter down by category or hide individual strands to cut the noise.</p>
+
+    <!-- PORTAL DEMO SHELL -->
+    <div id="portal-shell" style="
+      background:#07091f;
+      border:1px solid rgba(100,120,255,0.18);
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:0 24px 80px rgba(0,0,0,0.5);
+      min-height:620px;
+      display:flex;
+      flex-direction:column;
+    ">
+
+      <!-- TOP BAR -->
+      <div style="
+        background:#0b0d26;
+        border-bottom:1px solid rgba(100,120,255,0.14);
+        padding:14px 20px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        flex-wrap:wrap;
+        gap:12px;
+      ">
+        <!-- Category filters -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;" id="cat-filters">
+          <span style="font-size:12px;color:var(--text-faint);margin-right:4px;font-weight:600;letter-spacing:0.05em;">FILTER</span>
+          <button class="pf-btn pf-active" onclick="setCategoryFilter('all',this)">All</button>
+          <button class="pf-btn" onclick="setCategoryFilter('music',this)">🎵 Music</button>
+          <button class="pf-btn" onclick="setCategoryFilter('food_drink',this)">🍺 Food & Drink</button>
+          <button class="pf-btn" onclick="setCategoryFilter('fitness',this)">🏋 Fitness</button>
+          <button class="pf-btn" onclick="setCategoryFilter('arts',this)">🎨 Arts</button>
+          <button class="pf-btn" onclick="setCategoryFilter('community',this)">🤝 Community</button>
+        </div>
+        <!-- View toggle -->
+        <div style="display:flex;gap:4px;background:#04061a;border-radius:8px;padding:3px;">
+          <button class="pv-btn pv-active" onclick="setView('day',this)">Day</button>
+          <button class="pv-btn" onclick="setView('week',this)">Week</button>
+          <button class="pv-btn" onclick="setView('month',this)">Month</button>
+        </div>
+      </div>
+
+      <!-- BODY: SIDEBAR + CALENDAR -->
+      <div style="display:flex;flex:1;min-height:560px;">
+
+        <!-- SIDEBAR -->
+        <div id="portal-sidebar" style="
+          width:220px;min-width:180px;
+          background:#08091e;
+          border-right:1px solid rgba(100,120,255,0.12);
+          padding:16px 0;
+          overflow-y:auto;
+          flex-shrink:0;
+        ">
+          <div style="padding:0 14px 10px;font-size:11px;font-weight:700;letter-spacing:0.08em;color:var(--text-faint);">MY STRANDS</div>
+          <div id="strand-list"></div>
+        </div>
+
+        <!-- CALENDAR AREA -->
+        <div style="flex:1;overflow:auto;display:flex;flex-direction:column;">
+
+          <!-- Date nav -->
+          <div style="
+            padding:12px 18px;
+            display:flex;align-items:center;gap:14px;
+            border-bottom:1px solid rgba(100,120,255,0.1);
+            background:#07091f;
+          ">
+            <button onclick="navDate(-1)" style="background:rgba(100,120,255,0.1);border:1px solid rgba(100,120,255,0.2);color:var(--text);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;">‹</button>
+            <span id="cal-date-label" style="font-size:15px;font-weight:600;color:var(--text);min-width:180px;text-align:center;"></span>
+            <button onclick="navDate(1)" style="background:rgba(100,120,255,0.1);border:1px solid rgba(100,120,255,0.2);color:var(--text);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;">›</button>
+            <button onclick="goToday()" style="background:transparent;border:1px solid rgba(100,120,255,0.2);color:var(--text-dim);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">Today</button>
+          </div>
+
+          <!-- Calendar grid -->
+          <div id="cal-grid" style="flex:1;padding:0;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+/* ── PORTAL BUTTONS ── */
+.pf-btn {
+  background:transparent;
+  border:1px solid rgba(100,120,255,0.18);
+  color:var(--text-faint);
+  border-radius:100px;
+  padding:5px 13px;
+  font-size:12px;font-weight:500;
+  font-family:'Outfit',sans-serif;
+  cursor:pointer;
+  transition:all 0.15s;
+  white-space:nowrap;
+}
+.pf-btn:hover { color:var(--text-dim); border-color:rgba(100,120,255,0.35); }
+.pf-active {
+  background:rgba(108,143,255,0.14) !important;
+  border-color:rgba(108,143,255,0.5) !important;
+  color:var(--primary) !important;
+}
+.pv-btn {
+  background:transparent;
+  border:none;
+  color:var(--text-faint);
+  border-radius:6px;
+  padding:5px 13px;
+  font-size:12px;font-weight:500;
+  font-family:'Outfit',sans-serif;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.pv-btn:hover { color:var(--text-dim); }
+.pv-active {
+  background:rgba(108,143,255,0.18) !important;
+  color:var(--primary) !important;
+}
+
+/* ── STRAND SIDEBAR ITEMS ── */
+.strand-item {
+  display:flex;align-items:center;gap:8px;
+  padding:7px 14px;cursor:pointer;
+  transition:background 0.15s;
+  user-select:none;
+}
+.strand-item:hover { background:rgba(100,120,255,0.06); }
+.strand-dot {
+  width:9px;height:9px;border-radius:50%;flex-shrink:0;
+  transition:opacity 0.2s;
+}
+.strand-label {
+  font-size:12px;color:var(--text-dim);flex:1;line-height:1.3;
+  transition:color 0.2s;
+}
+.strand-check {
+  width:15px;height:15px;border-radius:3px;
+  border:1px solid rgba(100,120,255,0.3);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:10px;
+  transition:all 0.15s;
+}
+.strand-item.inactive .strand-label { color:var(--text-faint); }
+.strand-item.inactive .strand-dot { opacity:0.25; }
+.strand-item.inactive .strand-check { border-color:rgba(100,120,255,0.15); }
+
+.cat-group-label {
+  font-size:10px;font-weight:700;letter-spacing:0.08em;
+  color:var(--text-faint);
+  padding:12px 14px 4px;
+  text-transform:uppercase;
+}
+
+/* ── CALENDAR ── */
+.cal-day-col-header {
+  font-size:11px;font-weight:600;color:var(--text-faint);
+  text-align:center;padding:8px 4px;
+  border-right:1px solid rgba(100,120,255,0.07);
+  flex:1;
+}
+.cal-day-col-header.today-col { color:var(--primary); }
+.cal-month-cell {
+  border-right:1px solid rgba(100,120,255,0.07);
+  border-bottom:1px solid rgba(100,120,255,0.07);
+  padding:6px;min-height:90px;flex:1;position:relative;
+  transition:background 0.15s;
+}
+.cal-month-cell:hover { background:rgba(100,120,255,0.04); }
+.cal-month-cell.today-cell { background:rgba(108,143,255,0.06); }
+.cal-month-cell.other-month { opacity:0.4; }
+.cal-day-num {
+  font-size:11px;font-weight:600;color:var(--text-faint);margin-bottom:4px;
+}
+.cal-day-num.today-num {
+  background:var(--primary);color:#fff;
+  width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;
+}
+.cal-event-pill {
+  font-size:11px;font-weight:500;
+  padding:2px 7px;border-radius:4px;
+  margin-bottom:2px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
+  cursor:default;
+  transition:opacity 0.15s;
+}
+.cal-event-pill:hover { opacity:0.85; }
+
+/* Day/Week view */
+.cal-time-label {
+  width:48px;flex-shrink:0;
+  font-size:10px;color:var(--text-faint);
+  text-align:right;padding-right:10px;
+  line-height:1;margin-top:-6px;
+}
+.cal-time-row {
+  display:flex;border-bottom:1px solid rgba(100,120,255,0.06);
+  min-height:48px;
+}
+.cal-time-slot {
+  flex:1;border-left:1px solid rgba(100,120,255,0.07);
+  position:relative;min-height:48px;
+}
+.cal-block-event {
+  position:absolute;left:3px;right:3px;
+  border-radius:5px;padding:3px 6px;
+  font-size:11px;font-weight:500;
+  overflow:hidden;cursor:default;
+  z-index:2;line-height:1.35;
+  transition:opacity 0.15s;
+}
+.cal-block-event:hover { opacity:0.85; }
+
+@media(max-width:700px) {
+  #portal-sidebar { display:none; }
+  .pf-btn { font-size:11px; padding:4px 10px; }
+}
+</style>
+
+<script>
+(function() {
+// ── STRAND DATA ──
+const ALL_STRANDS = [
+  { id:'jazz',     name:'Friday Jazz Night',          cat:'music',      color:'#6C8FFF', recur:{type:'weekly',  days:[5], time:'21:00', dur:150} },
+  { id:'openmic',  name:'Open Mic Comedy',            cat:'music',      color:'#B06FFF', recur:{type:'monthly', week:'second', day:4, time:'20:00', dur:120} },
+  { id:'brunch',   name:'Weekend Brunch Strand',      cat:'food_drink', color:'#FFD166', recur:{type:'weekly',  days:[0,6], time:'11:00', dur:90} },
+  { id:'trivia',   name:'Trivia Night at The Rail',   cat:'food_drink', color:'#4ECDC4', recur:{type:'weekly',  days:[3], time:'19:00', dur:120} },
+  { id:'yoga',     name:'Morning Yoga at the Park',   cat:'fitness',    color:'#11DBA6', recur:{type:'weekly',  days:[1,3,5], time:'07:00', dur:60} },
+  { id:'run',      name:'Sunrise Run Club',           cat:'fitness',    color:'#95E870', recur:{type:'weekly',  days:[6], time:'06:30', dur:75} },
+  { id:'drawing',  name:'Life Drawing Class',         cat:'arts',       color:'#FF6B9D', recur:{type:'weekly',  days:[2], time:'19:00', dur:120} },
+  { id:'gallery',  name:'First Friday Gallery Walk',  cat:'arts',       color:'#FF8B6A', recur:{type:'monthly', week:'first', day:5, time:'18:00', dur:180} },
+  { id:'bookclub', name:'Neighborhood Book Club',     cat:'community',  color:'#A96EFF', recur:{type:'monthly', week:'third', day:6, time:'14:00', dur:90} },
+  { id:'market',   name:'Farmers Market',             cat:'community',  color:'#FFB347', recur:{type:'weekly',  days:[0], time:'09:00', dur:180} },
+];
+
+const CAT_LABELS = {
+  music:'🎵 Music', food_drink:'🍺 Food & Drink',
+  fitness:'🏋 Fitness', arts:'🎨 Arts', community:'🤝 Community'
+};
+
+let currentView = 'week';
+let currentCat = 'all';
+let activeStrands = new Set(ALL_STRANDS.map(s => s.id));
+let viewDate = new Date();
+viewDate.setHours(0,0,0,0);
+
+// ── CATEGORY FILTER ──
+window.setCategoryFilter = function(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.pf-btn').forEach(b => b.classList.remove('pf-active'));
+  btn.classList.add('pf-active');
+  // Reset: check all strands in this category (or all if 'all')
+  const relevant = cat === 'all' ? ALL_STRANDS : ALL_STRANDS.filter(s => s.cat === cat);
+  activeStrands = new Set(relevant.map(s => s.id));
+  renderSidebar();
+  renderCalendar();
+};
+
+// ── VIEW TOGGLE ──
+window.setView = function(view, btn) {
+  currentView = view;
+  document.querySelectorAll('.pv-btn').forEach(b => b.classList.remove('pv-active'));
+  btn.classList.add('pv-active');
+  renderCalendar();
+};
+
+// ── DATE NAV ──
+window.navDate = function(dir) {
+  const d = new Date(viewDate);
+  if(currentView === 'day') d.setDate(d.getDate() + dir);
+  else if(currentView === 'week') d.setDate(d.getDate() + dir * 7);
+  else d.setMonth(d.getMonth() + dir);
+  viewDate = d;
+  renderCalendar();
+};
+window.goToday = function() {
+  viewDate = new Date(); viewDate.setHours(0,0,0,0);
+  renderCalendar();
+};
+
+// ── STRAND VISIBILITY TOGGLE ──
+window.toggleStrand = function(id) {
+  if(activeStrands.has(id)) activeStrands.delete(id);
+  else activeStrands.add(id);
+  renderSidebar();
+  renderCalendar();
+};
+
+// ── SIDEBAR RENDER ──
+function renderSidebar() {
+  const list = document.getElementById('strand-list');
+  if(!list) return;
+  const visible = currentCat === 'all' ? ALL_STRANDS : ALL_STRANDS.filter(s => s.cat === currentCat);
+  const byCat = {};
+  visible.forEach(s => { (byCat[s.cat] = byCat[s.cat]||[]).push(s); });
+
+  let html = '';
+  if(currentCat === 'all') {
+    Object.keys(byCat).forEach(cat => {
+      html += `<div class="cat-group-label">${CAT_LABELS[cat]||cat}</div>`;
+      byCat[cat].forEach(s => html += strandItemHtml(s));
+    });
+  } else {
+    visible.forEach(s => html += strandItemHtml(s));
+  }
+  list.innerHTML = html;
+}
+
+function strandItemHtml(s) {
+  const on = activeStrands.has(s.id);
+  return `<div class="strand-item${on?'':' inactive'}" onclick="toggleStrand('${s.id}')">
+    <div class="strand-dot" style="background:${s.color};"></div>
+    <span class="strand-label">${s.name}</span>
+    <div class="strand-check" style="${on?`background:${s.color}22;border-color:${s.color}88;color:${s.color};`:''}">
+      ${on?'✓':''}
+    </div>
+  </div>`;
+}
+
+// ── EVENT GENERATION ──
+function getEventsForRange(start, end) {
+  const events = [];
+  const visible = currentCat === 'all' ? ALL_STRANDS : ALL_STRANDS.filter(s => s.cat === currentCat);
+  visible.forEach(strand => {
+    if(!activeStrands.has(strand.id)) return;
+    const r = strand.recur;
+    const cur = new Date(start);
+    while(cur <= end) {
+      let match = false;
+      if(r.type === 'weekly' && r.days.includes(cur.getDay())) match = true;
+      if(r.type === 'monthly') {
+        const dayOfWeek = cur.getDay();
+        if(dayOfWeek === r.day) {
+          const nth = Math.ceil(cur.getDate() / 7);
+          const weekMap = {first:1, second:2, third:3, fourth:4};
+          const lastDay = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+          const lastMatch = dayOfWeek === lastDay.getDay() ? 'last' : null;
+          if(r.week === 'last' ? (lastMatch || false) : weekMap[r.week] === nth) match = true;
+        }
+      }
+      if(match) {
+        const [h, m] = r.time.split(':').map(Number);
+        const evStart = new Date(cur);
+        evStart.setHours(h, m, 0, 0);
+        const evEnd = new Date(evStart.getTime() + (r.dur||60)*60000);
+        events.push({
+          strand, name: strand.name, color: strand.color,
+          start: evStart, end: evEnd,
+          startHour: h + m/60, durHours: r.dur/60
+        });
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+  return events;
+}
+
+// ── CALENDAR RENDER ──
+function renderCalendar() {
+  updateDateLabel();
+  if(currentView === 'month') renderMonth();
+  else if(currentView === 'week') renderWeek();
+  else renderDay();
+}
+
+function updateDateLabel() {
+  const el = document.getElementById('cal-date-label');
+  if(!el) return;
+  const opts = currentView === 'month'
+    ? {month:'long', year:'numeric'}
+    : currentView === 'week'
+    ? {}
+    : {weekday:'long', month:'long', day:'numeric', year:'numeric'};
+
+  if(currentView === 'week') {
+    const wStart = weekStart(viewDate);
+    const wEnd = new Date(wStart); wEnd.setDate(wStart.getDate()+6);
+    const fmt = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    el.textContent = `${fmt(wStart)} – ${fmt(wEnd)}, ${wStart.getFullYear()}`;
+  } else {
+    el.textContent = viewDate.toLocaleDateString('en-US', opts);
+  }
+}
+
+function weekStart(d) {
+  const s = new Date(d);
+  s.setDate(d.getDate() - d.getDay());
+  s.setHours(0,0,0,0);
+  return s;
+}
+
+function isToday(d) {
+  const t = new Date(); 
+  return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate();
+}
+
+// ── MONTH VIEW ──
+function renderMonth() {
+  const grid = document.getElementById('cal-grid');
+  const y = viewDate.getFullYear(), mo = viewDate.getMonth();
+  const first = new Date(y, mo, 1);
+  const last = new Date(y, mo+1, 0);
+  const startDay = first.getDay();
+  const rangeStart = new Date(first); rangeStart.setDate(1 - startDay);
+  const rangeEnd = new Date(last); 
+  const cells = Math.ceil((startDay + last.getDate()) / 7) * 7;
+  rangeEnd.setDate(last.getDate() + (cells - startDay - last.getDate()));
+
+  const events = getEventsForRange(rangeStart, rangeEnd);
+  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  let html = `<div style="display:grid;grid-template-columns:repeat(7,1fr);border-top:1px solid rgba(100,120,255,0.1);">`;
+  DOW.forEach(d => html += `<div class="cal-day-col-header">${d}</div>`);
+  html += `</div><div style="display:grid;grid-template-columns:repeat(7,1fr);flex:1;">`;
+
+  const cur = new Date(rangeStart);
+  for(let i = 0; i < cells; i++) {
+    const cellDate = new Date(cur);
+    const today = isToday(cellDate);
+    const otherMonth = cellDate.getMonth() !== mo;
+    const cellEvents = events.filter(e => {
+      return e.start.getFullYear()===cellDate.getFullYear()
+          && e.start.getMonth()===cellDate.getMonth()
+          && e.start.getDate()===cellDate.getDate();
+    }).sort((a,b)=>a.start-b.start);
+
+    html += `<div class="cal-month-cell${today?' today-cell':''}${otherMonth?' other-month':''}">`;
+    if(today) html += `<div class="cal-day-num"><div class="today-num">${cellDate.getDate()}</div></div>`;
+    else html += `<div class="cal-day-num">${cellDate.getDate()}</div>`;
+    
+    cellEvents.slice(0,3).forEach(ev => {
+      html += `<div class="cal-event-pill" style="background:${ev.color}22;color:${ev.color};border-left:2px solid ${ev.color};" title="${ev.name} ${formatTime(ev.start)}">${formatTime(ev.start)} ${ev.name}</div>`;
+    });
+    if(cellEvents.length > 3) html += `<div style="font-size:10px;color:var(--text-faint);padding-left:2px;">+${cellEvents.length-3} more</div>`;
+    html += `</div>`;
+    cur.setDate(cur.getDate()+1);
+  }
+  html += `</div>`;
+  grid.innerHTML = html;
+}
+
+// ── WEEK VIEW ──
+function renderWeek() {
+  const grid = document.getElementById('cal-grid');
+  const ws = weekStart(viewDate);
+  const days = Array.from({length:7}, (_,i) => { const d=new Date(ws); d.setDate(ws.getDate()+i); return d; });
+  const we = new Date(days[6]); we.setHours(23,59,59);
+  const events = getEventsForRange(ws, we);
+
+  const DOW_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html = `<div style="display:flex;border-bottom:1px solid rgba(100,120,255,0.12);">
+    <div style="width:48px;flex-shrink:0;"></div>`;
+  days.forEach(d => {
+    const today = isToday(d);
+    html += `<div class="cal-day-col-header${today?' today-col':''}" style="flex:1;">
+      <div>${DOW_SHORT[d.getDay()]}</div>
+      <div style="font-size:18px;font-weight:700;${today?'color:var(--primary)':''}">${d.getDate()}</div>
+    </div>`;
+  });
+  html += `</div><div style="overflow-y:auto;max-height:460px;">`;
+
+  for(let h=6; h<24; h++) {
+    html += `<div class="cal-time-row">`;
+    html += `<div class="cal-time-label">${h===12?'12pm':h>12?`${h-12}pm`:`${h}am`}</div>`;
+    days.forEach(day => {
+      const slotEvents = events.filter(ev => {
+        return ev.start.getFullYear()===day.getFullYear()
+            && ev.start.getMonth()===day.getMonth()
+            && ev.start.getDate()===day.getDate()
+            && ev.start.getHours() === h;
+      });
+      html += `<div class="cal-time-slot">`;
+      slotEvents.forEach(ev => {
+        const top = (ev.start.getMinutes()/60)*48;
+        const height = Math.max(20, ev.durHours*48 - 2);
+        html += `<div class="cal-block-event" style="top:${top}px;height:${height}px;background:${ev.color}22;color:${ev.color};border-left:2px solid ${ev.color};" title="${ev.name}">
+          <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
+          <div style="font-size:10px;opacity:0.8;">${formatTime(ev.start)}–${formatTime(ev.end)}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  grid.innerHTML = html;
+}
+
+// ── DAY VIEW ──
+function renderDay() {
+  const grid = document.getElementById('cal-grid');
+  const dayEnd = new Date(viewDate); dayEnd.setHours(23,59,59);
+  const events = getEventsForRange(viewDate, dayEnd)
+    .filter(ev => ev.start.toDateString() === viewDate.toDateString())
+    .sort((a,b) => a.start-b.start);
+
+  let html = `<div style="overflow-y:auto;max-height:520px;padding:8px 0;">`;
+  for(let h=6; h<24; h++) {
+    const slotEvents = events.filter(ev => ev.start.getHours() === h);
+    html += `<div class="cal-time-row">`;
+    html += `<div class="cal-time-label">${h===12?'12pm':h>12?`${h-12}pm`:`${h}am`}</div>`;
+    html += `<div class="cal-time-slot" style="flex:1;">`;
+    slotEvents.forEach(ev => {
+      const top = (ev.start.getMinutes()/60)*48;
+      const height = Math.max(24, ev.durHours*48 - 4);
+      html += `<div class="cal-block-event" style="top:${top}px;height:${height}px;background:${ev.color}22;color:${ev.color};border-left:3px solid ${ev.color};padding:5px 10px;" title="${ev.name}">
+        <div style="font-size:13px;font-weight:600;">${ev.name}</div>
+        <div style="font-size:11px;opacity:0.75;margin-top:1px;">${formatTime(ev.start)} – ${formatTime(ev.end)} · ${ev.strand.cat.replace('_',' ')}</div>
+      </div>`;
+    });
+    if(slotEvents.length === 0 && events.length === 0 && h === 12) {
+      html += `<div style="padding:10px;font-size:13px;color:var(--text-faint);font-style:italic;">Nothing scheduled — try checking more strands in the sidebar.</div>`;
+    }
+    html += `</div></div>`;
+  }
+  html += `</div>`;
+  grid.innerHTML = html;
+}
+
+function formatTime(d) {
+  let h = d.getHours(), m = d.getMinutes();
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  return `${h}${m?':'+String(m).padStart(2,'0'):''}${ampm}`;
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  renderSidebar();
+  renderCalendar();
+});
+
+})();
+</script>
+
 
 <div class="divider"></div>
 
@@ -3147,6 +3814,8 @@ let selectedCategory = '';
 let selectedVibes = [];
 let ruleCount = 1;
 const totalSteps = 7;
+let specificDates = []; // [{date,timeStart,timeEnd,venueName,venueAddress,venueCity,venueState}]
+let loadedRcalMeta = null; // stores meta from a loaded .rcal for extend-flow
 
 // ── STEP NAV ──
 function gotoStep(n) {
@@ -3389,11 +4058,161 @@ function updateRuleType(sel, ruleIdx) {
   const daysRow = document.getElementById(`days-row-${ruleIdx}`);
   const monthWeekRow = document.getElementById(`month-week-row-${ruleIdx}`);
   const monthDateRow = document.getElementById(`month-date-row-${ruleIdx}`);
+  const seasonRow = document.getElementById(`season-row-${ruleIdx}`);
+  const specificPanel = document.getElementById('specific-dates-panel');
+  const timeRows = sel.closest('.rule-card-body').querySelectorAll('.rule-row:not([id])');
 
+  const isSpecific = val === 'specific_dates';
   if(daysRow) daysRow.style.display = ['weekly','weekly2'].includes(val) ? 'flex' : 'none';
   if(monthWeekRow) monthWeekRow.style.display = val === 'monthly_week' ? 'flex' : 'none';
   if(monthDateRow) monthDateRow.style.display = val === 'monthly_date' ? 'flex' : 'none';
-  updateUpcoming();
+  if(seasonRow) seasonRow.style.display = isSpecific ? 'none' : 'flex';
+  // hide global time row when using specific dates (each date has its own time)
+  timeRows.forEach(r => { if(r.querySelector('input[type="time"]')) r.style.display = isSpecific ? 'none' : 'flex'; });
+  if(specificPanel) specificPanel.style.display = isSpecific ? 'flex' : 'none';
+  if(!isSpecific) updateUpcoming();
+}
+
+// ── SPECIFIC DATE ENTRIES ──
+let sdCount = 0;
+function addSpecificDate(prefill) {
+  sdCount++;
+  const id = sdCount;
+  specificDates.push({ id, date: prefill?.date||'', timeStart: prefill?.timeStart||'20:00', timeEnd: prefill?.timeEnd||'23:30', venueName: prefill?.venueName||'', venueAddress: prefill?.venueAddress||'', venueCity: prefill?.venueCity||'', venueState: prefill?.venueState||'' });
+  renderSpecificDates();
+}
+
+function removeSpecificDate(id) {
+  specificDates = specificDates.filter(d => d.id !== id);
+  renderSpecificDates();
+}
+
+function updateSpecificDate(id, field, value) {
+  const entry = specificDates.find(d => d.id === id);
+  if(entry) entry[field] = value;
+}
+
+function renderSpecificDates() {
+  const list = document.getElementById('specific-dates-list');
+  if(!list) return;
+  list.innerHTML = '';
+  specificDates.forEach((d, idx) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'background:#0b0d26;border:1px solid rgba(100,120,255,0.18);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;';
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+        <span style="font-size:12px;font-weight:600;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase;">Date ${idx+1}</span>
+        <button onclick="removeSpecificDate(${d.id})" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:15px;line-height:1;padding:0;">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px;">Date</div>
+          <input type="date" value="${d.date}" oninput="updateSpecificDate(${d.id},'date',this.value)"
+            style="width:100%;background:#10163a;border:1px solid rgba(100,120,255,0.2);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px;font-family:'Outfit',sans-serif;color-scheme:dark;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px;">Start time</div>
+          <input type="time" value="${d.timeStart}" oninput="updateSpecificDate(${d.id},'timeStart',this.value)"
+            style="width:100%;background:#10163a;border:1px solid rgba(100,120,255,0.2);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px;font-family:'Outfit',sans-serif;color-scheme:dark;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px;">End time</div>
+          <input type="time" value="${d.timeEnd}" oninput="updateSpecificDate(${d.id},'timeEnd',this.value)"
+            style="width:100%;background:#10163a;border:1px solid rgba(100,120,255,0.2);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px;font-family:'Outfit',sans-serif;color-scheme:dark;">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px;">Location / Venue</div>
+          <input type="text" value="${d.venueName}" placeholder="e.g. Central Park, The Roxy, Room 101" oninput="updateSpecificDate(${d.id},'venueName',this.value)"
+            style="width:100%;background:#10163a;border:1px solid rgba(100,120,255,0.2);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px;font-family:'Outfit',sans-serif;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px;">Street Address</div>
+          <input type="text" value="${d.venueAddress}" placeholder="Street address (optional)" oninput="updateSpecificDate(${d.id},'venueAddress',this.value)"
+            style="width:100%;background:#10163a;border:1px solid rgba(100,120,255,0.2);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px;font-family:'Outfit',sans-serif;">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px;">City</div>
+          <input type="text" value="${d.venueCity}" placeholder="Los Angeles" oninput="updateSpecificDate(${d.id},'venueCity',this.value)"
+            style="width:100%;background:#10163a;border:1px solid rgba(100,120,255,0.2);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px;font-family:'Outfit',sans-serif;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px;">State / Region</div>
+          <input type="text" value="${d.venueState}" placeholder="CA" oninput="updateSpecificDate(${d.id},'venueState',this.value)"
+            style="width:100%;background:#10163a;border:1px solid rgba(100,120,255,0.2);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px;font-family:'Outfit',sans-serif;">
+        </div>
+      </div>`;
+    list.appendChild(div);
+  });
+  // update the upcoming-preview with dates
+  const upList = document.getElementById('upcoming-list');
+  if(upList && specificDates.length) {
+    const sorted = [...specificDates].filter(d=>d.date).sort((a,b)=>a.date.localeCompare(b.date));
+    upList.innerHTML = sorted.slice(0,6).map(d => {
+      const dt = new Date(d.date + 'T12:00:00');
+      const label = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+      return `<div class="upcoming-item"><span>${label}</span><span style="color:var(--text-faint)">${d.venueName||'Location TBD'} ${d.venueCity ? '· '+d.venueCity : ''}</span></div>`;
+    }).join('');
+  }
+}
+
+// ── LOAD EXISTING .RCAL FOR EXTEND FLOW ──
+function loadExistingRcal(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!data.rcal) throw new Error('Not a valid .rcal file');
+
+      // Pre-fill meta fields
+      if(data.meta?.title) document.getElementById('strand-name').value = data.meta.title;
+      if(data.meta?.color) document.getElementById('strand-color').value = data.meta.color;
+      if(data.meta?.type) selectedType = data.meta.type;
+      loadedRcalMeta = data.meta;
+
+      // Load existing specific dates
+      const strand = data.strands?.[0];
+      if(strand) {
+        if(strand.name) document.getElementById('event-name').value = strand.name;
+        const dateRule = strand.recurrence?.find(r => r.pattern === 'dates');
+        if(dateRule?.dates?.length) {
+          specificDates = [];
+          sdCount = 0;
+          dateRule.dates.forEach(d => {
+            addSpecificDate({
+              date: d.date,
+              timeStart: d.time_start || '20:00',
+              timeEnd: d.time_end || '23:30',
+              venueName: d.venue?.name || '',
+              venueAddress: d.venue?.address || '',
+              venueCity: d.venue?.city || '',
+              venueState: d.venue?.state || ''
+            });
+          });
+        }
+      }
+
+      // Switch rule type to specific_dates
+      const ruleType = document.getElementById('rule-type-0');
+      if(ruleType) { ruleType.value = 'specific_dates'; updateRuleType(ruleType, 0); }
+
+      const infoEl = document.getElementById('loaded-rcal-info');
+      const dateCount = specificDates.length;
+      infoEl.textContent = `✓ Loaded "${data.meta?.title || file.name}" — ${dateCount} existing date${dateCount!==1?'s':''} imported. Add new dates above and re-download.`;
+      infoEl.style.display = 'block';
+
+      updatePreview();
+      showToast(`✅ Loaded ${dateCount} dates from ${file.name}`);
+    } catch(err) {
+      showToast('⚠️ Could not parse that file. Make sure it is a valid .rcal file.');
+    }
+  };
+  reader.readAsText(file);
 }
 
 function toggleDay(btn, ruleIdx, day) {
@@ -3424,6 +4243,7 @@ function addRule() {
           <option value="daily">Every day</option>
           <option value="annual">Once a year</option>
           <option value="once">Just once</option>
+          <option value="specific_dates">Specific dates (irregular schedule)</option>
         </select>
       </div>
       <div class="rule-row" id="days-row-${idx}">
@@ -3561,8 +4381,13 @@ function filterStrands(btn, cat) {
 function generateSummary() {
   const name = document.getElementById('strand-name').value || 'Untitled Strand';
   const type = selectedType || 'venue';
-  document.getElementById('strand-summary').textContent = 
-    `"${name}" — ${type} strand with ${ruleCount} time rule${ruleCount>1?'s':''}. Ready to download and share.`;
+  const ruleType = document.getElementById('rule-type-0')?.value;
+  const isSpecific = ruleType === 'specific_dates';
+  const validDates = specificDates.filter(d => d.date);
+  const msg = isSpecific
+    ? `"${name}" — ${type} strand with ${validDates.length} show date${validDates.length!==1?'s':''} across ${[...new Set(validDates.map(d=>d.venueCity).filter(Boolean))].length || validDates.length} venue${validDates.length!==1?'s':''}. Ready to download.`
+    : `"${name}" — ${type} strand with ${ruleCount} time rule${ruleCount>1?'s':''}. Ready to download and share.`;
+  document.getElementById('strand-summary').textContent = msg;
 }
 
 // ── DOWNLOAD RCAL ──
@@ -3612,34 +4437,63 @@ function downloadRcal() {
     lng: null
   } : null;
 
+  const ruleTypeVal = document.getElementById('rule-type-0')?.value || 'weekly';
+  const isSpecificDates = ruleTypeVal === 'specific_dates';
+
+  // Build recurrence array
+  let recurrence;
+  if(isSpecificDates) {
+    const validDates = specificDates.filter(d => d.date).sort((a,b) => a.date.localeCompare(b.date));
+    recurrence = [{
+      pattern: 'dates',
+      dates: validDates.map(d => ({
+        date: d.date,
+        time_start: d.timeStart || '20:00',
+        time_end: d.timeEnd || '23:30',
+        venue: {
+          name: d.venueName || null,
+          address: d.venueAddress || null,
+          city: d.venueCity || null,
+          state: d.venueState || null,
+          country: 'US'
+        }
+      }))
+    }];
+  } else {
+    recurrence = [{
+      pattern: ruleTypeVal === 'weekly2' ? 'weekly' : ruleTypeVal,
+      every: ruleTypeVal === 'weekly2' ? 2 : 1,
+      days: selectedDays.length ? selectedDays : ['friday'],
+      time_start: document.getElementById('rule-start-0')?.value || '21:00',
+      time_end: document.getElementById('rule-end-0')?.value || '23:30'
+    }];
+  }
+
+  // Merge loaded meta if extending
+  const baseMeta = loadedRcalMeta || {};
   const rcal = {
     rcal: "0.1",
     meta: {
+      ...baseMeta,
       title: name,
       type: type,
       color: color,
       ...(locationObj ? { location: locationObj } : {}),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       published: new Date().toISOString().split('T')[0],
-      live: false
+      updated: new Date().toISOString().split('T')[0],
+      live: baseMeta.live || false,
+      ...(baseMeta.live_url ? { live_url: baseMeta.live_url } : {})
     },
     strands: [
       {
         id: eventName.toLowerCase().replace(/\s+/g,'-'),
         name: eventName,
-        ...(eventLocation ? { location: { address: eventLocation } } : (locationObj ? { location: locationObj } : {})),
+        ...((!isSpecificDates && eventLocation) ? { location: { address: eventLocation } } : ((!isSpecificDates && locationObj) ? { location: locationObj } : {})),
         vibe_tags: selectedVibes.length ? selectedVibes : ['N/A'],
         category: selectedCategory || 'general',
         price: price,
-        recurrence: [
-          {
-            pattern: document.getElementById('rule-type-0')?.value === 'weekly2' ? 'weekly' : (document.getElementById('rule-type-0')?.value || 'weekly'),
-            every: document.getElementById('rule-type-0')?.value === 'weekly2' ? 2 : 1,
-            days: selectedDays.length ? selectedDays : ['friday'],
-            time_start: document.getElementById('rule-start-0')?.value || '21:00',
-            time_end: document.getElementById('rule-end-0')?.value || '23:30'
-          }
-        ],
+        recurrence,
         ...(exceptions.length ? {exceptions} : {})
       }
     ]
