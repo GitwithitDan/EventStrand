@@ -38,8 +38,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Outfit', sans-serif;
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: 17px;
+  line-height: 1.85;
   overflow-x: hidden;
 }
 
@@ -70,10 +70,8 @@ body {
 
 .topbar-logo-mark {
   width: 28px; height: 28px;
-  background: linear-gradient(135deg, var(--primary), var(--violet));
   border-radius: 7px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; font-weight: 700; color: white;
+  overflow: hidden;
 }
 
 .topbar-sep {
@@ -157,7 +155,7 @@ body {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 12px;
   border-radius: 8px;
-  font-size: 13px; font-weight: 500;
+  font-size: 14px; font-weight: 500;
   color: var(--text-dim);
   text-decoration: none;
   transition: all 0.15s;
@@ -187,6 +185,9 @@ body {
   flex: 1;
   padding: 60px 80px 120px;
   max-width: calc(var(--nav-width) + var(--content-max) + 160px);
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* ── SPEC SECTIONS ── */
@@ -217,7 +218,7 @@ h1 {
 
 h2 {
   font-family: 'Fraunces', serif;
-  font-size: 28px; font-weight: 400;
+  font-size: 34px; font-weight: 400;
   color: var(--text);
   margin-bottom: 16px;
   padding-top: 4px;
@@ -225,20 +226,20 @@ h2 {
 
 h3 {
   font-family: 'Outfit', sans-serif;
-  font-size: 17px; font-weight: 700;
+  font-size: 21px; font-weight: 700;
   color: var(--text);
   margin: 32px 0 12px;
 }
 
 h4 {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 13px; font-weight: 600;
+  font-size: 15px; font-weight: 600;
   color: var(--green);
   margin: 24px 0 8px;
   letter-spacing: 0.3px;
 }
 
-p { color: var(--text-dim); margin-bottom: 14px; line-height: 1.75; }
+p { color: var(--text-dim); margin-bottom: 18px; line-height: 1.85; font-size: 17px; }
 p:last-child { margin-bottom: 0; }
 
 a { color: var(--primary); text-decoration: none; }
@@ -246,10 +247,10 @@ a:hover { text-decoration: underline; }
 
 code {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; font-weight: 500;
+  font-size: 13.5px; font-weight: 500;
   background: var(--surface);
   color: var(--green);
-  padding: 2px 6px; border-radius: 4px;
+  padding: 3px 7px; border-radius: 5px;
   border: 1px solid var(--border2);
 }
 
@@ -273,11 +274,11 @@ code {
 /* ── CALLOUT BOXES ── */
 .callout {
   border-radius: 12px;
-  padding: 16px 20px;
-  margin: 20px 0;
-  display: flex; gap: 12px;
-  font-size: 14px;
-  line-height: 1.65;
+  padding: 20px 24px;
+  margin: 24px 0;
+  display: flex; gap: 14px;
+  font-size: 16px;
+  line-height: 1.7;
 }
 .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
 .callout-text { color: var(--text-dim); }
@@ -322,7 +323,7 @@ code {
 pre {
   padding: 20px 22px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.75;
   overflow-x: auto;
   color: var(--text);
@@ -341,7 +342,7 @@ pre {
   width: 100%;
   border-collapse: collapse;
   margin: 16px 0 28px;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .field-table thead tr {
@@ -357,7 +358,7 @@ pre {
 }
 
 .field-table td {
-  padding: 11px 14px;
+  padding: 15px 16px;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
 }
@@ -368,26 +369,26 @@ pre {
 .td-field {
   font-family: 'JetBrains Mono', monospace;
   color: var(--green);
-  font-size: 12px;
+  font-size: 14px;
   white-space: nowrap;
 }
 
 .td-type {
   font-family: 'JetBrains Mono', monospace;
   color: var(--primary);
-  font-size: 11px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
 .td-req {
-  font-size: 10px; font-weight: 700;
+  font-size: 12px; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.5px;
   white-space: nowrap;
 }
 .req-yes { color: var(--amber); }
 .req-no  { color: var(--text-faint); }
 
-.td-desc { color: var(--text-dim); line-height: 1.5; }
+.td-desc { color: var(--text-dim); line-height: 1.7; font-size: 15px; }
 .td-desc code { font-size: 11px; }
 
 /* ── TAG GRID ── */
@@ -416,12 +417,12 @@ pre {
 
 .tag-name {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; font-weight: 600;
+  font-size: 14px; font-weight: 600;
   color: var(--text);
 }
 
 .tag-desc {
-  font-size: 12px; color: var(--text-faint);
+  font-size: 14px; color: var(--text-faint);
   line-height: 1.4;
 }
 
@@ -436,19 +437,19 @@ pre {
 .pattern-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 20px 22px;
 }
 
 .pattern-name {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; font-weight: 600;
+  font-size: 15px; font-weight: 600;
   color: var(--green);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
-.pattern-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
-.pattern-example { font-size: 11px; color: var(--text-faint); margin-top: 6px; font-style: italic; }
+.pattern-desc { font-size: 15px; color: var(--text-dim); line-height: 1.6; }
+.pattern-example { font-size: 14px; color: var(--text); margin-top: 10px; font-style: italic; background: var(--surface2); border-radius: 8px; padding: 8px 12px; border-left: 3px solid var(--primary); }
 
 /* ── CHANGELOG ── */
 .changelog-entry {
@@ -511,7 +512,24 @@ h3:hover .anchor-link { opacity: 1; }
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
   .sidebar { display: none; }
-  .main { margin-left: 0; padding: 32px 24px 80px; }
+  .main { margin-left: 0; padding: 32px 20px 80px; max-width: 100%; }
+  .pattern-grid { grid-template-columns: 1fr; }
+  pre { font-size: 13px; white-space: pre-wrap; word-break: break-word; }
+  .field-table { font-size: 14px; }
+  h2 { font-size: 26px; }
+  h3 { font-size: 19px; }
+}
+
+@media (max-width: 600px) {
+  .main { padding: 24px 16px 80px; }
+  h1 { font-size: 30px; }
+  h2 { font-size: 22px; }
+  .intro-meta { flex-direction: column; align-items: flex-start; }
+  .field-table thead { display: none; }
+  .field-table td { display: block; padding: 6px 10px; border-bottom: none; }
+  .field-table tr { border-bottom: 1px solid var(--border); display: block; padding: 10px 0; }
+  pre { font-size: 12px; }
+  .callout { flex-direction: column; gap: 8px; }
 }
 </style>
 </head>
@@ -523,14 +541,14 @@ h3:hover .anchor-link { opacity: 1; }
 <!-- ── TOP BAR ── -->
 <div class="topbar">
   <a href="/" class="topbar-logo">
-    <div class="topbar-logo-mark">E</div>
+    <img src="/icon-192.png" alt="EventStrand" style="width:28px;height:28px;border-radius:7px;object-fit:cover;">
     EventStrand
   </a>
   <div class="topbar-sep"></div>
   <span class="topbar-title">.rcal Specification<span class="topbar-badge">v0.1</span></span>
   <div class="topbar-actions">
     <a href="https://github.com/eventstrand/rcal-spec" class="topbar-link">GitHub</a>
-    <a href="index.html#builder" class="topbar-link primary">Strand Builder →</a>
+    <a href="https://eventstrand.com/#builder" class="topbar-link primary">Strand Builder →</a>
   </div>
 </div>
 
@@ -640,7 +658,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="spec-section-label">File Format</div>
   <h2>File Format <a href="#format" class="anchor-link">#</a></h2>
 
-  <p>.rcal files are valid JSON documents with a <code>.rcal</code> file extension. They must be UTF-8 encoded. No other encoding is permitted.</p>
+  <p>.rcal files are valid JSON documents with an <code>.rcal</code> file extension. They must be UTF-8 encoded. No other encoding is permitted.</p>
 
   <h3>MIME type</h3>
   <p>The registered MIME type for .rcal files is <code>application/vnd.rcal+json</code>. When serving .rcal files over HTTP, use this content type. Parsers should also accept <code>application/json</code> as a fallback.</p>
@@ -654,7 +672,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="callout callout-warn">
     <span class="callout-icon">⚠️</span>
     <div class="callout-text">
-      <strong>Hosted URL stability.</strong> If <code>meta.live</code> is <code>true</code>, subscriber apps will poll the hosted URL for updates. Publishers should treat the URL as permanent. Changing it will break all existing subscribers.
+      <strong>Once you go live, the URL is a promise.</strong> An <code>.rcal</code> file with <code>meta.live: true</code> is telling subscriber apps that it is permanently hosted at a specific URL — and they should check back for updates. Anyone who has scanned your QR code or installed your strand is silently pointing to that exact address. Move it or change it, and they lose the connection with no way to recover it.
     </div>
   </div>
 </div>
