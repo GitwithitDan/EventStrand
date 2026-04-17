@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>.rcal Specification v0.1 — EventStrand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #04061a;
+  --bg2:          #07091f;
+  --bg3:          #0b0d26;
+  --surface:      #10163a;
+  --surface2:     #171e48;
+  --border:       rgba(100,120,255,0.10);
+  --border2:      rgba(100,120,255,0.22);
+  --primary:      #6C8FFF;
+  --primary-glow: rgba(108,143,255,0.20);
+  --green:        #11DBA6;
+  --green-glow:   rgba(17,219,166,0.15);
+  --violet:       #B06FFF;
+  --violet-glow:  rgba(176,111,255,0.18);
+  --amber:        #FFB347;
+  --red:          #FF6B7A;
+  --text:         #ECF0FF;
+  --text-dim:     #8290C0;
+  --text-faint:   #454A72;
+  --nav-width:    268px;
+  --content-max:  780px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+/* ── TOP BAR ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 56px;
+  background: rgba(4,6,26,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 32px;
+  gap: 20px;
+}
+
+.topbar-logo {
+  display: flex; align-items: center; gap: 9px;
+  text-decoration: none;
+  font-family: 'Fraunces', serif;
+  font-size: 17px; font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.topbar-logo-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--primary), var(--violet));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: white;
+}
+
+.topbar-sep {
+  width: 1px; height: 24px;
+  background: var(--border2);
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-dim);
+}
+
+.topbar-badge {
+  margin-left: 8px;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+  background: var(--primary-glow);
+  color: var(--primary);
+  border: 1px solid rgba(108,143,255,0.35);
+  letter-spacing: 0.5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.topbar-actions {
+  margin-left: auto;
+  display: flex; gap: 10px; align-items: center;
+}
+
+.topbar-link {
+  font-size: 13px; font-weight: 500;
+  color: var(--text-dim); text-decoration: none;
+  padding: 5px 12px; border-radius: 7px;
+  border: 1px solid var(--border2);
+  transition: all 0.2s;
+}
+.topbar-link:hover { color: var(--text); background: var(--surface); }
+.topbar-link.primary { background: var(--primary); color: white; border-color: transparent; }
+.topbar-link.primary:hover { background: #8aaeff; }
+
+/* ── LAYOUT ── */
+.layout {
+  display: flex;
+  padding-top: 56px;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--nav-width);
+  flex-shrink: 0;
+  position: fixed;
+  top: 56px; left: 0; bottom: 0;
+  overflow-y: auto;
+  padding: 32px 0 80px;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.sidebar::-webkit-scrollbar { width: 3px; }
+
+.sidebar-section {
+  margin-bottom: 28px;
+  padding: 0 20px;
+}
+
+.sidebar-heading {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+  padding-left: 12px;
+}
+
+.sidebar-links {
+  display: flex; flex-direction: column; gap: 1px;
+}
+
+.sidebar-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+
+.sidebar-link:hover { color: var(--text); background: var(--surface); }
+.sidebar-link.active { color: var(--primary); background: var(--primary-glow); }
+
+.sidebar-link-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text-faint);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.sidebar-link.active .sidebar-link-dot { background: var(--primary); }
+
+.sidebar-link-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--green);
+}
+
+/* ── MAIN CONTENT ── */
+.main {
+  margin-left: var(--nav-width);
+  flex: 1;
+  padding: 60px 80px 120px;
+  max-width: calc(var(--nav-width) + var(--content-max) + 160px);
+}
+
+/* ── SPEC SECTIONS ── */
+.spec-section {
+  margin-bottom: 80px;
+  padding-bottom: 80px;
+  border-bottom: 1px solid var(--border);
+}
+.spec-section:last-child { border-bottom: none; }
+
+.spec-section-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--primary); margin-bottom: 12px;
+}
+.spec-section-label::before {
+  content: ''; width: 16px; height: 2px;
+  background: var(--primary); display: block;
+}
+
+h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(32px, 3.5vw, 48px);
+  font-weight: 400; line-height: 1.15;
+  color: var(--text); margin-bottom: 16px;
+}
+
+h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 28px; font-weight: 400;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding-top: 4px;
+}
+
+h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 17px; font-weight: 700;
+  color: var(--text);
+  margin: 32px 0 12px;
+}
+
+h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 600;
+  color: var(--green);
+  margin: 24px 0 8px;
+  letter-spacing: 0.3px;
+}
+
+p { color: var(--text-dim); margin-bottom: 14px; line-height: 1.75; }
+p:last-child { margin-bottom: 0; }
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 500;
+  background: var(--surface);
+  color: var(--green);
+  padding: 2px 6px; border-radius: 4px;
+  border: 1px solid var(--border2);
+}
+
+/* ── INTRO BLOCK ── */
+.intro-meta {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.meta-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 100px;
+  font-size: 12px; font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+.mc-version { background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(108,143,255,0.35); }
+.mc-status  { background: var(--green-glow);   color: var(--green);   border: 1px solid rgba(17,219,166,0.35); }
+.mc-license { background: var(--surface);      color: var(--text-dim); border: 1px solid var(--border2); }
+.mc-date    { background: var(--surface);      color: var(--text-dim); border: 1px solid var(--border2); }
+
+/* ── CALLOUT BOXES ── */
+.callout {
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 20px 0;
+  display: flex; gap: 12px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.callout-text { color: var(--text-dim); }
+.callout-text strong { color: var(--text); font-weight: 600; }
+
+.callout-info    { background: var(--primary-glow); border: 1px solid rgba(108,143,255,0.28); }
+.callout-warn    { background: rgba(255,179,71,0.12); border: 1px solid rgba(255,179,71,0.30); }
+.callout-success { background: var(--green-glow);   border: 1px solid rgba(17,219,166,0.28); }
+
+/* ── CODE BLOCKS ── */
+.code-block {
+  background: var(--bg2);
+  border-radius: 14px;
+  border: 1px solid var(--border2);
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.code-topbar {
+  padding: 10px 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.code-filename {
+  font-size: 12px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.code-lang {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+  background: var(--primary-glow);
+  color: var(--primary);
+  border: 1px solid rgba(108,143,255,0.32);
+  letter-spacing: 0.5px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+}
+
+pre {
+  padding: 20px 22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.75;
+  overflow-x: auto;
+  color: var(--text);
+}
+
+.ck  { color: #7fb3f5; }  /* key */
+.cs  { color: #a8d4a8; }  /* string */
+.cn  { color: #f0a46a; }  /* number */
+.cb  { color: var(--green); }  /* boolean */
+.cc  { color: var(--text-faint); font-style: italic; } /* comment */
+.ca  { color: var(--primary); }  /* accent */
+.cnull { color: var(--text-faint); }
+
+/* ── FIELD TABLES ── */
+.field-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 28px;
+  font-size: 13px;
+}
+
+.field-table thead tr {
+  border-bottom: 1px solid var(--border2);
+}
+
+.field-table th {
+  text-align: left;
+  padding: 8px 14px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.field-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.field-table tr:last-child td { border-bottom: none; }
+.field-table tr:hover td { background: rgba(108,143,255,0.04); }
+
+.td-field {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--green);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.td-type {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--primary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.td-req {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.req-yes { color: var(--amber); }
+.req-no  { color: var(--text-faint); }
+
+.td-desc { color: var(--text-dim); line-height: 1.5; }
+.td-desc code { font-size: 11px; }
+
+/* ── TAG GRID ── */
+.tag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.tag-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: border-color 0.2s;
+}
+.tag-card:hover { border-color: var(--border2); }
+
+.tag-card-top {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 4px;
+}
+
+.tag-emoji { font-size: 16px; }
+
+.tag-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 600;
+  color: var(--text);
+}
+
+.tag-desc {
+  font-size: 12px; color: var(--text-faint);
+  line-height: 1.4;
+}
+
+/* ── PATTERN CARDS ── */
+.pattern-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.pattern-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.pattern-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 600;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+
+.pattern-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.pattern-example { font-size: 11px; color: var(--text-faint); margin-top: 6px; font-style: italic; }
+
+/* ── CHANGELOG ── */
+.changelog-entry {
+  display: flex; gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.changelog-entry:last-child { border-bottom: none; }
+
+.changelog-version {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 600;
+  color: var(--primary);
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.changelog-date {
+  font-size: 12px; color: var(--text-faint);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  min-width: 90px;
+}
+
+.changelog-notes { color: var(--text-dim); font-size: 14px; line-height: 1.65; }
+.changelog-notes ul { padding-left: 16px; }
+.changelog-notes li { margin-bottom: 4px; }
+
+/* ── SECTION ANCHOR MARKER ── */
+.anchor-link {
+  color: var(--text-faint);
+  font-size: 14px;
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  text-decoration: none;
+}
+h2:hover .anchor-link,
+h3:hover .anchor-link { opacity: 1; }
+
+/* ── TOC PROGRESS ── */
+.toc-progress {
+  position: fixed;
+  top: 56px; left: 0;
+  width: var(--nav-width);
+  height: 2px;
+  background: var(--border);
+  z-index: 100;
+}
+.toc-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--violet));
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* ── DIVIDER ── */
+.rule { height: 1px; background: var(--border); margin: 32px 0; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 32px 24px 80px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── PROGRESS BAR ── -->
+<div class="toc-progress"><div class="toc-progress-bar" id="progress-bar"></div></div>
+
+<!-- ── TOP BAR ── -->
+<div class="topbar">
+  <a href="/" class="topbar-logo">
+    <div class="topbar-logo-mark">E</div>
+    EventStrand
+  </a>
+  <div class="topbar-sep"></div>
+  <span class="topbar-title">.rcal Specification<span class="topbar-badge">v0.1</span></span>
+  <div class="topbar-actions">
+    <a href="https://github.com/eventstrand/rcal-spec" class="topbar-link">GitHub</a>
+    <a href="index.html#builder" class="topbar-link primary">Strand Builder →</a>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Overview</div>
+    <div class="sidebar-links">
+      <a class="sidebar-link active" href="#intro"><span class="sidebar-link-dot"></span>Introduction</a>
+      <a class="sidebar-link" href="#format"><span class="sidebar-link-dot"></span>File Format</a>
+      <a class="sidebar-link" href="#structure"><span class="sidebar-link-dot"></span>Top-Level Structure</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Schema</div>
+    <div class="sidebar-links">
+      <a class="sidebar-link" href="#meta"><span class="sidebar-link-mono">meta</span></a>
+      <a class="sidebar-link" href="#location"><span class="sidebar-link-mono">location</span></a>
+      <a class="sidebar-link" href="#events"><span class="sidebar-link-mono">events[]</span></a>
+      <a class="sidebar-link" href="#recurrence"><span class="sidebar-link-mono">recurrence[]</span></a>
+      <a class="sidebar-link" href="#dates"><span class="sidebar-link-mono">dates[]</span></a>
+      <a class="sidebar-link" href="#exceptions"><span class="sidebar-link-mono">exceptions[]</span></a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Reference</div>
+    <div class="sidebar-links">
+      <a class="sidebar-link" href="#vibe-tags"><span class="sidebar-link-dot"></span>Vibe Tags</a>
+      <a class="sidebar-link" href="#categories"><span class="sidebar-link-dot"></span>Categories</a>
+      <a class="sidebar-link" href="#price-values"><span class="sidebar-link-dot"></span>Price Values</a>
+      <a class="sidebar-link" href="#patterns"><span class="sidebar-link-dot"></span>Recurrence Patterns</a>
+      <a class="sidebar-link" href="#day-shorthands"><span class="sidebar-link-dot"></span>Day Shorthands</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Concepts</div>
+    <div class="sidebar-links">
+      <a class="sidebar-link" href="#publisher-profile"><span class="sidebar-link-dot"></span>Publisher Profile</a>
+      <a class="sidebar-link" href="#multi-strand"><span class="sidebar-link-dot"></span>Multiple Strands</a>
+      <a class="sidebar-link" href="#live-strands"><span class="sidebar-link-dot"></span>Live vs Static</a>
+      <a class="sidebar-link" href="#one-offs"><span class="sidebar-link-dot"></span>One-Off Events</a>
+      <a class="sidebar-link" href="#inheritance"><span class="sidebar-link-dot"></span>Location Inheritance</a>
+      <a class="sidebar-link" href="#validation"><span class="sidebar-link-dot"></span>Validation Rules</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Examples</div>
+    <div class="sidebar-links">
+      <a class="sidebar-link" href="#ex-minimal"><span class="sidebar-link-dot"></span>Minimal file</a>
+      <a class="sidebar-link" href="#ex-venue"><span class="sidebar-link-dot"></span>Full venue strand</a>
+      <a class="sidebar-link" href="#ex-personal"><span class="sidebar-link-dot"></span>Personal strand</a>
+      <a class="sidebar-link" href="#ex-oneoff"><span class="sidebar-link-dot"></span>With one-off event</a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Meta</div>
+    <div class="sidebar-links">
+      <a class="sidebar-link" href="#changelog"><span class="sidebar-link-dot"></span>Changelog</a>
+      <a class="sidebar-link" href="#license"><span class="sidebar-link-dot"></span>License</a>
+    </div>
+  </div>
+
+</nav>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+<!-- ══ INTRO ══ -->
+<div class="spec-section" id="intro">
+  <div class="spec-section-label">Introduction</div>
+
+  <h1>.rcal<br>Format Specification</h1>
+
+  <div class="intro-meta">
+    <span class="meta-chip mc-version">v0.1</span>
+    <span class="meta-chip mc-status">✓ Draft</span>
+    <span class="meta-chip mc-license">Open — No License Required</span>
+    <span class="meta-chip mc-date">March 2026</span>
+  </div>
+
+  <p>.rcal is an open file format for encoding recurring real-world events. It is designed to be simple to publish, simple to parse, and expressive enough to describe how venues, people, and communities actually operate — including weekly rhythms, monthly patterns, seasonal windows, exceptions, and one-off events.</p>
+
+  <p>The format is maintained by <a href="index.html">EventStrand</a> but is not owned by it. Anyone can read, write, parse, or build tools around .rcal files without permission, license, or fee.</p>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text">
+      <strong>Design philosophy.</strong> .rcal prioritizes human readability and minimal publisher friction over machine precision. A venue owner should be able to look at their strand file and understand it. A developer should be able to parse it in an afternoon.
+    </div>
+  </div>
+
+  <h3>What .rcal is not</h3>
+  <p>.rcal is not a replacement for iCal/iCalendar (.ics). iCal is designed for scheduling commitments — things you are doing. .rcal is designed for encoding possibility — things you could be doing, structured around the recurring rhythms of real-world life.</p>
+  <p>.rcal is not a calendar sync protocol. It does not implement CALDAV and does not attempt to interoperate with existing calendar infrastructure. It is a simpler, purpose-built format for a different use case.</p>
+</div>
+
+<!-- ══ FILE FORMAT ══ -->
+<div class="spec-section" id="format">
+  <div class="spec-section-label">File Format</div>
+  <h2>File Format <a href="#format" class="anchor-link">#</a></h2>
+
+  <p>.rcal files are valid JSON documents with a <code>.rcal</code> file extension. They must be UTF-8 encoded. No other encoding is permitted.</p>
+
+  <h3>MIME type</h3>
+  <p>The registered MIME type for .rcal files is <code>application/vnd.rcal+json</code>. When serving .rcal files over HTTP, use this content type. Parsers should also accept <code>application/json</code> as a fallback.</p>
+
+  <h3>File extension</h3>
+  <p>Files must use the <code>.rcal</code> extension. This extension is used by applications to identify the format and associate the correct parser.</p>
+
+  <h3>Hosted strands</h3>
+  <p>A strand may be hosted at a permanent URL. Hosted strand URLs must return the .rcal file with an appropriate content type. EventStrand hosts published strands at <code>eventstrand.com/s/{username}</code> but any URL is valid.</p>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-text">
+      <strong>Hosted URL stability.</strong> If <code>meta.live</code> is <code>true</code>, subscriber apps will poll the hosted URL for updates. Publishers should treat the URL as permanent. Changing it will break all existing subscribers.
+    </div>
+  </div>
+</div>
+
+<!-- ══ STRUCTURE ══ -->
+<div class="spec-section" id="structure">
+  <div class="spec-section-label">Schema</div>
+  <h2>Top-Level Structure <a href="#structure" class="anchor-link">#</a></h2>
+
+  <p>Every .rcal file represents one strand — a named, themed collection of events from a single publisher. The file has two required top-level keys: <code>rcal</code> (the spec version) and <code>events</code> (an array of event objects). The <code>meta</code> object is optional but strongly recommended.</p>
+
+  <div class="code-block">
+    <div class="code-topbar"><span class="code-filename">structure.rcal</span><span class="code-lang">JSON</span></div>
+    <pre>{
+  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,          <span class="cc">// required — spec version string</span>
+  <span class="ck">"meta"</span>: { <span class="cc">/* ... */</span> },  <span class="cc">// recommended — publisher metadata</span>
+  <span class="ck">"events"</span>: [ <span class="cc">/* ... */</span> ]  <span class="cc">// required — array of event objects</span>
+}</pre>
+  </div>
+
+  <table class="field-table">
+    <thead>
+      <tr>
+        <th>Field</th><th>Type</th><th>Required</th><th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="td-field">rcal</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-yes">Yes</td>
+        <td class="td-desc">Spec version. Must be a valid semver string. Current value: <code>"0.1"</code>. Parsers should warn on unknown versions rather than fail.</td>
+      </tr>
+      <tr>
+        <td class="td-field">meta</td>
+        <td class="td-type">object</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Publisher metadata. Contains title, type, location, timezone, and display preferences. See <a href="#meta">meta object</a>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">events</td>
+        <td class="td-type">array</td>
+        <td class="td-req req-yes">Yes</td>
+        <td class="td-desc">Array of one or more event objects. A file with an empty array is valid but has no content. See <a href="#events">events</a>.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ META ══ -->
+<div class="spec-section" id="meta">
+  <div class="spec-section-label">Schema</div>
+  <h2><code>meta</code> object <a href="#meta" class="anchor-link">#</a></h2>
+
+  <p>The <code>meta</code> object describes the publisher — the venue, person, or organization that created the strand file. Fields here apply to the strand as a whole and can be inherited by individual events.</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="td-field">title</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Display name of the publisher. Shown as the strand header in apps. E.g. <code>"The Rusty Nail"</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">type</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Publisher category. One of: <code>venue</code>, <code>artist</code>, <code>community</code>, <code>personal</code>, <code>retail</code>, <code>event</code>. Used for display and filtering. Defaults to <code>venue</code> if omitted.</td>
+      </tr>
+      <tr>
+        <td class="td-field">description</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Short description of the publisher. One to two sentences. Plain text only.</td>
+      </tr>
+      <tr>
+        <td class="td-field">location</td>
+        <td class="td-type">object</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Publisher's physical location. Inherited by all events unless overridden at the event level. See <a href="#location">location object</a>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">timezone</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">IANA timezone identifier. E.g. <code>"America/Chicago"</code>, <code>"Europe/London"</code>. All times in the file are interpreted in this timezone unless a strand overrides it. Strongly recommended.</td>
+      </tr>
+      <tr>
+        <td class="td-field">live</td>
+        <td class="td-type">boolean</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">If <code>true</code>, subscriber apps should periodically check the source URL for updates. Requires the file to be hosted at a stable URL. Defaults to <code>false</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">source_url</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">The canonical hosted URL for this file. Required when <code>live</code> is <code>true</code>. Used by subscriber apps to poll for updates.</td>
+      </tr>
+      <tr>
+        <td class="td-field">color</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Hex color code used as the accent color in apps. E.g. <code>"#C0392B"</code>. Should be a saturated color with sufficient contrast against dark backgrounds.</td>
+      </tr>
+      <tr>
+        <td class="td-field">website</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">URL of the publisher's website. Must include protocol. E.g. <code>"https://therustynaill.com"</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">published</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">ISO 8601 date the file was first published. E.g. <code>"2026-03-17"</code>. Informational only.</td>
+      </tr>
+      <tr>
+        <td class="td-field">updated</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">ISO 8601 datetime of the last modification. E.g. <code>"2026-03-17T14:22:00Z"</code>. Used by subscriber apps to detect changes without re-parsing the full file.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ LOCATION ══ -->
+<div class="spec-section" id="location">
+  <div class="spec-section-label">Schema</div>
+  <h2><code>location</code> object <a href="#location" class="anchor-link">#</a></h2>
+
+  <p>The location object appears in both <code>meta</code> and individual strand objects. When present on a strand, it overrides the meta-level location for that strand only.</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="td-field">address</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Street address. E.g. <code>"1234 N Milwaukee Ave"</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">city</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">City name.</td>
+      </tr>
+      <tr>
+        <td class="td-field">state</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">State or province abbreviation. E.g. <code>"IL"</code>, <code>"ON"</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">country</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">ISO 3166-1 alpha-2 country code. E.g. <code>"US"</code>, <code>"GB"</code>, <code>"DE"</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">lat</td>
+        <td class="td-type">number</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Latitude in decimal degrees. E.g. <code>41.9214</code>. Used for proximity filtering in apps.</td>
+      </tr>
+      <tr>
+        <td class="td-field">lng</td>
+        <td class="td-type">number</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Longitude in decimal degrees. E.g. <code>-87.7078</code>. Used for proximity filtering in apps.</td>
+      </tr>
+      <tr>
+        <td class="td-field">name</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Human-readable name for the location when different from the publisher name. Useful for events that occur at a secondary location. E.g. <code>"Wicker Park Field House"</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">notes</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Free-text location notes. E.g. <code>"Enter through the alley door on Fridays"</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">📍</span>
+    <div class="callout-text">
+      <strong>Location inheritance.</strong> A strand without its own <code>location</code> field inherits <code>meta.location</code>. A strand with a <code>location</code> field replaces the meta location entirely — there is no partial merge. If a strand happens at a different venue but you still want to display the publisher's address, repeat it on the strand.
+    </div>
+  </div>
+</div>
+
+<!-- ══ STRANDS ══ -->
+<div class="spec-section" id="events">
+  <div class="spec-section-label">Schema</div>
+  <h2><code>events[]</code> array <a href="#events" class="anchor-link">#</a></h2>
+
+  <p>The <code>events</code> array contains one or more event objects. Each event represents a single recurring event, one-off, or date-listed series published under this strand. A strand file (<code>.rcal</code>) <em>is</em> the strand — a thematic, named presence belonging to one publisher. Events are the things that happen within it.</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="td-field">id</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-yes">Yes</td>
+        <td class="td-desc">Unique identifier for the strand within this file. Lowercase, hyphen-separated. E.g. <code>"friday-jazz"</code>. Used by subscriber apps to track updates across file versions. Must be stable — do not change once published.</td>
+      </tr>
+      <tr>
+        <td class="td-field">name</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-yes">Yes</td>
+        <td class="td-desc">Display name of the event. E.g. <code>"Friday Jazz Night"</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">description</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Short description of the event. Plain text. One to three sentences.</td>
+      </tr>
+      <tr>
+        <td class="td-field">location</td>
+        <td class="td-type">object</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Location override for this strand. Replaces <code>meta.location</code> entirely. See <a href="#location">location object</a>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">timezone</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Timezone override for this strand. Inherits <code>meta.timezone</code> if omitted.</td>
+      </tr>
+      <tr>
+        <td class="td-field">category</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Event category. See <a href="#categories">categories reference</a>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">vibe_tags</td>
+        <td class="td-type">array</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Array of vibe tag strings. Used for mood-based filtering. See <a href="#vibe-tags">vibe tags reference</a>. Max 5 tags per strand recommended.</td>
+      </tr>
+      <tr>
+        <td class="td-field">price</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Price indicator. See <a href="#price-values">price values</a>. Defaults to <code>"unknown"</code> if omitted.</td>
+      </tr>
+      <tr>
+        <td class="td-field">price_note</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Human-readable price note. E.g. <code>"$15 at the door, $10 in advance"</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">ticket_url</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">URL to purchase tickets or RSVP. Must include protocol.</td>
+      </tr>
+      <tr>
+        <td class="td-field">recurrence</td>
+        <td class="td-type">array</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Array of recurrence rule objects. Multiple rules are merged — the strand occurs on all dates generated by any rule. Use for events with a predictable repeating pattern. See <a href="#recurrence">recurrence rules</a>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">dates</td>
+        <td class="td-type">array</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Explicit list of dates, maintained by the publisher over time. Use for events with no predictable pattern — a pop-up, a DJ who books when they book, a market with irregular scheduling. Each entry is either an ISO 8601 date string (<code>"2026-05-03"</code>) or an object with <code>date</code>, <code>time_start</code>, and/or <code>time_end</code> to override times for that occurrence. Plain strings inherit the strand-level <code>time_start</code> and <code>time_end</code>. Publisher updates this list as new dates are confirmed. See <a href="#dates">dates array</a>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">date</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">ISO 8601 date for one-off events. E.g. <code>"2026-06-14"</code>. Used instead of <code>recurrence</code> for singular events. See <a href="#one-offs">one-off events</a>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">time_start</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Start time for one-off events in 24h format. E.g. <code>"19:30"</code>. For recurring events, time is set per recurrence rule.</td>
+      </tr>
+      <tr>
+        <td class="td-field">time_end</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">End time for one-off events in 24h format. May cross midnight — <code>"02:00"</code> on a Saturday night event means 2am Sunday.</td>
+      </tr>
+      <tr>
+        <td class="td-field">exceptions</td>
+        <td class="td-type">array</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Array of exception objects describing dates the recurring pattern is skipped, cancelled, or modified. See <a href="#exceptions">exceptions</a>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">lead_time_days</td>
+        <td class="td-type">number</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">How many days in advance the app should surface this event. <code>0</code> means day-of only. <code>7</code> means it appears in the portal up to a week ahead. Defaults to <code>0</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">notes</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Free-text notes for attendees. E.g. <code>"No reservations needed. Bar opens at 7pm, music starts at 9pm."</code></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ RECURRENCE ══ -->
+<div class="spec-section" id="recurrence">
+  <div class="spec-section-label">Schema</div>
+  <h2><code>recurrence[]</code> rules <a href="#recurrence" class="anchor-link">#</a></h2>
+
+  <p>Each strand may have one or more recurrence rules. Rules are <em>additive</em> — the strand occurs on all dates produced by any rule. This allows complex patterns like "every weekday plus extended Saturday hours" to be expressed as two simple rules rather than one complicated one.</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="td-field">pattern</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-yes">Yes</td>
+        <td class="td-desc">The recurrence pattern type. See <a href="#patterns">recurrence patterns</a> for valid values.</td>
+      </tr>
+      <tr>
+        <td class="td-field">every</td>
+        <td class="td-type">number</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Interval multiplier. <code>1</code> means every occurrence, <code>2</code> means every other, etc. Defaults to <code>1</code>. Used with <code>weekly</code> and <code>daily</code> patterns.</td>
+      </tr>
+      <tr>
+        <td class="td-field">days</td>
+        <td class="td-type">array</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Array of day strings. E.g. <code>["friday", "saturday"]</code>. Accepts full day names or <a href="#day-shorthands">shorthand values</a>. Required for <code>weekly</code> pattern.</td>
+      </tr>
+      <tr>
+        <td class="td-field">month_week</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Which week of the month. One of: <code>first</code>, <code>second</code>, <code>third</code>, <code>fourth</code>, <code>last</code>. Required for <code>monthly_week</code> pattern.</td>
+      </tr>
+      <tr>
+        <td class="td-field">month_date</td>
+        <td class="td-type">number</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Day of month as integer 1–31. Required for <code>monthly_date</code> pattern. If the date doesn't exist in a given month (e.g. <code>31</code> in April), the occurrence is skipped.</td>
+      </tr>
+      <tr>
+        <td class="td-field">time_start</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Start time in 24h format. E.g. <code>"21:00"</code>. Interpreted in the strand's timezone.</td>
+      </tr>
+      <tr>
+        <td class="td-field">time_end</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">End time in 24h format. May be earlier than <code>time_start</code> to indicate the event runs past midnight.</td>
+      </tr>
+      <tr>
+        <td class="td-field">season_start</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Month this rule becomes active. Three-letter abbreviation: <code>"jan"</code> through <code>"dec"</code>. If omitted, the rule is active year-round.</td>
+      </tr>
+      <tr>
+        <td class="td-field">season_end</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Month this rule stops being active (inclusive). Same format as <code>season_start</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">start_date</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">ISO 8601 date after which this rule becomes active. Useful for rules that begin in the future.</td>
+      </tr>
+      <tr>
+        <td class="td-field">end_date</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">ISO 8601 date after which this rule stops generating occurrences. Useful for limited-run events.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ EXCEPTIONS ══ -->
+<div class="spec-section" id="exceptions">
+  <div class="spec-section-label">Schema</div>
+  <h2><code>exceptions[]</code> array <a href="#exceptions" class="anchor-link">#</a></h2>
+
+  <p>Exceptions modify or suppress specific occurrences of a recurring strand. They do not affect the underlying recurrence rules — they are applied as a post-processing layer on the generated occurrence list.</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="td-field">type</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-yes">Yes</td>
+        <td class="td-desc">Exception type. One of: <code>skip</code>, <code>cancelled_range</code>, <code>modified</code>. See below.</td>
+      </tr>
+      <tr>
+        <td class="td-field">date</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-yes">Yes</td>
+        <td class="td-desc">ISO 8601 date of the exception. For <code>cancelled_range</code>, this is the start date of the range.</td>
+      </tr>
+      <tr>
+        <td class="td-field">date_end</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">End date for <code>cancelled_range</code> type. Inclusive. All occurrences between <code>date</code> and <code>date_end</code> are suppressed.</td>
+      </tr>
+      <tr>
+        <td class="td-field">note</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Human-readable explanation. E.g. <code>"Closed for Thanksgiving"</code>, <code>"Private event"</code>. Displayed to users in supporting apps.</td>
+      </tr>
+      <tr>
+        <td class="td-field">time_start</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Modified start time for <code>modified</code> type. Overrides the recurrence rule's time for this specific occurrence.</td>
+      </tr>
+      <tr>
+        <td class="td-field">time_end</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Modified end time for <code>modified</code> type.</td>
+      </tr>
+      <tr>
+        <td class="td-field">location</td>
+        <td class="td-type">object</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Modified location for <code>modified</code> type. Overrides the strand's location for this specific occurrence only.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Exception types</h3>
+
+  <h4>skip</h4>
+  <p>Suppresses a single occurrence. Use when a regularly-scheduled event simply doesn't happen on a specific date.</p>
+
+  <h4>cancelled_range</h4>
+  <p>Suppresses all occurrences between <code>date</code> and <code>date_end</code> inclusive. Use for closures, holidays, or temporary suspension.</p>
+
+  <h4>modified</h4>
+  <p>Keeps the occurrence but changes one or more of its properties — time, location, or adds a note. The occurrence still appears in the portal; only specified fields are overridden.</p>
+</div>
+
+<!-- ══ DATES ══ -->
+<div class="spec-section" id="dates">
+  <div class="spec-section-label">Schema</div>
+  <h2><code>dates[]</code> array <a href="#dates" class="anchor-link">#</a></h2>
+
+  <p>The <code>dates</code> field is used instead of <code>recurrence</code> or <code>date</code> for events that have a persistent strand identity but no predictable schedule. The publisher maintains this list over time, adding new dates as they are confirmed and removing past ones on each update.</p>
+
+  <p>This is the right choice for: pop-up events, artists who announce dates as they book them, markets with irregular timing, or any recurring presence that doesn't fit a weekly or monthly pattern.</p>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text">
+      <strong>Why a separate field from <code>recurrence</code>?</strong> Recurrence rules are computed — you define the pattern and parsers generate the dates. <code>dates</code> is curated — the publisher decides exactly which dates exist. Both produce a list of occurrences, but the authorship and update model are different. Live strands with <code>dates</code> are how publishers push specific confirmed bookings to all their subscribers at once.
+    </div>
+  </div>
+
+  <h3>Entry formats</h3>
+  <p>Each entry in the <code>dates</code> array is either a plain ISO 8601 date string or an object. Plain strings inherit the strand-level <code>time_start</code> and <code>time_end</code>. Objects can override any time field for that specific occurrence.</p>
+
+  <div class="code-block">
+    <div class="code-topbar"><span class="code-filename">dates-example.rcal snippet</span><span class="code-lang">JSON</span></div>
+    <pre>{
+  <span class="ck">"id"</span>: <span class="cs">"irregular-nights"</span>,
+  <span class="ck">"name"</span>: <span class="cs">"Thursday Residency"</span>,
+  <span class="ck">"category"</span>: <span class="cs">"music"</span>,
+  <span class="ck">"vibe_tags"</span>: [<span class="cs">"social"</span>, <span class="cs">"curious"</span>],
+  <span class="ck">"time_start"</span>: <span class="cs">"21:00"</span>,  <span class="cc">// default — inherited by plain-string entries</span>
+  <span class="ck">"time_end"</span>: <span class="cs">"23:30"</span>,
+  <span class="ck">"dates"</span>: [
+    <span class="cs">"2026-04-09"</span>,              <span class="cc">// inherits 21:00 – 23:30</span>
+    <span class="cs">"2026-04-23"</span>,
+    {
+      <span class="ck">"date"</span>: <span class="cs">"2026-05-14"</span>,    <span class="cc">// special late night — overrides times</span>
+      <span class="ck">"time_start"</span>: <span class="cs">"22:00"</span>,
+      <span class="ck">"time_end"</span>: <span class="cs">"02:00"</span>,
+      <span class="ck">"note"</span>: <span class="cs">"Extended set with guest DJ"</span>
+    },
+    <span class="cs">"2026-06-04"</span>,
+    <span class="cs">"2026-06-18"</span>
+  ]
+}</pre>
+  </div>
+
+  <h3>Date entry object fields</h3>
+  <table class="field-table">
+    <thead>
+      <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="td-field">date</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-yes">Yes</td>
+        <td class="td-desc">ISO 8601 date. E.g. <code>"2026-05-14"</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">time_start</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Start time override in 24h format. Overrides the strand-level <code>time_start</code> for this occurrence only.</td>
+      </tr>
+      <tr>
+        <td class="td-field">time_end</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">End time override in 24h format.</td>
+      </tr>
+      <tr>
+        <td class="td-field">note</td>
+        <td class="td-type">string</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Per-occurrence note. E.g. <code>"Guest DJ"</code>, <code>"Moved to upstairs room"</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">location</td>
+        <td class="td-type">object</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Per-occurrence location override. Replaces the strand-level location for this date only.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Validation rules for <code>dates</code></h3>
+  <p>A strand must have exactly one of <code>recurrence</code>, <code>date</code>, or <code>dates</code>. Having more than one is invalid. All three produce a list of occurrences — they are three distinct authoring modes for the same underlying concept.</p>
+  <p>Past dates in a <code>dates</code> array should be treated as informational by parser apps — they may be displayed in history views but should not appear in "what's coming up" queries. Publishers are encouraged (but not required) to remove past dates on each update to keep file size manageable.</p>
+  <p>An empty <code>dates</code> array (<code>[]</code>) is valid. It means the strand exists but has no confirmed upcoming dates. Apps may surface it as "coming soon" if the strand has a name and description.</p>
+</div>
+
+<!-- ══ VIBE TAGS ══ -->
+<div class="spec-section" id="vibe-tags">
+  <div class="spec-section-label">Reference</div>
+  <h2>Vibe Tags <a href="#vibe-tags" class="anchor-link">#</a></h2>
+
+  <p>Vibe tags are emotional descriptors applied to strands. Apps use them to filter the portal by how the user is feeling rather than by event category. Every tag below is a valid <code>vibe_tags</code> value. Tags are case-insensitive.</p>
+
+  <div class="tag-grid">
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">🌿</span><span class="tag-name">mellow</span></div><div class="tag-desc">Calm, low-key, unhurried. No loud rooms.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">🎉</span><span class="tag-name">social</span></div><div class="tag-desc">Oriented around people and interaction.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">⚡</span><span class="tag-name">restless</span></div><div class="tag-desc">Need to get out, move, do something.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">🔮</span><span class="tag-name">curious</span></div><div class="tag-desc">Discovery, learning, exploring something new.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">💥</span><span class="tag-name">spontaneous</span></div><div class="tag-desc">Happens right now, no planning needed.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">🌙</span><span class="tag-name">solo</span></div><div class="tag-desc">Comfortable to attend alone.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">🥂</span><span class="tag-name">celebratory</span></div><div class="tag-desc">Marking a moment, festive, special occasion.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">🛋</span><span class="tag-name">cozy</span></div><div class="tag-desc">Warm, enclosed, comfortable atmosphere.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">🏃</span><span class="tag-name">active</span></div><div class="tag-desc">Physical activity, movement, sport.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">🌅</span><span class="tag-name">outdoor</span></div><div class="tag-desc">Takes place outside.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">🏠</span><span class="tag-name">indoor</span></div><div class="tag-desc">Takes place indoors.</div></div>
+    <div class="tag-card"><div class="tag-card-top"><span class="tag-emoji">🆓</span><span class="tag-name">free</span></div><div class="tag-desc">No cost to attend.</div></div>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-text">
+      <strong>Custom vibe tags.</strong> Parsers must not reject files with unrecognised vibe tags — apps should treat unknown tags as informational and not filter on them. The canonical tag list may be extended in future spec versions.
+    </div>
+  </div>
+</div>
+
+<!-- ══ CATEGORIES ══ -->
+<div class="spec-section" id="categories">
+  <div class="spec-section-label">Reference</div>
+  <h2>Categories <a href="#categories" class="anchor-link">#</a></h2>
+
+  <p>The <code>category</code> field classifies an event by type. Unlike vibe tags (which describe mood), categories describe the nature of the activity.</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Value</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="td-field">music</td><td class="td-desc">Live music, DJ sets, concerts, residencies.</td></tr>
+      <tr><td class="td-field">food_drink</td><td class="td-desc">Happy hours, tastings, pop-up dinners, market stalls.</td></tr>
+      <tr><td class="td-field">fitness</td><td class="td-desc">Classes, open gym, sports, pools, training sessions.</td></tr>
+      <tr><td class="td-field">arts</td><td class="td-desc">Visual art, film screenings, gallery openings, craft.</td></tr>
+      <tr><td class="td-field">education</td><td class="td-desc">Workshops, lectures, classes, talks.</td></tr>
+      <tr><td class="td-field">community</td><td class="td-desc">Meetups, group activities, neighborhood events, clubs.</td></tr>
+      <tr><td class="td-field">market</td><td class="td-desc">Farmers markets, flea markets, vendor fairs.</td></tr>
+      <tr><td class="td-field">sport</td><td class="td-desc">Sports viewing events, game days, leagues.</td></tr>
+      <tr><td class="td-field">comedy</td><td class="td-desc">Stand-up, improv, sketch, open mic (comedy).</td></tr>
+      <tr><td class="td-field">theater</td><td class="td-desc">Plays, performances, spoken word, poetry.</td></tr>
+      <tr><td class="td-field">spiritual</td><td class="td-desc">Religious services, meditation, spiritual gatherings.</td></tr>
+      <tr><td class="td-field">maintenance</td><td class="td-desc">Home maintenance tasks, service intervals, reminders.</td></tr>
+      <tr><td class="td-field">personal</td><td class="td-desc">Birthdays, anniversaries, milestones, personal reminders.</td></tr>
+      <tr><td class="td-field">general</td><td class="td-desc">Default. Use when no other category fits.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ PRICE VALUES ══ -->
+<div class="spec-section" id="price-values">
+  <div class="spec-section-label">Reference</div>
+  <h2>Price Values <a href="#price-values" class="anchor-link">#</a></h2>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Value</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="td-field">free</td><td class="td-desc">Completely free. No cost at any point.</td></tr>
+      <tr><td class="td-field">free_entry</td><td class="td-desc">Free to enter; costs may apply inside (e.g. drinks, food).</td></tr>
+      <tr><td class="td-field">ticketed</td><td class="td-desc">Requires a ticket or paid admission.</td></tr>
+      <tr><td class="td-field">donation</td><td class="td-desc">Suggested or voluntary donation.</td></tr>
+      <tr><td class="td-field">members_only</td><td class="td-desc">Restricted to members; membership may have a fee.</td></tr>
+      <tr><td class="td-field">varies</td><td class="td-desc">Price varies by date or instance. Use <code>price_note</code> for detail.</td></tr>
+      <tr><td class="td-field">unknown</td><td class="td-desc">Default when <code>price</code> is omitted.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ PATTERNS ══ -->
+<div class="spec-section" id="patterns">
+  <div class="spec-section-label">Reference</div>
+  <h2>Recurrence Patterns <a href="#patterns" class="anchor-link">#</a></h2>
+
+  <div class="pattern-grid">
+    <div class="pattern-card">
+      <div class="pattern-name">daily</div>
+      <div class="pattern-desc">Every day, or every N days via <code>every</code>.</div>
+      <div class="pattern-example">E.g. gym opening hours, daily standup.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">weekly</div>
+      <div class="pattern-desc">Every week on specified days. Use <code>every: 2</code> for bi-weekly.</div>
+      <div class="pattern-example">E.g. Friday jazz night, Saturday farmers market.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">monthly_week</div>
+      <div class="pattern-desc">A specific weekday in a specific week of the month. Requires <code>month_week</code> and <code>days</code>.</div>
+      <div class="pattern-example">E.g. second Thursday, last Saturday.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">monthly_date</div>
+      <div class="pattern-desc">A fixed date each month. Requires <code>month_date</code>.</div>
+      <div class="pattern-example">E.g. rent due on the 1st, meeting on the 15th.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">annual</div>
+      <div class="pattern-desc">Once per year. Requires <code>date</code> on the strand (MM-DD format) or a full ISO date.</div>
+      <div class="pattern-example">E.g. birthday, anniversary, annual festival.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">weekdays</div>
+      <div class="pattern-desc">Shorthand for <code>weekly</code> on Monday through Friday. Equivalent to <code>days: ["weekday"]</code>.</div>
+      <div class="pattern-example">E.g. office hours, weekday happy hour.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DAY SHORTHANDS ══ -->
+<div class="spec-section" id="day-shorthands">
+  <div class="spec-section-label">Reference</div>
+  <h2>Day Shorthands <a href="#day-shorthands" class="anchor-link">#</a></h2>
+
+  <p>The <code>days</code> field accepts full day names or the following shorthands:</p>
+
+  <table class="field-table">
+    <thead>
+      <tr><th>Value</th><th>Expands to</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="td-field">weekday</td><td class="td-desc"><code>monday, tuesday, wednesday, thursday, friday</code></td></tr>
+      <tr><td class="td-field">weekend</td><td class="td-desc"><code>saturday, sunday</code></td></tr>
+      <tr><td class="td-field">monday – sunday</td><td class="td-desc">Full day names, case-insensitive.</td></tr>
+      <tr><td class="td-field">mon, tue, wed, thu, fri, sat, sun</td><td class="td-desc">Three-letter abbreviations, case-insensitive.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ PUBLISHER PROFILE ══ -->
+<div class="spec-section" id="publisher-profile">
+  <div class="spec-section-label">Concepts</div>
+  <h2>Publisher Profile <a href="#publisher-profile" class="anchor-link">#</a></h2>
+
+  <p>A publisher is any venue, artist, organiser, or person who creates and maintains strands on EventStrand. Each publisher has a profile — a permanent page that lists all their published strands and can be linked, shared, or embedded.</p>
+
+  <p>Publisher profiles are managed through the EventStrand portal. They are not encoded in the <code>.rcal</code> format itself — the format describes individual strands, not collections of them. Profile management and multi-strand aggregation are platform features built on top of the format.</p>
+
+  <table class="field-table">
+    <thead><tr><th>Concept</th><th>URL pattern</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="td-field">Publisher profile</td>
+        <td class="td-type">eventstrand.com/p/{handle}</td>
+        <td class="td-desc">All strands belonging to this publisher. Links to individual strands, shows combined upcoming events, and provides the master QR code.</td>
+      </tr>
+      <tr>
+        <td class="td-field">Individual strand</td>
+        <td class="td-type">eventstrand.com/s/{handle}/{strand-id}</td>
+        <td class="td-desc">A single strand. Serves the <code>.rcal</code> file and a human-readable preview page. This is the URL the strand's own QR code points to.</td>
+      </tr>
+      <tr>
+        <td class="td-field">Master QR / link</td>
+        <td class="td-type">eventstrand.com/p/{handle}</td>
+        <td class="td-desc">A single code that loads all of the publisher's strands at once. Recommended for front-door placement where a visitor might not know which strand they want.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text">
+      <strong>One QR code to rule them all.</strong> The master QR at <code>/p/{handle}</code> is what most venues should put on their front door. When scanned, it installs all the publisher's strands simultaneously. Individual strand QR codes are useful for targeted contexts — a flyer for one specific night, a table card for a weekly residency, a poster for a seasonal series.
+    </div>
+  </div>
+</div>
+
+<!-- ══ MULTIPLE STRANDS ══ -->
+<div class="spec-section" id="multi-strand">
+  <div class="spec-section-label">Concepts</div>
+  <h2>Multiple Strands per Publisher <a href="#multi-strand" class="anchor-link">#</a></h2>
+
+  <p>A publisher can maintain as many strands as makes sense for their operation. Each strand is a separate <code>.rcal</code> file with its own identity, QR code, URL, and subscriber list. Subscribers can install one strand, several, or all of them.</p>
+
+  <p>Strands are the right unit of organisation when a venue runs thematically distinct programmes that different audiences care about differently. A bar that hosts jazz on Fridays and stand-up comedy on Thursdays might keep these as separate strands — a jazz regular doesn't necessarily need the comedy schedule surfaced in their portal, and vice versa.</p>
+
+  <h3>When to split into multiple strands</h3>
+  <ul style="padding-left:20px;color:var(--text-dim);line-height:2.2;">
+    <li>Different audiences who wouldn't install each other's strand</li>
+    <li>Different vibes or categories that would confuse the mood filter</li>
+    <li>Different locations (two venues, one publisher)</li>
+    <li>A seasonal series that should be installable independently</li>
+  </ul>
+
+  <h3>When to keep as one strand</h3>
+  <ul style="padding-left:20px;color:var(--text-dim);line-height:2.2;">
+    <li>The audience overlaps significantly and would want everything</li>
+    <li>The events share the same location and general vibe</li>
+    <li>The publisher wants one QR code to cover their whole programme</li>
+  </ul>
+
+  <h3>Embed widgets</h3>
+  <p>Each strand can be embedded on a publisher's own website as a widget — a compact, styled card showing upcoming events with an install button. Publishers can embed a single strand widget, multiple strand widgets side by side, or a combined widget that aggregates all their strands. Embed code is generated automatically in the EventStrand publisher portal.</p>
+
+  <div class="callout callout-success">
+    <span class="callout-icon">✓</span>
+    <div class="callout-text">
+      <strong>The strand is the source of truth.</strong> Whether a subscriber installs it via QR scan, a direct link, a master profile scan, or an embedded widget — the same live <code>.rcal</code> file powers all of them. Update the strand once, every surface stays current.
+    </div>
+  </div>
+</div>
+
+<!-- ══ LIVE STRANDS ══ -->
+<div class="spec-section" id="live-strands">
+  <div class="spec-section-label">Concepts</div>
+  <h2>Live vs Static Strands <a href="#live-strands" class="anchor-link">#</a></h2>
+
+  <p>A strand is <strong>static</strong> by default. It is downloaded once and stored locally by the subscriber app. Updates require the user to re-download the file.</p>
+
+  <p>A strand is <strong>live</strong> when <code>meta.live</code> is <code>true</code> and <code>meta.source_url</code> is set. Subscriber apps should poll the source URL periodically and merge any changes. The recommended polling interval is once every 24 hours. Apps should use the <code>meta.updated</code> field to detect changes without parsing the full file on every poll.</p>
+
+  <div class="callout callout-success">
+    <span class="callout-icon">✓</span>
+    <div class="callout-text">
+      <strong>Recommended approach.</strong> Publish a live strand. The publisher updates their file once when their schedule changes. Every subscriber gets the update automatically — no action required on their end.
+    </div>
+  </div>
+
+  <h3>Merging updates</h3>
+  <p>When a subscriber app receives an updated version of a live strand, it should apply the following merge strategy: match events by <code>id</code>. Updated events replace their previous version entirely. New events (new <code>id</code>) are added. Events whose <code>id</code> no longer appears in the updated file are considered removed and should be flagged to the user before deletion.</p>
+</div>
+
+<!-- ══ ONE-OFFS ══ -->
+<div class="spec-section" id="one-offs">
+  <div class="spec-section-label">Concepts</div>
+  <h2>One-Off Events <a href="#one-offs" class="anchor-link">#</a></h2>
+
+  <p>A strand without a <code>recurrence</code> array is treated as a one-off event. It must have a <code>date</code> field specifying when it occurs. One-off events can coexist in the same strand alongside recurring events — a venue's strand might have three recurring weekly events and two upcoming one-offs.</p>
+
+  <div class="code-block">
+    <div class="code-topbar"><span class="code-filename">one-off.rcal snippet</span><span class="code-lang">JSON</span></div>
+    <pre>{
+  <span class="ck">"id"</span>: <span class="cs">"summer-block-party"</span>,
+  <span class="ck">"name"</span>: <span class="cs">"Summer Block Party"</span>,
+  <span class="ck">"category"</span>: <span class="cs">"community"</span>,
+  <span class="ck">"date"</span>: <span class="cs">"2026-07-18"</span>,
+  <span class="ck">"time_start"</span>: <span class="cs">"14:00"</span>,
+  <span class="ck">"time_end"</span>: <span class="cs">"22:00"</span>,
+  <span class="ck">"vibe_tags"</span>: [<span class="cs">"social"</span>, <span class="cs">"outdoor"</span>, <span class="cs">"free"</span>],
+  <span class="ck">"price"</span>: <span class="cs">"free"</span>,
+  <span class="ck">"notes"</span>: <span class="cs">"Rain date July 25."</span>
+  <span class="cc">// No "recurrence" field — this is a one-off</span>
+}</pre>
+  </div>
+
+  <p>The <code>date</code> field is for a singular event that will never repeat. For an event without a predictable pattern that will have many dates over time, use <code>dates</code> instead — see <a href="#dates">dates array</a>. One-off events should be surfaced in apps up to <code>lead_time_days</code> before the event date, and removed from the portal after the event passes. For live strands, publishers should remove past one-offs from the file on their next update to keep the file clean.</p>
+</div>
+
+<!-- ══ VALIDATION ══ -->
+<div class="spec-section" id="validation">
+  <div class="spec-section-label">Concepts</div>
+  <h2>Validation Rules <a href="#validation" class="anchor-link">#</a></h2>
+
+  <p>A valid .rcal file must satisfy all of the following:</p>
+
+  <h3>Hard requirements (reject if violated)</h3>
+  <ul style="padding-left:20px;color:var(--text-dim);line-height:2;">
+    <li>The file is valid JSON.</li>
+    <li>The top-level <code>rcal</code> key is present and a non-empty string.</li>
+    <li>The top-level <code>events</code> key is present and an array (may be empty).</li>
+    <li>Every strand has a non-empty <code>id</code> string.</li>
+    <li>Every strand has a non-empty <code>name</code> string.</li>
+    <li>Strand <code>id</code> values are unique within the file.</li>
+    <li>Every recurrence rule has a <code>pattern</code> field.</li>
+    <li>One-off events (no <code>recurrence</code>, no <code>dates</code>) have a <code>date</code> field.</li>
+    <li>A strand has exactly one of <code>recurrence</code>, <code>date</code>, or <code>dates</code>. Two or more is invalid.</li>
+  </ul>
+
+  <h3>Soft requirements (warn, do not reject)</h3>
+  <ul style="padding-left:20px;color:var(--text-dim);line-height:2;">
+    <li>Unrecognised fields at any level should be preserved and ignored, not rejected.</li>
+    <li>Unrecognised <code>pattern</code>, <code>category</code>, or <code>vibe_tags</code> values should be treated as unknown rather than causing failure.</li>
+    <li>A <code>live: true</code> strand without <code>source_url</code> should warn but not fail.</li>
+    <li>A <code>dates</code> array where all entries are in the past should warn but not fail.</li>
+    <li>An entry in <code>dates</code> that is not a valid ISO 8601 date should be skipped with a warning, not cause full parse failure.</li>
+    <li>A <code>monthly_week</code> rule without <code>month_week</code> should be treated as <code>first</code>.</li>
+    <li>Times outside 00:00–23:59 should be rejected per-rule with a warning.</li>
+  </ul>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text">
+      <strong>Be liberal in what you accept.</strong> The format will evolve. Parsers that hard-fail on unknown fields will break as the spec grows. Parsers that warn and continue will stay compatible across versions.
+    </div>
+  </div>
+</div>
+
+<!-- ══ EXAMPLES ══ -->
+<div class="spec-section" id="ex-minimal">
+  <div class="spec-section-label">Examples</div>
+  <h2>Minimal valid file <a href="#ex-minimal" class="anchor-link">#</a></h2>
+  <p>The smallest possible .rcal file — one recurring event, no metadata.</p>
+
+  <div class="code-block">
+    <div class="code-topbar"><span class="code-filename">minimal.rcal</span><span class="code-lang">JSON</span></div>
+    <pre>{
+  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,
+  <span class="ck">"events"</span>: [
+    {
+      <span class="ck">"id"</span>: <span class="cs">"open-swim"</span>,
+      <span class="ck">"name"</span>: <span class="cs">"Open Swim"</span>,
+      <span class="ck">"recurrence"</span>: [
+        {
+          <span class="ck">"pattern"</span>: <span class="cs">"weekly"</span>,
+          <span class="ck">"days"</span>: [<span class="cs">"monday"</span>, <span class="cs">"wednesday"</span>, <span class="cs">"friday"</span>],
+          <span class="ck">"time_start"</span>: <span class="cs">"06:00"</span>,
+          <span class="ck">"time_end"</span>: <span class="cs">"08:00"</span>
+        }
+      ]
+    }
+  ]
+}</pre>
+  </div>
+</div>
+
+<div class="spec-section" id="ex-venue">
+  <h2>Full venue strand <a href="#ex-venue" class="anchor-link">#</a></h2>
+  <p>A bar with two recurring events, a seasonal rule, an exception, and live hosting.</p>
+
+  <div class="code-block">
+    <div class="code-topbar"><span class="code-filename">rusty-nail.rcal</span><span class="code-lang">JSON</span></div>
+    <pre>{
+  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,
+  <span class="ck">"meta"</span>: {
+    <span class="ck">"title"</span>: <span class="cs">"The Rusty Nail"</span>,
+    <span class="ck">"type"</span>: <span class="cs">"venue"</span>,
+    <span class="ck">"description"</span>: <span class="cs">"Jazz bar in Logan Square, Chicago."</span>,
+    <span class="ck">
+    <div class="schema-field">
+      <div class="schema-field-name"><code>"visibility"</code></div>
+      <div class="schema-field-type">string</div>
+      <div class="schema-field-desc">Access level: <code>"public"</code> (default, discoverable), <code>"unlisted"</code> (accessible by link only), or <code>"protected"</code> (requires passcode). Unlisted and protected strands do not appear in publisher profiles or search.</div>
+    </div>
+    <div class="schema-field">
+      <div class="schema-field-name"><code>"access_code"</code></div>
+      <div class="schema-field-type">string</div>
+      <div class="schema-field-desc">Required when <code>visibility</code> is <code>"protected"</code>. Passcode subscribers must enter to view the strand.</div>
+    </div>"color"</span>: <span class="cs">"#C0392B"</span>,
+    <span class="ck">"website"</span>: <span class="cs">"https://therustynail.com"</span>,
+    <span class="ck">"timezone"</span>: <span class="cs">"America/Chicago"</span>,
+    <span class="ck">"live"</span>: <span class="cb">true</span>,
+    <span class="ck">"source_url"</span>: <span class="cs">"https://eventstrand.com/s/rusty-nail"</span>,
+    <span class="ck">"published"</span>: <span class="cs">"2026-03-17"</span>,
+    <span class="ck">"location"</span>: {
+      <span class="ck">"address"</span>: <span class="cs">"1234 N Milwaukee Ave"</span>,
+      <span class="ck">"city"</span>: <span class="cs">"Chicago"</span>,
+      <span class="ck">"state"</span>: <span class="cs">"IL"</span>,
+      <span class="ck">"country"</span>: <span class="cs">"US"</span>,
+      <span class="ck">"lat"</span>: <span class="cn">41.9214</span>,
+      <span class="ck">"lng"</span>: <span class="cn">-87.7078</span>
+    }
+  },
+  <span class="ck">"events"</span>: [
+    {
+      <span class="ck">"id"</span>: <span class="cs">"friday-jazz"</span>,
+      <span class="ck">"name"</span>: <span class="cs">"Friday Jazz Residency"</span>,
+      <span class="ck">"category"</span>: <span class="cs">"music"</span>,
+      <span class="ck">"vibe_tags"</span>: [<span class="cs">"mellow"</span>, <span class="cs">"social"</span>],
+      <span class="ck">"price"</span>: <span class="cs">"free_entry"</span>,
+      <span class="ck">"notes"</span>: <span class="cs">"Bar opens at 7pm. Music 9pm–midnight."</span>,
+      <span class="ck">"lead_time_days"</span>: <span class="cn">1</span>,
+      <span class="ck">"recurrence"</span>: [
+        {
+          <span class="ck">"pattern"</span>: <span class="cs">"weekly"</span>,
+          <span class="ck">"days"</span>: [<span class="cs">"friday"</span>],
+          <span class="ck">"time_start"</span>: <span class="cs">"21:00"</span>,
+          <span class="ck">"time_end"</span>: <span class="cs">"00:00"</span>
+        }
+      ],
+      <span class="ck">"exceptions"</span>: [
+        {
+          <span class="ck">"type"</span>: <span class="cs">"skip"</span>,
+          <span class="ck">"date"</span>: <span class="cs">"2026-12-25"</span>,
+          <span class="ck">"note"</span>: <span class="cs">"Closed Christmas"</span>
+        }
+      ]
+    },
+    {
+      <span class="ck">"id"</span>: <span class="cs">"happy-hour"</span>,
+      <span class="ck">"name"</span>: <span class="cs">"Happy Hour"</span>,
+      <span class="ck">"category"</span>: <span class="cs">"food_drink"</span>,
+      <span class="ck">"vibe_tags"</span>: [<span class="cs">"spontaneous"</span>, <span class="cs">"social"</span>],
+      <span class="ck">"price"</span>: <span class="cs">"free_entry"</span>,
+      <span class="ck">"lead_time_days"</span>: <span class="cn">0</span>,
+      <span class="ck">"recurrence"</span>: [
+        {
+          <span class="cc">// Weekday happy hour</span>
+          <span class="ck">"pattern"</span>: <span class="cs">"weekly"</span>,
+          <span class="ck">"days"</span>: [<span class="cs">"weekday"</span>],
+          <span class="ck">"time_start"</span>: <span class="cs">"16:00"</span>,
+          <span class="ck">"time_end"</span>: <span class="cs">"19:00"</span>
+        },
+        {
+          <span class="cc">// Extended Saturday hours, summer only</span>
+          <span class="ck">"pattern"</span>: <span class="cs">"weekly"</span>,
+          <span class="ck">"days"</span>: [<span class="cs">"saturday"</span>],
+          <span class="ck">"time_start"</span>: <span class="cs">"14:00"</span>,
+          <span class="ck">"time_end"</span>: <span class="cs">"18:00"</span>,
+          <span class="ck">"season_start"</span>: <span class="cs">"may"</span>,
+          <span class="ck">"season_end"</span>: <span class="cs">"sep"</span>
+        }
+      ]
+    }
+  ]
+}</pre>
+  </div>
+</div>
+
+<div class="spec-section" id="ex-personal">
+  <h2>Personal strand <a href="#ex-personal" class="anchor-link">#</a></h2>
+  <p>A personal file mixing life milestones, maintenance reminders, and a monthly recurring event.</p>
+
+  <div class="code-block">
+    <div class="code-topbar"><span class="code-filename">my-life.rcal</span><span class="code-lang">JSON</span></div>
+    <pre>{
+  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,
+  <span class="ck">"meta"</span>: {
+    <span class="ck">"title"</span>: <span class="cs">"My World"</span>,
+    <span class="ck">"type"</span>: <span class="cs">"personal"</span>,
+    <span class="ck">"timezone"</span>: <span class="cs">"America/New_York"</span>,
+    <span class="ck">"live"</span>: <span class="cb">false</span>
+  },
+  <span class="ck">"events"</span>: [
+    {
+      <span class="ck">"id"</span>: <span class="cs">"sisters-birthday"</span>,
+      <span class="ck">"name"</span>: <span class="cs">"Sarah's Birthday"</span>,
+      <span class="ck">"category"</span>: <span class="cs">"personal"</span>,
+      <span class="ck">"vibe_tags"</span>: [<span class="cs">"celebratory"</span>],
+      <span class="ck">"lead_time_days"</span>: <span class="cn">14</span>,
+      <span class="ck">"recurrence"</span>: [
+        {
+          <span class="ck">"pattern"</span>: <span class="cs">"annual"</span>,
+          <span class="ck">"month_date"</span>: <span class="cn">22</span>,
+          <span class="ck">"season_start"</span>: <span class="cs">"aug"</span>,
+          <span class="ck">"season_end"</span>: <span class="cs">"aug"</span>
+        }
+      ]
+    },
+    {
+      <span class="ck">"id"</span>: <span class="cs">"hvac-filter"</span>,
+      <span class="ck">"name"</span>: <span class="cs">"Replace HVAC Filter"</span>,
+      <span class="ck">"category"</span>: <span class="cs">"maintenance"</span>,
+      <span class="ck">"vibe_tags"</span>: [],
+      <span class="ck">"lead_time_days"</span>: <span class="cn">3</span>,
+      <span class="ck">"recurrence"</span>: [
+        {
+          <span class="ck">"pattern"</span>: <span class="cs">"monthly_date"</span>,
+          <span class="ck">"month_date"</span>: <span class="cn">1</span>,
+          <span class="ck">"every"</span>: <span class="cn">3</span>,
+          <span class="cc">// every 3 months — quarterly</span>
+          <span class="ck">"time_start"</span>: <span class="cs">"09:00"</span>
+        }
+      ]
+    },
+    {
+      <span class="ck">"id"</span>: <span class="cs">"book-club"</span>,
+      <span class="ck">"name"</span>: <span class="cs">"Book Club"</span>,
+      <span class="ck">"category"</span>: <span class="cs">"community"</span>,
+      <span class="ck">"vibe_tags"</span>: [<span class="cs">"curious"</span>, <span class="cs">"social"</span>, <span class="cs">"cozy"</span>],
+      <span class="ck">"recurrence"</span>: [
+        {
+          <span class="ck">"pattern"</span>: <span class="cs">"monthly_week"</span>,
+          <span class="ck">"month_week"</span>: <span class="cs">"second"</span>,
+          <span class="ck">"days"</span>: [<span class="cs">"thursday"</span>],
+          <span class="ck">"time_start"</span>: <span class="cs">"19:00"</span>,
+          <span class="ck">"time_end"</span>: <span class="cs">"21:30"</span>
+        }
+      ]
+    }
+  ]
+}</pre>
+  </div>
+</div>
+
+<div class="spec-section" id="ex-oneoff">
+  <h2>Recurring strand with one-off event <a href="#ex-oneoff" class="anchor-link">#</a></h2>
+  <p>A venue's strand file that includes both a recurring weekly night and a special one-off show next month.</p>
+
+  <div class="code-block">
+    <div class="code-topbar"><span class="code-filename">with-oneoff.rcal</span><span class="code-lang">JSON</span></div>
+    <pre>{
+  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,
+  <span class="ck">"meta"</span>: {
+    <span class="ck">"title"</span>: <span class="cs">"The Hideout"</span>,
+    <span class="ck">"type"</span>: <span class="cs">"venue"</span>,
+    <span class="ck">"timezone"</span>: <span class="cs">"America/Chicago"</span>,
+    <span class="ck">"live"</span>: <span class="cb">true</span>,
+    <span class="ck">"source_url"</span>: <span class="cs">"https://eventstrand.com/s/hideout-chicago"</span>
+  },
+  <span class="ck">"events"</span>: [
+    {
+      <span class="cc">// Recurring event — uses recurrence, no date field</span>
+      <span class="ck">"id"</span>: <span class="cs">"open-mic"</span>,
+      <span class="ck">"name"</span>: <span class="cs">"Open Mic Night"</span>,
+      <span class="ck">"category"</span>: <span class="cs">"music"</span>,
+      <span class="ck">"vibe_tags"</span>: [<span class="cs">"curious"</span>, <span class="cs">"social"</span>],
+      <span class="ck">"price"</span>: <span class="cs">"free_entry"</span>,
+      <span class="ck">"recurrence"</span>: [
+        {
+          <span class="ck">"pattern"</span>: <span class="cs">"monthly_week"</span>,
+          <span class="ck">"month_week"</span>: <span class="cs">"last"</span>,
+          <span class="ck">"days"</span>: [<span class="cs">"thursday"</span>],
+          <span class="ck">"time_start"</span>: <span class="cs">"20:00"</span>,
+          <span class="ck">"time_end"</span>: <span class="cs">"23:00"</span>
+        }
+      ]
+    },
+    {
+      <span class="cc">// One-off event — uses date, no recurrence field</span>
+      <span class="ck">"id"</span>: <span class="cs">"anniversary-show-2026"</span>,
+      <span class="ck">"name"</span>: <span class="cs">"30th Anniversary Show"</span>,
+      <span class="ck">"category"</span>: <span class="cs">"music"</span>,
+      <span class="ck">"vibe_tags"</span>: [<span class="cs">"celebratory"</span>, <span class="cs">"social"</span>],
+      <span class="ck">"price"</span>: <span class="cs">"ticketed"</span>,
+      <span class="ck">"price_note"</span>: <span class="cs">"$20 advance, $25 door"</span>,
+      <span class="ck">"ticket_url"</span>: <span class="cs">"https://dice.fm/hideout-anniversary"</span>,
+      <span class="ck">"date"</span>: <span class="cs">"2026-05-09"</span>,
+      <span class="ck">"time_start"</span>: <span class="cs">"19:00"</span>,
+      <span class="ck">"time_end"</span>: <span class="cs">"02:00"</span>,
+      <span class="ck">"lead_time_days"</span>: <span class="cn">21</span>
+    }
+  ]
+}</pre>
+  </div>
+</div>
+
+<!-- ══ CHANGELOG ══ -->
+<div class="spec-section" id="changelog">
+  <div class="spec-section-label">Meta</div>
+  <h2>Changelog <a href="#changelog" class="anchor-link">#</a></h2>
+
+  <div class="changelog-entry">
+    <span class="changelog-version">v0.1</span>
+    <span class="changelog-date">2026-03-17</span>
+    <div class="changelog-notes">
+      Initial draft specification. Defines top-level structure, <code>meta</code>, <code>location</code>, <code>events</code>, <code>recurrence</code>, and <code>exceptions</code> objects. Renames <code>strands[]</code> to <code>events[]</code> to clarify that the file <em>is</em> the strand and the array contains events. Establishes canonical vibe tag list, category list, price values, recurrence patterns, and day shorthands. Introduces live vs static strand model, one-off event support (<code>date</code>), and manually-curated date list support (<code>dates</code>). Defines three mutually exclusive schedule authoring modes: <code>recurrence</code>, <code>date</code>, <code>dates</code>.
+    </div>
+  </div>
+</div>
+
+<!-- ══ LICENSE ══ -->
+<div class="spec-section" id="license">
+  <div class="spec-section-label">Meta</div>
+  <h2>License <a href="#license" class="anchor-link">#</a></h2>
+
+  <p>The .rcal specification is released into the public domain under <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a>. No rights reserved.</p>
+
+  <p>You may use, implement, extend, fork, or build commercial products based on this specification without attribution, permission, or fee. We ask (but do not require) that compatible implementations use the <code>.rcal</code> file extension and the <code>application/vnd.rcal+json</code> MIME type to aid ecosystem interoperability.</p>
+
+  <div class="callout callout-success">
+    <span class="callout-icon">✓</span>
+    <div class="callout-text">
+      <strong>No license required.</strong> The format is a public good. EventStrand maintains the reference implementation and this spec document, but owns neither the format nor any implementation of it.
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ── SCROLL PROGRESS ──
+window.addEventListener('scroll', () => {
+  const doc = document.documentElement;
+  const scrolled = doc.scrollTop / (doc.scrollHeight - doc.clientHeight);
+  document.getElementById('progress-bar').style.width = (scrolled * 100) + '%';
+});
+
+// ── ACTIVE SIDEBAR LINK ──
+const sections = document.querySelectorAll('.spec-section[id], [id]');
+const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      sidebarLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        link.classList.toggle('active', href === '#' + id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+
+document.querySelectorAll('[id]').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
