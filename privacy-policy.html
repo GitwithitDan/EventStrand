@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — EventStrand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #04061a;
+  --bg2: #07091f;
+  --bg3: #0b0d26;
+  --surface: #10163a;
+  --surface2: #171e48;
+  --border: rgba(100,120,255,0.10);
+  --border2: rgba(100,120,255,0.22);
+  --primary: #6C8FFF;
+  --primary-dim: #4A6EE8;
+  --primary-glow: rgba(108,143,255,0.22);
+  --green: #11DBA6;
+  --text: #ECF0FF;
+  --text-dim: #8290C0;
+  --text-faint: #454A72;
+  --radius: 12px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 64px;
+  background: rgba(4,6,26,0.90);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+
+.nav-logo-mark {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--primary), #B06FFF);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fraunces', serif;
+  font-size: 18px; font-weight: 700;
+  color: white;
+}
+
+.nav-logo-text {
+  font-family: 'Fraunces', serif;
+  font-size: 20px; font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+/* ── HERO BAND ── */
+.page-hero {
+  padding: 120px 40px 60px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.page-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--primary);
+  margin-bottom: 16px;
+}
+.page-label::before {
+  content: ''; width: 20px; height: 2px;
+  background: var(--primary); display: block;
+}
+
+.page-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.page-meta {
+  font-size: 14px;
+  color: var(--text-faint);
+}
+
+/* ── POLICY BODY ── */
+.policy-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 40px 100px;
+}
+
+.policy-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 56px;
+}
+
+/* Override Termly's inline styles for dark theme */
+.policy-content [data-custom-class="body"],
+.policy-content [data-custom-class="body"] * {
+  background: transparent !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+
+.policy-content [data-custom-class="title"],
+.policy-content [data-custom-class="title"] * {
+  font-family: 'Fraunces', serif !important;
+  color: var(--text) !important;
+}
+
+.policy-content h1 {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.policy-content h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text);
+  margin: 40px 0 12px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.policy-content h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 28px 0 10px;
+}
+
+.policy-content [data-custom-class="subtitle"],
+.policy-content [data-custom-class="subtitle"] * {
+  color: var(--text-faint) !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 14px !important;
+}
+
+.policy-content [data-custom-class="body_text"],
+.policy-content [data-custom-class="body_text"] * {
+  color: var(--text-dim) !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 15px !important;
+  line-height: 1.75 !important;
+}
+
+.policy-content [data-custom-class="heading_1"],
+.policy-content [data-custom-class="heading_1"] * {
+  color: var(--text) !important;
+  font-family: 'Fraunces', serif !important;
+}
+
+.policy-content [data-custom-class="heading_2"],
+.policy-content [data-custom-class="heading_2"] * {
+  color: var(--text) !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 600 !important;
+}
+
+.policy-content [data-custom-class="link"],
+.policy-content [data-custom-class="link"] * {
+  color: var(--primary) !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+
+.policy-content a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.policy-content a:hover { color: #8aaeff; }
+
+.policy-content ul {
+  padding-left: 24px;
+  margin: 12px 0;
+}
+
+.policy-content ul li {
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1.75;
+  margin-bottom: 6px;
+  list-style-type: disc;
+}
+
+.policy-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+}
+
+.policy-content table th,
+.policy-content table td {
+  padding: 12px 16px;
+  text-align: left;
+  border: 1px solid var(--border2) !important;
+  color: var(--text-dim);
+  font-family: 'Outfit', sans-serif;
+}
+
+.policy-content table th {
+  color: var(--text);
+  font-weight: 600;
+  background: var(--bg3);
+}
+
+.policy-content table tr:nth-child(even) td {
+  background: rgba(16,22,58,0.4);
+}
+
+/* Hide Termly branding logo */
+.policy-content > span:first-child {
+  display: none !important;
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 40px;
+}
+
+.footer-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-copy { font-size: 13px; color: var(--text-faint); }
+
+.footer-links {
+  display: flex; align-items: center; gap: 20px;
+}
+
+.footer-links a {
+  font-size: 13px;
+  color: var(--text-faint);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--primary); }
+
+.footer-tagline {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-faint);
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-mark">E</div>
+    <span class="nav-logo-text">EventStrand</span>
+  </a>
+</nav>
+
+<!-- ── PAGE HERO ── -->
+<div class="page-hero">
+  <div class="page-label">Legal</div>
+  <h1 class="page-title">Privacy Policy</h1>
+  <p class="page-meta">Last updated March 12, 2026</p>
+</div>
+
+<!-- ── POLICY CONTENT ── -->
+<div class="policy-wrap">
+  <div class="policy-content">
+    <div data-custom-class="body">
+      <div style="line-height: 1.5;"><span style="color: rgb(127, 127, 127);"><span style="color: rgb(89, 89, 89); font-size: 15px;"><span data-custom-class="body_text">This Privacy Notice for <strong>EventStrand</strong> ("we," "us," or "our") describes how and why we might access, collect, store, use, and/or share ("process") your personal information when you use our services ("Services"), including when you:</span></span></span></div>
+      <ul>
+        <li data-custom-class="body_text">Visit our website at <a href="https://www.eventstrand.com" target="_blank" data-custom-class="link">https://www.eventstrand.com</a> or any website of ours that links to this Privacy Notice</li>
+        <li data-custom-class="body_text">Download and use our mobile application (EventStrand), or any other application of ours that links to this Privacy Notice</li>
+        <li data-custom-class="body_text">Use EventStrand. EventStrand is a web platform that helps users discover, follow, and manage event-based content strands. Users create accounts to save preferences and track the strands they've installed across events.</li>
+        <li data-custom-class="body_text">Engage with us in other related ways, including any marketing or events</li>
+      </ul>
+      <div style="line-height: 1.5;"><span style="color: rgb(127, 127, 127);"><span data-custom-class="body_text"><strong>Questions or concerns?</strong> Reading this Privacy Notice will help you understand your privacy rights and choices. If you do not agree with our policies and practices, please do not use our Services. If you still have any questions or concerns, please contact us at <a href="/cdn-cgi/l/email-protection#37525a565e5b5343535a77505a565e5b1954585a" data-custom-class="link"><span class="__cf_email__" data-cfemail="b4d1d9d5ddd8d0c0d0d9f4d3d9d5ddd89ad7dbd9">[email&#160;protected]</span></a>.</span></span></div>
+
+      <h2><span data-custom-class="heading_1">SUMMARY OF KEY POINTS</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">This summary provides key points from our Privacy Notice. You can find more details by using the <a href="#toc" data-custom-class="link">table of contents</a> below.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>What personal information do we process?</strong> When you visit, use, or navigate our Services, we may process personal information depending on how you interact with us and the choices you make.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>Do we process any sensitive personal information?</strong> We do not process sensitive personal information.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>Do we collect any information from third parties?</strong> We do not collect any information from third parties.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>How do we process your information?</strong> We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law. We process your information only when we have a valid legal reason to do so.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>How do we keep your information safe?</strong> We have organizational and technical processes in place to protect your personal information. However, no electronic transmission over the internet can be guaranteed 100% secure.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>How do you exercise your rights?</strong> The easiest way is by emailing us at <a href="mailto:emaildtdm@gmail.com" data-custom-class="link">emaildtdm@gmail.com</a> or by contacting us directly.</span></div>
+
+      <h2 id="toc"><span data-custom-class="heading_1">TABLE OF CONTENTS</span></h2>
+      <div style="line-height:2;">
+        <a href="#infocollect" data-custom-class="link">1. WHAT INFORMATION DO WE COLLECT?</a><br>
+        <a href="#infouse" data-custom-class="link">2. HOW DO WE PROCESS YOUR INFORMATION?</a><br>
+        <a href="#whoshare" data-custom-class="link">3. WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?</a><br>
+        <a href="#cookies" data-custom-class="link">4. DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?</a><br>
+        <a href="#sociallogins" data-custom-class="link">5. HOW DO WE HANDLE YOUR SOCIAL LOGINS?</a><br>
+        <a href="#inforetain" data-custom-class="link">6. HOW LONG DO WE KEEP YOUR INFORMATION?</a><br>
+        <a href="#infosafe" data-custom-class="link">7. HOW DO WE KEEP YOUR INFORMATION SAFE?</a><br>
+        <a href="#infominors" data-custom-class="link">8. DO WE COLLECT INFORMATION FROM MINORS?</a><br>
+        <a href="#privacyrights" data-custom-class="link">9. WHAT ARE YOUR PRIVACY RIGHTS?</a><br>
+        <a href="#DNT" data-custom-class="link">10. CONTROLS FOR DO-NOT-TRACK FEATURES</a><br>
+        <a href="#uslaws" data-custom-class="link">11. DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?</a><br>
+        <a href="#policyupdates" data-custom-class="link">12. DO WE MAKE UPDATES TO THIS NOTICE?</a><br>
+        <a href="#contact" data-custom-class="link">13. HOW CAN YOU CONTACT US ABOUT THIS NOTICE?</a><br>
+        <a href="#request" data-custom-class="link">14. HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?</a>
+      </div>
+
+      <h2 id="infocollect"><span data-custom-class="heading_1">1. WHAT INFORMATION DO WE COLLECT?</span></h2>
+      <h3><span data-custom-class="heading_2">Personal information you disclose to us</span></h3>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> We collect personal information that you provide to us.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">We collect personal information that you voluntarily provide to us when you register on the Services, express an interest in obtaining information about us or our products and Services, when you participate in activities on the Services, or otherwise when you contact us.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>Personal Information Provided by You.</strong> The personal information we collect may include the following:</span></div>
+      <ul>
+        <li data-custom-class="body_text">Names</li>
+        <li data-custom-class="body_text">Phone numbers</li>
+        <li data-custom-class="body_text">Email addresses</li>
+        <li data-custom-class="body_text">Usernames</li>
+        <li data-custom-class="body_text">Passwords</li>
+        <li data-custom-class="body_text">Contact or authentication data</li>
+      </ul>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>Sensitive Information.</strong> We do not process sensitive information.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>Social Media Login Data.</strong> We may provide you with the option to register with us using your existing social media account details, like your Facebook, X, or other social media account. If you choose to register in this way, we will collect certain profile information about you from the social media provider, as described in the section <a href="#sociallogins" data-custom-class="link">HOW DO WE HANDLE YOUR SOCIAL LOGINS?</a></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>Application Data.</strong> If you use our application(s), we may also collect the following information if you choose to provide us with access or permission:</span></div>
+      <ul>
+        <li data-custom-class="body_text"><em>Mobile Device Access.</em> We may request access to certain features from your mobile device, including your calendar, contacts, reminders, SMS messages, social media accounts, and storage. If you wish to change our access or permissions, you may do so in your device's settings.</li>
+        <li data-custom-class="body_text"><em>Push Notifications.</em> We may request to send you push notifications regarding your account or certain features of the application(s). If you wish to opt out, you may turn them off in your device's settings.</li>
+      </ul>
+
+      <h3><span data-custom-class="heading_2">Information automatically collected</span></h3>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> Some information — such as your Internet Protocol (IP) address and/or browser and device characteristics — is collected automatically when you visit our Services.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">We automatically collect certain information when you visit, use, or navigate the Services. This information does not reveal your specific identity but may include device and usage information, such as your IP address, browser and device characteristics, operating system, language preferences, referring URLs, device name, country, location, information about how and when you use our Services, and other technical information.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">Like many businesses, we also collect information through cookies and similar technologies.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">The information we collect includes:</span></div>
+      <ul>
+        <li data-custom-class="body_text"><em>Log and Usage Data.</em> Log and usage data is service-related, diagnostic, usage, and performance information our servers automatically collect when you access or use our Services and which we record in log files. This may include your IP address, device information, browser type, and settings and information about your activity in the Services.</li>
+      </ul>
+
+      <h3><span data-custom-class="heading_2">Google API</span></h3>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">Our use of information received from Google APIs will adhere to <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" data-custom-class="link">Google API Services User Data Policy</a>, including the <a href="https://developers.google.com/terms/api-services-user-data-policy#limited-use" target="_blank" data-custom-class="link">Limited Use requirements</a>.</span></div>
+
+      <h2 id="infouse"><span data-custom-class="heading_1">2. HOW DO WE PROCESS YOUR INFORMATION?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong>We process your personal information for a variety of reasons, depending on how you interact with our Services, including:</strong></span></div>
+      <ul>
+        <li data-custom-class="body_text"><strong>To facilitate account creation and authentication and otherwise manage user accounts.</strong> We may process your information so you can create and log in to your account.</li>
+        <li data-custom-class="body_text"><strong>To deliver and facilitate delivery of services to the user.</strong> We may process your information to provide you with the requested service.</li>
+        <li data-custom-class="body_text"><strong>To respond to user inquiries/offer support to users.</strong> We may process your information to respond to your inquiries and solve any potential issues.</li>
+        <li data-custom-class="body_text"><strong>To send administrative information to you.</strong> We may process your information to send you details about our products and services, changes to our terms and policies, and other similar information.</li>
+        <li data-custom-class="body_text"><strong>To enable user-to-user communications.</strong> We may process your information if you choose to use any of our offerings that allow for communication with another user.</li>
+        <li data-custom-class="body_text"><strong>To send you marketing and promotional communications.</strong> We may process the personal information you send to us for our marketing purposes, if this is in accordance with your marketing preferences. You can opt out of our marketing emails at any time.</li>
+        <li data-custom-class="body_text"><strong>To evaluate and improve our Services, products, marketing, and your experience.</strong> We may process your information when we believe it is necessary to identify usage trends and evaluate and improve our Services.</li>
+        <li data-custom-class="body_text"><strong>To identify usage trends.</strong> We may process information about how you use our Services to better understand how they are being used so we can improve them.</li>
+        <li data-custom-class="body_text"><strong>To comply with our legal obligations.</strong> We may process your information to comply with our legal obligations, respond to legal requests, and exercise, establish, or defend our legal rights.</li>
+      </ul>
+
+      <h2 id="whoshare"><span data-custom-class="heading_1">3. WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> We may share information in specific situations described in this section and/or with the following third parties.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">We may need to share your personal information in the following situations:</span></div>
+      <ul>
+        <li data-custom-class="body_text"><strong>Business Transfers.</strong> We may share or transfer your information in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company.</li>
+        <li data-custom-class="body_text"><strong>When we use Google Maps Platform APIs.</strong> We may share your information with certain Google Maps Platform APIs. Google Maps uses GPS, Wi-Fi, and cell towers to estimate your location. This data helps Google Maps provide directions, but it is not always perfectly precise.</li>
+      </ul>
+
+      <h2 id="cookies"><span data-custom-class="heading_1">4. DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> We may use cookies and other tracking technologies to collect and store your information.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">We may use cookies and similar tracking technologies (like web beacons and pixels) to gather information when you interact with our Services. Some online tracking technologies help us maintain the security of our Services and your account, prevent crashes, fix bugs, save your preferences, and assist with basic site functions.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">Specific information about how we use such technologies and how you can refuse certain cookies is set out in our Cookie Notice.</span></div>
+
+      <h2 id="sociallogins"><span data-custom-class="heading_1">5. HOW DO WE HANDLE YOUR SOCIAL LOGINS?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> If you choose to register or log in to our Services using a social media account, we may have access to certain information about you.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">Our Services offer you the ability to register and log in using your third-party social media account details (like your Facebook or X logins). Where you choose to do this, we will receive certain profile information about you from your social media provider. The profile information we receive may vary depending on the social media provider, but will often include your name, email address, friends list, and profile picture.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">We will use the information we receive only for the purposes that are described in this Privacy Notice. We recommend that you review the privacy notice of each social media provider to understand how they collect, use, and share your personal information.</span></div>
+
+      <h2 id="inforetain"><span data-custom-class="heading_1">6. HOW LONG DO WE KEEP YOUR INFORMATION?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> We keep your information for as long as necessary to fulfill the purposes outlined in this Privacy Notice unless otherwise required by law.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">We will only keep your personal information for as long as it is necessary for the purposes set out in this Privacy Notice, unless a longer retention period is required or permitted by law. No purpose in this notice will require us keeping your personal information for longer than the period of time in which users have an account with us.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">When we have no ongoing legitimate business need to process your personal information, we will either delete or anonymize such information, or securely store your personal information and isolate it from any further processing until deletion is possible.</span></div>
+
+      <h2 id="infosafe"><span data-custom-class="heading_1">7. HOW DO WE KEEP YOUR INFORMATION SAFE?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> We aim to protect your personal information through a system of organizational and technical security measures.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">We have implemented appropriate and reasonable technical and organizational security measures designed to protect the security of any personal information we process. However, despite our safeguards and efforts to secure your information, no electronic transmission over the Internet or information storage technology can be guaranteed to be 100% secure. You should only access the Services within a secure environment.</span></div>
+
+      <h2 id="infominors"><span data-custom-class="heading_1">8. DO WE COLLECT INFORMATION FROM MINORS?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> We do not knowingly collect data from or market to children under 18 years of age.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">We do not knowingly collect, solicit data from, or market to children under 18 years of age, nor do we knowingly sell such personal information. By using the Services, you represent that you are at least 18. If we learn that personal information from users less than 18 years of age has been collected, we will deactivate the account and take reasonable measures to promptly delete such data. If you become aware of any data we may have collected from children under age 18, please contact us at <a href="/cdn-cgi/l/email-protection#9bfff5f4efecf2f8e1dbfcf6faf2f7b5f8f4f6" data-custom-class="link"><span class="__cf_email__" data-cfemail="dbbfb5b4afacb2b8a19bbcb6bab2b7f5b8b4b6">[email&#160;protected]</span></a>.</span></div>
+
+      <h2 id="privacyrights"><span data-custom-class="heading_1">9. WHAT ARE YOUR PRIVACY RIGHTS?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> You may review, change, or terminate your account at any time, depending on your country, province, or state of residence.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong><u>Withdrawing your consent:</u></strong> If we are relying on your consent to process your personal information, you have the right to withdraw your consent at any time by contacting us using the contact details provided in the section <a href="#contact" data-custom-class="link">HOW CAN YOU CONTACT US ABOUT THIS NOTICE?</a> below.</span></div>
+
+      <h3><span data-custom-class="heading_2">Account Information</span></h3>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">If you would at any time like to review or change the information in your account or terminate your account, you can log in to your account settings and update your user account.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">Upon your request to terminate your account, we will deactivate or delete your account and information from our active databases. However, we may retain some information in our files to prevent fraud, troubleshoot problems, assist with any investigations, or comply with applicable legal requirements.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">If you have questions or comments about your privacy rights, you may email us at <a href="/cdn-cgi/l/email-protection#650008040c0901110108250208040c094b060a08" data-custom-class="link"><span class="__cf_email__" data-cfemail="95f0f8f4fcf9f1e1f1f8d5f2f8f4fcf9bbf6faf8">[email&#160;protected]</span></a>.</span></div>
+
+      <h2 id="DNT"><span data-custom-class="heading_1">10. CONTROLS FOR DO-NOT-TRACK FEATURES</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">Most web browsers and some mobile operating systems include a Do-Not-Track ("DNT") feature or setting you can activate to signal your privacy preference not to have data about your online browsing activities monitored and collected. At this stage, no uniform technology standard for recognizing and implementing DNT signals has been finalized. As such, we do not currently respond to DNT browser signals.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">California law requires us to let you know how we respond to web browser DNT signals. Because there currently is not an industry or legal standard for recognizing or honoring DNT signals, we do not respond to them at this time.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><strong><u>Global Privacy Control:</u></strong> We recognize and honor Global Privacy Control (GPC) signals. If you use a browser or extension that supports GPC, we will treat this as a valid request to opt out of the sale or sharing of your personal information for targeted advertising purposes. For more information, visit <a href="https://globalprivacycontrol.org" target="_blank" data-custom-class="link">globalprivacycontrol.org</a>.</span></div>
+
+      <h2 id="uslaws"><span data-custom-class="heading_1">11. DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> If you are a resident of California, Colorado, Connecticut, Delaware, Florida, Indiana, Iowa, Kentucky, Maryland, Minnesota, Montana, Nebraska, New Hampshire, New Jersey, Oregon, Rhode Island, Tennessee, Texas, Utah, or Virginia, you may have the right to request access to and receive details about the personal information we maintain about you.</em></span></div>
+
+      <h3><span data-custom-class="heading_2">Your Rights</span></h3>
+      <ul>
+        <li data-custom-class="body_text"><strong>Right to know</strong> whether or not we are processing your personal data</li>
+        <li data-custom-class="body_text"><strong>Right to access</strong> your personal data</li>
+        <li data-custom-class="body_text"><strong>Right to correct</strong> inaccuracies in your personal data</li>
+        <li data-custom-class="body_text"><strong>Right to request</strong> the deletion of your personal data</li>
+        <li data-custom-class="body_text"><strong>Right to obtain a copy</strong> of the personal data you previously shared with us</li>
+        <li data-custom-class="body_text"><strong>Right to non-discrimination</strong> for exercising your rights</li>
+        <li data-custom-class="body_text"><strong>Right to opt out</strong> of the processing of your personal data if it is used for targeted advertising, the sale of personal data, or profiling</li>
+      </ul>
+
+      <h3><span data-custom-class="heading_2">How to Exercise Your Rights</span></h3>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">To exercise these rights, you can contact us by emailing us at <a href="mailto:emaildtdm@gmail.com" data-custom-class="link">emaildtdm@gmail.com</a>, by emailing us at <a href="/cdn-cgi/l/email-protection#395c545850555d4d5d54795e54585055175a5654" data-custom-class="link"><span class="__cf_email__" data-cfemail="70151d11191c1404141d30171d11191c5e131f1d">[email&#160;protected]</span></a>, or by referring to the contact details at the bottom of this document.</span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">We will honor your opt-out preferences if you enact the <a href="https://globalprivacycontrol.org/" target="_blank" data-custom-class="link">Global Privacy Control</a> (GPC) opt-out signal on your browser.</span></div>
+
+      <h3><span data-custom-class="heading_2">Appeals</span></h3>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">Under certain US state data protection laws, if we decline to take action regarding your request, you may appeal our decision by emailing us at <a href="/cdn-cgi/l/email-protection#b3d6ded2dadfd7c7d7def3d4ded2dadf9dd0dcde" data-custom-class="link"><span class="__cf_email__" data-cfemail="d0b5bdb1b9bcb4a4b4bd90b7bdb1b9bcfeb3bfbd">[email&#160;protected]</span></a>. We will inform you in writing of any action taken or not taken in response to the appeal. If your appeal is denied, you may submit a complaint to your state attorney general.</span></div>
+
+      <h2 id="policyupdates"><span data-custom-class="heading_1">12. DO WE MAKE UPDATES TO THIS NOTICE?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text"><em><strong>In Short:</strong> Yes, we will update this notice as necessary to stay compliant with relevant laws.</em></span></div>
+      <br>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">We may update this Privacy Notice from time to time. The updated version will be indicated by an updated "Revised" date at the top of this Privacy Notice. If we make material changes to this Privacy Notice, we may notify you either by prominently posting a notice of such changes or by directly sending you a notification.</span></div>
+
+      <h2 id="contact"><span data-custom-class="heading_1">13. HOW CAN YOU CONTACT US ABOUT THIS NOTICE?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">If you have questions or comments about this notice, you may contact our Data Protection Officer (DPO) by email at <a href="/cdn-cgi/l/email-protection#ddb9b3b2a9aab4bea79dbab0bcb4b1f3beb2b0" data-custom-class="link"><span class="__cf_email__" data-cfemail="d6b2b8b9a2a1bfb5ac96b1bbb7bfbaf8b5b9bb">[email&#160;protected]</span></a>, by phone at 929-557-0481, or by post at:</span></div>
+      <br>
+      <div style="line-height:2; color: var(--text-dim); font-size:15px;">
+        EventStrand<br>
+        Data Protection Officer<br>
+        6113 23rd Ave, 1A<br>
+        Brooklyn, NY 11204<br>
+        United States
+      </div>
+
+      <h2 id="request"><span data-custom-class="heading_1">14. HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?</span></h2>
+      <div style="line-height:1.5;"><span data-custom-class="body_text">You have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the ri
