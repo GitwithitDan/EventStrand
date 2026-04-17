@@ -532,6 +532,9 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 <div id="hero" style="padding-top:64px;">
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
+  <div id="rcal-def-text" style="position:absolute;top:80px;left:0;right:0;z-index:0;padding:40px 60px;pointer-events:none;user-select:none;">
+    <p style="font-family:'Courier New',monospace;font-size:13px;line-height:2;color:rgba(255,255,255,0.07);max-width:820px;letter-spacing:0.02em;white-space:normal;">.rcal is an open file format for encoding recurring real-world events. It is designed to be simple to publish, simple to parse, and expressive enough to describe how venues, people, and communities actually operate — including weekly rhythms, monthly patterns, seasonal windows, exceptions, and one-off events.<br><br>The format is maintained by EventStrand but is not owned by it. Anyone can read, write, parse, or build tools around .rcal files without permission, license, or fee.</p>
+  </div>
   <div class="hero-inner">
     <div>
       <div class="hero-eyebrow fade-up fade-up-1">
@@ -3873,6 +3876,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore notes
   esRestoreNotes();
+
+  // .rcal definition text — fade out as user scrolls past hero
+  (function() {
+    const el = document.getElementById('rcal-def-text');
+    if (!el) return;
+    const hero = document.getElementById('hero');
+    function updateRcalFade() {
+      const heroH = hero.offsetHeight;
+      const scroll = window.scrollY;
+      const fadeStart = heroH * 0.25;
+      const fadeEnd   = heroH * 0.65;
+      if (scroll <= fadeStart) {
+        el.style.opacity = '1';
+      } else if (scroll >= fadeEnd) {
+        el.style.opacity = '0';
+      } else {
+        el.style.opacity = String(1 - (scroll - fadeStart) / (fadeEnd - fadeStart));
+      }
+    }
+    window.addEventListener('scroll', updateRcalFade, { passive: true });
+    updateRcalFade();
+  })();
 });
 </script>
 <script>
