@@ -2877,7 +2877,7 @@ function esCloseApp() {
 
 function _showView(view, params) {
   const app = document.getElementById('es-app');
-  app.style.display = 'block';
+  app.style.display = 'flex';
   document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
   const el = document.getElementById('view-' + view);
   if (el) el.classList.add('active');
