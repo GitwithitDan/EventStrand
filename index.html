@@ -515,8 +515,8 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     <li><a href="#developer">Developers</a></li>
   </ul>
   <div class="nav-cta" id="nav-cta-area">
-    <button class="btn btn-ghost" id="nav-signin-btn" onclick="esShowAuth()" style="display:flex">Sign In</button>
-    <a href="#builder" class="btn btn-primary" id="nav-build-btn">Create Strand</a>
+    <a href="#builder" class="btn btn-ghost" id="nav-build-btn">Create Strand</a>
+    <button class="btn btn-primary" id="nav-signin-btn" onclick="esShowAuth()" style="display:flex">Sign In</button>
     <!-- Authenticated nav items (hidden until signed in) -->
     <div id="nav-auth-area" style="display:none;align-items:center;gap:8px;">
       <button class="nav-notif-btn" id="nav-bell" onclick="esToggleNotif()" title="Notifications">
@@ -1580,11 +1580,35 @@ upcoming.forEach(event => {
 
 <!-- ══ AUTH MODAL ══ -->
 <div id="es-auth-modal">
-  <div class="auth-modal-box">
-    <div class="auth-modal-title">Sign in to EventStrand</div>
-    <div class="auth-modal-sub" id="auth-modal-reason">Subscribe to strands, build your own, and open your dashboard.</div>
-    <div id="g_signin_modal" style="display:flex;justify-content:center;"></div>
-    <button onclick="esCloseAuth()" style="margin-top:16px;background:none;border:none;color:var(--text-faint);font-size:13px;cursor:pointer;">Cancel</button>
+  <div class="auth-modal-box" style="max-width:420px;">
+    <!-- Tabs -->
+    <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:24px;">
+      <button id="auth-tab-signin" onclick="esAuthTab('signin')" style="flex:1;padding:12px;background:none;border:none;border-bottom:2px solid var(--primary);color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Sign In</button>
+      <button id="auth-tab-register" onclick="esAuthTab('register')" style="flex:1;padding:12px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Create Account</button>
+    </div>
+
+    <div class="auth-modal-sub" id="auth-modal-reason" style="margin-bottom:20px;">Subscribe to strands, build your own, and open your dashboard.</div>
+
+    <!-- Google button (both tabs) -->
+    <div id="g_signin_modal" style="display:flex;justify-content:center;margin-bottom:16px;"></div>
+
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:12px;color:var(--text-faint);">or continue with email</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+
+    <!-- Email/password form -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <input id="auth-email" type="email" placeholder="Email address" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
+      <input id="auth-password" type="password" placeholder="Password (min 8 characters)" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
+      <input id="auth-name" type="text" placeholder="Display name (optional)" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;display:none;" />
+      <div id="auth-error" style="font-size:13px;color:#ff6b6b;min-height:16px;text-align:center;"></div>
+      <button id="auth-submit-btn" onclick="esAuthSubmit()" class="btn btn-primary" style="width:100%;justify-content:center;">Sign In</button>
+    </div>
+
+    <button onclick="esCloseAuth()" style="margin-top:16px;background:none;border:none;color:var(--text-faint);font-size:13px;cursor:pointer;width:100%;">Cancel</button>
   </div>
 </div>
 
@@ -2692,7 +2716,65 @@ function esShowAuth(reason) {
 
 function esCloseAuth() {
   document.getElementById('es-auth-modal').classList.remove('open');
+  document.getElementById('auth-error').textContent = '';
+  document.getElementById('auth-email').value = '';
+  document.getElementById('auth-password').value = '';
+  document.getElementById('auth-name').value = '';
 }
+
+let _esAuthMode = 'signin';
+function esAuthTab(mode) {
+  _esAuthMode = mode;
+  const isRegister = mode === 'register';
+  document.getElementById('auth-tab-signin').style.borderBottomColor    = isRegister ? 'transparent' : 'var(--primary)';
+  document.getElementById('auth-tab-signin').style.color                = isRegister ? 'var(--text-dim)' : 'var(--text)';
+  document.getElementById('auth-tab-register').style.borderBottomColor  = isRegister ? 'var(--primary)' : 'transparent';
+  document.getElementById('auth-tab-register').style.color              = isRegister ? 'var(--text)' : 'var(--text-dim)';
+  document.getElementById('auth-name').style.display                    = isRegister ? 'block' : 'none';
+  document.getElementById('auth-submit-btn').textContent                = isRegister ? 'Create Account' : 'Sign In';
+  document.getElementById('auth-error').textContent = '';
+}
+
+async function esAuthSubmit() {
+  const email    = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const name     = document.getElementById('auth-name').value.trim();
+  const errEl    = document.getElementById('auth-error');
+  const btn      = document.getElementById('auth-submit-btn');
+
+  if (!email || !password) { errEl.textContent = 'Email and password are required.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = _esAuthMode === 'register' ? 'Creating account…' : 'Signing in…';
+  errEl.textContent = '';
+
+  const endpoint = _esAuthMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+  const body = _esAuthMode === 'register'
+    ? { email, password, displayName: name || undefined }
+    : { email, password };
+
+  try {
+    const res  = await fetch(BACKEND_URL + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Something went wrong.'; return; }
+    esSetJwt(data.token);
+    ES_USER = data.user;
+    esSetStoredUser(data.user);
+    if (!data.user.handle) {
+      esCloseAuth();
+      esShowHandleSetup();
+    } else {
+      esOnSignedIn();
+    }
+  } catch(e) {
+    errEl.textContent = 'Network error — please try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = _esAuthMode === 'register' ? 'Create Account' : 'Sign In';
+  }
+}
+
+
 
 function esShowHandleSetup() {
   document.getElementById('es-handle-modal').classList.add('open');
