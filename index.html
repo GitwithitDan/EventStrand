@@ -193,17 +193,17 @@ textarea.field-input { resize: vertical; min-height: 80px; }
 .vibe-btn.selected { background: var(--primary-glow); border-color: var(--primary); color: var(--primary); }
 .recurrence-stack { display: flex; flex-direction: column; gap: 12px; }
 .rule-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border2); overflow: hidden; }
-.rule-card-header { padding: 12px 16px; background: var(--surface2); display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--text-dim); }
+.rule-card-header { padding: 14px 24px; background: var(--surface2); display: flex; align-items: center; justify-content: space-between; font-size: 15px; font-weight: 600; color: var(--text-dim); }
 .rule-remove { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 16px; padding: 0 4px; transition: color 0.2s; }
 .rule-remove:hover { color: var(--red); }
-.rule-card-body { padding: 16px; }
-.rule-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.rule-card-body { padding: 20px 24px; }
+.rule-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
 .rule-row:last-child { margin-bottom: 0; }
 .rule-label { font-size: 13px; color: var(--text-dim); font-weight: 500; white-space: nowrap; }
 .rule-select { background: var(--bg); border: 1.5px solid var(--border2); border-radius: 8px; padding: 6px 12px; font-family: 'Outfit', sans-serif; font-size: 13px; color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s; }
 .rule-select:focus { border-color: var(--primary); }
-.days-selector { display: flex; gap: 4px; }
-.day-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--surface2); border: 1.5px solid var(--border); font-size: 11px; font-weight: 700; color: var(--text-dim); cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif; display: flex; align-items: center; justify-content: center; }
+.days-selector { display: flex; gap: 8px; flex: 1; justify-content: space-between; }
+.day-btn { width: 42px; height: 42px; border-radius: 10px; background: var(--surface2); border: 1.5px solid var(--border); font-size: 13px; font-weight: 700; color: var(--text-dim); cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif; display: flex; align-items: center; justify-content: center; }
 .day-btn:hover { border-color: var(--primary); }
 .day-btn.selected { background: var(--primary-glow); border-color: var(--primary); color: var(--primary); }
 .add-rule-btn { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface); border: 1.5px dashed var(--border2); border-radius: 12px; color: var(--text-dim); font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.2s; font-family: 'Outfit', sans-serif; }
@@ -404,8 +404,8 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 .rule-block { background:var(--bg2); border:1px solid var(--border2); border-radius:10px; overflow:hidden; margin-bottom:10px; }
 .rule-block-header { padding:9px 14px; background:var(--bg3); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:600; color:var(--text-dim); }
 .rule-block-body { padding:14px; display:flex; flex-direction:column; gap:10px; }
-.rule-row2 { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.rule-lbl { font-size:12px; color:var(--text-dim); font-weight:500; white-space:nowrap; }
+.rule-row2 { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+.rule-lbl { font-size:14px; color:var(--text-dim); font-weight:600; white-space:nowrap; min-width:52px; }
 
 .oneoff-row { display:flex; gap:12px; flex-wrap:wrap; }
 .oneoff-row .field-group { flex:1; min-width:120px; margin-bottom:0; }
@@ -493,6 +493,9 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#04061a">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
 <meta property="og:title" content="EventStrand">
 <meta property="og:description" content="Never miss what's on at the places you love.">
 <meta property="og:type" content="website">
@@ -503,7 +506,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 <!-- ══ NAV ══ -->
 <nav id="main-nav">
   <a href="#" class="nav-logo" onclick="esNavHome();return false;">
-    <div class="nav-logo-mark">E</div>
+    <img src="/icon-192.png" alt="EventStrand" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">
     <span class="nav-logo-text">EventStrand</span>
   </a>
   <ul class="nav-links" id="nav-marketing-links">
@@ -1532,7 +1535,7 @@ upcoming.forEach(event => {
     <div class="footer-top">
       <div class="footer-brand">
         <a href="#" class="nav-logo" style="margin-bottom:4px;">
-          <div class="nav-logo-mark">E</div>
+          <img src="/icon-192.png" alt="EventStrand" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">
           <span class="nav-logo-text">EventStrand</span>
         </a>
         <p>The open standard for recurring real-world life. Your world, when you need it.</p>
@@ -1637,7 +1640,7 @@ upcoming.forEach(event => {
   <!-- App topbar (inside overlay) -->
   <nav class="app-topbar" id="app-topbar-nav">
     <a href="#" class="nav-logo" onclick="esGoto('dashboard');return false;" style="text-decoration:none;display:flex;align-items:center;gap:10px;">
-      <div class="nav-logo-mark">E</div>
+      <img src="/icon-192.png" alt="EventStrand" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">
       <span class="nav-logo-text">EventStrand</span>
     </a>
     <div style="flex:1;"></div>
@@ -1666,6 +1669,19 @@ upcoming.forEach(event => {
       <button class="dash-tab" onclick="esDashTab(this,'subscriptions')">Subscriptions</button>
       <button class="dash-tab" onclick="esDashTab(this,'my-strands')">My Strands</button>
       <button class="dash-tab" onclick="esDashTab(this,'my-braids')">My Braids</button>
+      <button class="dash-tab" onclick="esDashTab(this,'interested')" id="dash-tab-interested">Maybe 🤔</button>
+    </div>
+
+    <!-- Interested list panel -->
+    <div id="dash-interested" class="dash-panel" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div>
+          <div style="font-size:18px;font-weight:600;color:var(--text);">Maybe list</div>
+          <div style="font-size:13px;color:var(--text-dim);margin-top:2px;">Events you flagged as potentially interesting. Entries expire automatically when the event time passes.</div>
+        </div>
+        <button onclick="esClearExpiredInterested()" style="background:none;border:none;color:var(--text-faint);font-size:13px;cursor:pointer;">Clear expired</button>
+      </div>
+      <div id="dash-interested-list"></div>
     </div>
 
     <!-- Upcoming events feed -->
@@ -2972,10 +2988,18 @@ async function esLoadUpcoming() {
             <div class="efi-name">${ev.title||ev.name||'Event'}</div>
             <div class="efi-meta">${ev.venue||''}${ev.time?' · '+ev.time:''}</div>
             <div class="efi-strand">→ ${ev.strandTitle||''}</div>
+            <div class="efi-actions">
+              <button class="efi-btn-interested${esIsInterested(ev.id||ev._id,ev.date)?' active':''}" onclick="esToggleInterested(this,${JSON.stringify(ev).replace(/'/g,\"&#39;\")})" title="Maybe interested">🤔 Maybe</button>
+            </div>
           </div>
         </div>`).join('');
       return `<div style="margin-bottom:20px;"><div style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:${isToday?'var(--green)':'var(--text-faint)'};margin-bottom:8px;">${label}</div>${evRows}</div>`;
     }).join('');
+    // Init swipe on each event card
+    list.querySelectorAll('.efi-swipe-card').forEach(card => {
+      const evDataStr = card.dataset.ev;
+      if (evDataStr) { try { esInitSwipe(card, JSON.parse(evDataStr)); } catch(e){} }
+    });
   } catch(e) {
     list.innerHTML = `<div style="color:var(--text-dim);padding:20px;text-align:center;">Could not load events — <button onclick="esLoadUpcoming()" style="background:none;border:none;color:var(--primary);cursor:pointer;">retry</button></div>`;
   }
@@ -3872,6 +3896,150 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle hash routing
   esHandleHash();
+
+// ══════════════════════════════════════════════════
+// POTENTIALLY INTERESTED FEATURE
+// ══════════════════════════════════════════════════
+
+const ES_INTERESTED_KEY = 'es_interested_v1';
+
+function esGetInterested() {
+  try { return JSON.parse(localStorage.getItem(ES_INTERESTED_KEY)||'[]'); } catch(e) { return []; }
+}
+
+function esSaveInterested(list) {
+  try { localStorage.setItem(ES_INTERESTED_KEY, JSON.stringify(list)); } catch(e) {}
+}
+
+function esIsInterested(eventId, date) {
+  if (!eventId) return false;
+  const key = eventId + '_' + date;
+  return esGetInterested().some(i => i.key === key);
+}
+
+function esToggleInterested(btn, ev) {
+  const eventId = ev.id || ev._id || '';
+  const key = eventId + '_' + ev.date;
+  let list = esGetInterested();
+  const idx = list.findIndex(i => i.key === key);
+  if (idx >= 0) {
+    list.splice(idx, 1);
+    btn.classList.remove('active');
+    btn.textContent = '🤔 Maybe';
+  } else {
+    list.push({
+      key, eventId, date: ev.date, time: ev.time||'',
+      title: ev.title||ev.name||'Event',
+      venue: ev.venue||'', strand: ev.strandTitle||'',
+      expiresAt: esInterestedExpiry(ev.date, ev.time)
+    });
+    btn.classList.add('active');
+    btn.textContent = '✓ Maybe';
+    showToast('Added to Maybe list');
+  }
+  esSaveInterested(list);
+  if (document.getElementById('dash-interested').style.display !== 'none') esRenderInterestedList();
+}
+
+function esInterestedExpiry(date, time) {
+  // Expires at the event's date+time (or end of day if no time)
+  try {
+    const base = date + (time ? 'T' + time : 'T23:59');
+    return new Date(base).getTime();
+  } catch(e) { return Date.now() + 86400000; }
+}
+
+function esClearExpiredInterested() {
+  const now = Date.now();
+  const list = esGetInterested().filter(i => i.expiresAt > now);
+  esSaveInterested(list);
+  esRenderInterestedList();
+  showToast('Expired entries cleared');
+}
+
+function esRenderInterestedList() {
+  const container = document.getElementById('dash-interested-list');
+  if (!container) return;
+  const now = Date.now();
+  const list = esGetInterested();
+  const active = list.filter(i => i.expiresAt > now);
+  const expired = list.filter(i => i.expiresAt <= now);
+
+  if (!active.length && !expired.length) {
+    container.innerHTML = '<div class="interested-empty"><div style="font-size:32px;margin-bottom:12px;">🤔</div><div style="font-weight:600;margin-bottom:4px;">Nothing here yet</div><div>Tap "Maybe" on any event in your Upcoming feed to save it here.</div></div>';
+    return;
+  }
+
+  const renderItem = (item, isExpired) => `
+    <div class="interested-item" style="${isExpired?'opacity:0.45;':''}">
+      <div style="font-size:28px;">🤔</div>
+      <div class="interested-item-body">
+        <div class="interested-item-name">${item.title}</div>
+        <div class="interested-item-meta">${item.venue}${item.strand?' · '+item.strand:''}</div>
+        <div class="interested-item-time">${isExpired?'<span style="color:var(--text-faint)">Expired</span>':item.date+(item.time?' at '+item.time:'')}</div>
+      </div>
+      <button class="interested-item-remove" onclick="esRemoveInterested('${item.key}')" title="Remove">✕</button>
+    </div>`;
+
+  container.innerHTML =
+    active.map(i => renderItem(i, false)).join('') +
+    (expired.length ? `<div style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);margin:16px 0 8px;">Expired</div>` + expired.map(i => renderItem(i, true)).join('') : '');
+}
+
+function esRemoveInterested(key) {
+  const list = esGetInterested().filter(i => i.key !== key);
+  esSaveInterested(list);
+  esRenderInterestedList();
+}
+
+// ── Swipe support for touch devices ──────────────────────────────
+function esInitSwipe(cardEl, ev) {
+  let startX = 0, startY = 0, dx = 0;
+  const THRESHOLD = 80;
+
+  cardEl.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dx = 0;
+    cardEl.classList.add('swiping');
+  }, { passive: true });
+
+  cardEl.addEventListener('touchmove', e => {
+    dx = e.touches[0].clientX - startX;
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if (Math.abs(dx) < dy) return; // vertical scroll wins
+    cardEl.style.transform = `translateX(${dx}px)`;
+    const hintR = cardEl.parentElement.querySelector('.swipe-hint-right');
+    const hintL = cardEl.parentElement.querySelector('.swipe-hint-left');
+    if (hintR) hintR.style.opacity = dx > 20 ? Math.min((dx-20)/60, 1) : '0';
+    if (hintL) hintL.style.opacity = dx < -20 ? Math.min((-dx-20)/60, 1) : '0';
+  }, { passive: true });
+
+  cardEl.addEventListener('touchend', () => {
+    cardEl.classList.remove('swiping');
+    const hintR = cardEl.parentElement.querySelector('.swipe-hint-right');
+    const hintL = cardEl.parentElement.querySelector('.swipe-hint-left');
+    if (hintR) hintR.style.opacity = '0';
+    if (hintL) hintL.style.opacity = '0';
+
+    if (dx > THRESHOLD) {
+      // Swipe right = interested
+      cardEl.style.transform = `translateX(110%)`;
+      cardEl.style.opacity = '0';
+      const btn = cardEl.querySelector('.efi-btn-interested');
+      if (btn && !btn.classList.contains('active')) esToggleInterested(btn, ev);
+      setTimeout(() => { cardEl.style.transform=''; cardEl.style.opacity=''; }, 400);
+    } else if (dx < -THRESHOLD) {
+      // Swipe left = not interested (just dismiss visually, no action needed)
+      cardEl.style.transform = `translateX(-110%)`;
+      cardEl.style.opacity = '0';
+      setTimeout(() => { cardEl.style.transform=''; cardEl.style.opacity=''; }, 400);
+    } else {
+      cardEl.style.transform = '';
+    }
+  });
+}
+
   window.addEventListener('hashchange', esHandleHash);
 
   // Restore notes
