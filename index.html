@@ -2893,10 +2893,13 @@ function _showView(view, params) {
 function esHandleHash() {
   const hash = window.location.hash.replace('#','');
   if (!hash || hash === '/') return;
-  const parts = hash.replace(/^\//, '').split('/');
+  // Split off any query string appended by the 404 redirect shim (e.g. ?src=qr)
+  const [hashPath, hashQuery] = hash.split('?');
+  const _src = hashQuery ? new URLSearchParams(hashQuery).get('src') : null;
+  const parts = hashPath.replace(/^\//, '').split('/');
   const type = parts[0];
   if (type === 's' && parts[1] && parts[2]) {
-    esLoadPublicStrand(parts[1], parts[2]);
+    esLoadPublicStrand(parts[1], parts[2], _src);
   } else if (type === 'b' && parts[1] && parts[2]) {
     esLoadPublicBraid(parts[1], parts[2]);
   } else if (type === 'p' && parts[1]) {
@@ -3190,14 +3193,15 @@ async function esUnsubscribeBraid(braidId, e) {
 }
 
 // ── PUBLIC STRAND VIEW ────────────────────────────────────────
-async function esLoadPublicStrand(handle, strandId) {
+async function esLoadPublicStrand(handle, strandId, src) {
   esGoto('strand');
   const inner = document.getElementById('pub-strand-inner');
   const gate = document.getElementById('pub-passcode-gate');
   inner.style.display = 'none';
   gate.style.display = 'none';
   try {
-    const res = await fetch(`${BACKEND_URL}/api/public/strand/${handle}/${strandId}`);
+    const srcParam = src ? `?src=${encodeURIComponent(src)}` : '';
+    const res = await fetch(`${BACKEND_URL}/api/public/strand/${handle}/${strandId}${srcParam}`);
     if (res.status === 403) { gate.style.display = 'block'; gate.dataset.handle=handle; gate.dataset.strandId=strandId; return; }
     const data = await res.json();
     esRenderStrandView(data.strand);
@@ -3373,12 +3377,12 @@ function esCloseAnalytics() {
 
 // ── QR DISPLAY ────────────────────────────────────────────────
 function esShowStrandQR(strandId, title) {
-  const url = `https://eventstrand.com/s/${ES_USER.handle}/${strandId}`;
+  const url = `https://eventstrand.com/s/${ES_USER.handle}/${strandId}?src=qr`;
   esShowQRModal(url, title);
 }
 
 function esShowBraidQR(braidId, title) {
-  const url = `https://eventstrand.com/b/${ES_USER.handle}/${braidId}`;
+  const url = `https://eventstrand.com/b/${ES_USER.handle}/${braidId}?src=qr`;
   esShowQRModal(url, title);
 }
 
@@ -3786,7 +3790,7 @@ async function esPublishStrand() {
 function esShowBuilderQR(strand) {
   const panel = document.getElementById('export-qr-panel');
   if (!panel) return;
-  const url = `https://eventstrand.com/s/${ES_USER.handle}/${strand._id}`;
+  const url = `https://eventstrand.com/s/${ES_USER.handle}/${strand._id}?src=qr`;
   panel.style.display = 'block';
   panel.innerHTML = `<div class="qr-display">
     <div class="pub-status-badge ${strand.published?'live':'draft'}" style="margin-bottom:12px;">${strand.published?'● Live':'○ Draft'}</div>
