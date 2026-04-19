@@ -793,7 +793,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
           <div class="demo-dot r"></div>
           <div class="demo-dot y"></div>
           <div class="demo-dot g"></div>
-          <div class="demo-url">publish.eventstrand.com</div>
+          <div class="demo-url">eventstrand.com/dashboard</div>
         </div>
         <div class="demo-body">
           <div style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">Your strand is ready</div>
@@ -2901,7 +2901,7 @@ function esHandleHash() {
   if (type === 's' && parts[1] && parts[2]) {
     esLoadPublicStrand(parts[1], parts[2], _src);
   } else if (type === 'b' && parts[1] && parts[2]) {
-    esLoadPublicBraid(parts[1], parts[2]);
+    esLoadPublicBraid(parts[1], parts[2], _src);
   } else if (type === 'p' && parts[1]) {
     esLoadPublicProfile(parts[1]);
   } else if (type === 'dashboard' && ES_USER) {
@@ -3098,6 +3098,7 @@ async function esRenderMyStrands() {
           <button class="sc-btn" onclick="esEditStrand('${s._id}')">Edit</button>
           <button class="sc-btn" onclick="esOpenAnalytics('${s._id}')">Analytics</button>
           <button class="sc-btn primary" onclick="esShowStrandQR('${s._id}','${s.title}')">QR Code</button>
+          ${!s.published ? `<button class="sc-btn" style="background:var(--green-glow);color:var(--green);border-color:var(--green);" onclick="esPublishExistingStrand('${s._id}',this)">Publish →</button>` : ''}
         </div>
       </div>`).join('');
   } catch(e) {
@@ -3133,7 +3134,7 @@ async function esRenderMyBraids() {
         <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">${b.strands?.length||0} strands</div>
         <div class="strand-card-actions">
           <button class="sc-btn primary" onclick="esShowBraidQR('${b._id}','${b.title}')">QR Code</button>
-          <button class="sc-btn" onclick="esOpenAnalytics('${b._id}')">Analytics</button>
+          <button class="sc-btn" onclick="esOpenBraidAnalytics('${b._id}')">Analytics</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -3263,12 +3264,13 @@ function esRenderStrandView(strand) {
 }
 
 // ── PUBLIC BRAID VIEW ─────────────────────────────────────────
-async function esLoadPublicBraid(handle, braidId) {
+async function esLoadPublicBraid(handle, braidId, src) {
   esGoto('braid');
   const content = document.getElementById('pub-braid-content');
   content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-faint);">Loading…</div>';
   try {
-    const res = await fetch(`${BACKEND_URL}/api/public/braid/${handle}/${braidId}`);
+    const srcParam = src ? `?src=${encodeURIComponent(src)}` : '';
+    const res = await fetch(`${BACKEND_URL}/api/public/braid/${handle}/${braidId}${srcParam}`);
     const data = await res.json();
     const b = data.braid;
     const wsOptions = ES_USER ? ES_WORKSPACES.map(w => `<option value="${w._id}">${w.icon||''} ${w.name}</option>`).join('') : '';
@@ -3373,6 +3375,142 @@ async function esOpenAnalytics(strandId) {
 
 function esCloseAnalytics() {
   document.getElementById('analytics-drawer').classList.remove('open');
+}
+
+// ── BRAID ANALYTICS ───────────────────────────────────────────
+async function esOpenBraidAnalytics(braidId) {
+  const drawer = document.getElementById('analytics-drawer');
+  const content = document.getElementById('analytics-content');
+  drawer.classList.add('open');
+  content.innerHTML = '<div style="padding:20px;color:var(--text-faint);">Loading analytics…</div>';
+  try {
+    const res = await esFetch(`/api/braids/${braidId}/analytics`);
+    const d = await res.json();
+    content.innerHTML = `
+      <h3 style="font-family:'Fraunces',serif;font-size:20px;color:var(--text);margin-bottom:4px;">🪢 ${d.title||'Braid Analytics'}</h3>
+      <div style="font-size:13px;color:var(--text-faint);margin-bottom:16px;">${d.strandCount||0} strands</div>
+      <div class="analytics-stat-grid">
+        <div class="analytics-stat"><div class="analytics-stat-num">${d.subscriberCount||0}</div><div class="analytics-stat-label">Subscribers</div></div>
+        <div class="analytics-stat"><div class="analytics-stat-num">${d.totalViews||0}</div><div class="analytics-stat-label">Total views</div></div>
+        <div class="analytics-stat"><div class="analytics-stat-num">${d.scanCount||0}</div><div class="analytics-stat-label">QR scans</div></div>
+      </div>
+      ${d.topScanOrigins?.length ? `<div style="font-size:12px;color:var(--text-faint);margin-bottom:8px;margin-top:16px;text-transform:uppercase;letter-spacing:1px;">Scan origins</div>
+      ${d.topScanOrigins.map(o=>`<div class="analytics-bar-row"><span style="min-width:80px;color:var(--text-dim)">${o.label}</span><div class="analytics-bar"><div class="analytics-bar-fill" style="width:${o.pct}%"></div></div><span style="color:var(--text-faint)">${o.count}</span></div>`).join('')}` : ''}
+      ${d.strands?.length ? `<div style="font-size:12px;color:var(--text-faint);margin-bottom:8px;margin-top:16px;text-transform:uppercase;letter-spacing:1px;">Strands in this braid</div>
+      ${d.strands.map(s=>`<div class="analytics-bar-row"><span style="flex:1;color:var(--text-dim);">${s.title}</span><span style="color:var(--text-faint);font-size:12px;">${s.subscribers||0} subscribers</span></div>`).join('')}` : ''}`;
+  } catch(e) {
+    content.innerHTML = '<div style="color:var(--text-faint);padding:20px;">Could not load analytics</div>';
+  }
+}
+
+// ── EDIT EXISTING STRAND ──────────────────────────────────────
+// Loads a saved strand back into the builder for editing
+async function esEditStrand(strandId) {
+  try {
+    const res = await esFetch(`/api/strands/${strandId}`);
+    if (!res.ok) { showToast('Could not load strand for editing'); return; }
+    const d = await res.json();
+    const s = d.strand;
+
+    // Reset builder state and populate from saved strand
+    _builderStrandId = s._id;
+    pub.name        = s.title        || '';
+    pub.description = s.description  || '';
+    pub.type        = s.type         || '';
+    pub.timezone    = s.timezone     || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    pub.color       = s.color        || '#6C8FFF';
+    pub.website     = s.website      || '';
+    pub.visibility  = s.visibility   || 'public';
+    pub.accessCode  = s.accessCode   || '';
+    // address is stored as a single string in venue
+    pub.address     = s.venue        || '';
+    pub.city        = ''; pub.state  = ''; pub.country = '';
+
+    // Repopulate events array from saved events
+    events = (s.events || []).map(ev => {
+      const uid = _nextUid++;
+      const e = mkEvent();
+      e.uid          = uid;
+      e.name         = ev.title        || '';
+      e.category     = ev.category     || '';
+      e.vibes        = ev.vibes        || [];
+      e.price        = ev.price        || 'free';
+      e.priceNote    = ev.price_note   || '';
+      e.ticketUrl    = ev.ticket_url   || '';
+      e.leadTimeDays = ev.lead_time_days || 0;
+      e.notes        = ev.notes        || '';
+      e.eventType    = ev.event_type   || 'recurring';
+      // oneoff
+      e.date         = ev.date         || '';
+      e.oneTimeStart = ev.time_start   || '';
+      e.oneTimeEnd   = ev.time_end     || '';
+      // datelist
+      e.dateList     = (ev.date_list || []).map((d, i) => ({
+        did: i, date: d.date||'', timeStart: d.time_start||'', timeEnd: d.time_end||'', note: d.note||''
+      }));
+      e.nextDid      = e.dateList.length;
+      // recurring
+      e.rules        = (ev.recurrence && ev.recurrence.length ? ev.recurrence : [mkRule()]).map((r, i) => ({
+        rid: i, pattern: r.pattern||'weekly', every: r.every||1,
+        days: r.days||['friday'], timeStart: r.time_start||'21:00', timeEnd: r.time_end||'23:30',
+        monthWeek: r.month_week||'first', monthDate: r.month_date||1,
+        seasonStart: r.season_start||'', seasonEnd: r.season_end||''
+      }));
+      e.nextRid      = e.rules.length;
+      e.exceptions   = (ev.exceptions || []).map((x, i) => ({
+        xid: i, type: x.type||'skip', date: x.date||'', date_end: x.date_end||'', note: x.note||''
+      }));
+      e.nextXid      = e.exceptions.length;
+      return e;
+    });
+
+    // Navigate to builder and repaint
+    esCloseApp();
+    const builderSection = document.getElementById('builder');
+    if (builderSection) {
+      builderSection.scrollIntoView({ behavior: 'smooth' });
+      // Repopulate form fields
+      setTimeout(() => {
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+        setVal('pub-name', pub.name);
+        setVal('pub-desc', pub.description);
+        setVal('pub-tz', pub.timezone);
+        const colorEl = document.getElementById('pub-color');
+        if (colorEl) colorEl.value = pub.color;
+        bUpdatePreview();
+        bUpdatePreviewColor(pub.color);
+        // Re-render all event cards
+        const stack = document.getElementById('events-stack');
+        const count = document.getElementById('events-count');
+        if (stack) {
+          stack.innerHTML = '';
+          events.forEach(ev => renderEventCard(ev, true));
+        }
+        bUpdateCount();
+        bGoto(0);
+        esShowBuilderQR(s);
+        showToast(`Editing: ${s.title}`);
+      }, 300);
+    }
+  } catch(e) {
+    showToast('Could not load strand for editing');
+  }
+}
+
+// Quick-publish a draft strand from My Strands without re-opening the builder
+async function esPublishExistingStrand(strandId, btn) {
+  try {
+    btn.disabled = true;
+    btn.textContent = 'Publishing…';
+    const res = await esFetch(`/api/strands/${strandId}/publish`, { method: 'POST' });
+    const d = await res.json();
+    if (!res.ok) { showToast(d.error || 'Could not publish'); btn.disabled = false; btn.textContent = 'Publish →'; return; }
+    showToast('🟢 Strand is live!');
+    esRenderMyStrands(); // refresh the list
+  } catch(e) {
+    showToast('Connection error');
+    btn.disabled = false; btn.textContent = 'Publish →';
+  }
 }
 
 // ── QR DISPLAY ────────────────────────────────────────────────
