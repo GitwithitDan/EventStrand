@@ -258,6 +258,14 @@ pre code { background: none; border: none; padding: 0; color: var(--text); font-
       <a class="nav-item" href="#mcp-tools">Available Tools</a>
     </div>
     <div class="nav-group">
+      <div class="nav-group-label">OAuth 2.0</div>
+      <a class="nav-item" href="#oauth-overview">Overview</a>
+      <a class="nav-item" href="#oauth-authorize">Authorization Endpoint</a>
+      <a class="nav-item" href="#oauth-token">Token Endpoint</a>
+      <a class="nav-item" href="#oauth-scopes">Scopes</a>
+      <a class="nav-item" href="#oauth-refresh">Refreshing Tokens</a>
+    </div>
+    <div class="nav-group">
       <div class="nav-group-label">Format</div>
       <a class="nav-item" href="/spec">.rcal Specification ↗</a>
     </div>
@@ -584,6 +592,130 @@ const data = await res.json();
       </div>
 
       <p style="margin-top:16px;font-size:13px;color:var(--text-faint);">Blue = attendee read · Purple = venue write</p>
+    </div>
+
+    <div class="doc-divider"></div>
+
+    <!-- OAUTH -->
+    <div class="doc-section" id="oauth-overview">
+      <h2>OAuth 2.0</h2>
+      <p>EventStrand implements OAuth 2.0 with the Authorization Code flow. This is the authentication mechanism used when connecting EventStrand to Claude.ai or any MCP-compatible client that needs to act on behalf of a user.</p>
+      <p>If you are building an agent integration using API keys directly, you do not need OAuth — see <a href="#auth-apikeys">API Keys</a> above. OAuth is required for the Claude.ai connector and any third-party app that needs delegated user authorization.</p>
+
+      <div class="callout callout-info">
+        <span class="callout-icon">ℹ️</span>
+        <span>The OAuth callback URLs for Claude.ai are <code>https://claude.ai/api/mcp/auth_callback</code> and <code>https://claude.com/api/mcp/auth_callback</code>. Both must be registered when setting up a client.</span>
+      </div>
+
+      <h3 id="oauth-authorize">Authorization Endpoint</h3>
+      <div class="endpoint">
+        <div class="method">
+          <span class="badge badge-get">GET</span>
+          <span class="endpoint-path">/api/oauth/authorize</span>
+        </div>
+        <div class="endpoint-desc">Redirects the user to the EventStrand consent screen. After the user approves, EventStrand redirects to your <code>redirect_uri</code> with a short-lived authorization code.</div>
+      </div>
+
+      <table class="param-table">
+        <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+        <tr><td>client_id</td><td>string</td><td class="param-req">required</td><td>Your OAuth application client ID.</td></tr>
+        <tr><td>redirect_uri</td><td>string</td><td class="param-req">required</td><td>Must exactly match a registered callback URL for your client.</td></tr>
+        <tr><td>response_type</td><td>string</td><td class="param-req">required</td><td>Must be <code>code</code>.</td></tr>
+        <tr><td>scope</td><td>string</td><td class="param-req">required</td><td>Space-separated list of scopes. See <a href="#oauth-scopes">Scopes</a> below.</td></tr>
+        <tr><td>state</td><td>string</td><td class="param-opt">recommended</td><td>Random value to protect against CSRF. Returned unchanged in the callback.</td></tr>
+      </table>
+
+      <div class="pre-header">
+        <span class="pre-lang">Example</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>GET https://api.eventstrand.com/api/oauth/authorize
+  ?client_id=your_client_id
+  &amp;redirect_uri=https://claude.ai/api/mcp/auth_callback
+  &amp;response_type=code
+  &amp;scope=portal:read+strand:read
+  &amp;state=random_csrf_token</code></pre>
+
+      <h3 id="oauth-token">Token Endpoint</h3>
+      <div class="endpoint">
+        <div class="method">
+          <span class="badge badge-post">POST</span>
+          <span class="endpoint-path">/api/oauth/token</span>
+        </div>
+        <div class="endpoint-desc">Exchanges an authorization code for an access token and refresh token. Also used to refresh an expired access token.</div>
+      </div>
+
+      <p><strong>Exchange authorization code:</strong></p>
+      <div class="pre-header">
+        <span class="pre-lang">Request body</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>{
+  "grant_type":    "authorization_code",
+  "code":          "the_auth_code",
+  "redirect_uri":  "https://claude.ai/api/mcp/auth_callback",
+  "client_id":     "your_client_id",
+  "client_secret": "your_client_secret"
+}</code></pre>
+
+      <div class="pre-header" style="margin-top:20px;">
+        <span class="pre-lang">Response</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>{
+  "access_token":  "esk_...",
+  "token_type":    "Bearer",
+  "expires_in":    3600,
+  "refresh_token": "ref_...",
+  "scope":         "portal:read strand:read"
+}</code></pre>
+
+      <h3 id="oauth-scopes">Scopes</h3>
+      <p>Request only the scopes your application requires. The user sees each scope on the consent screen before approving.</p>
+      <div class="scope-grid">
+        <div class="scope-row">
+          <span class="scope-name">portal:read</span>
+          <span class="scope-desc">Read the user's upcoming event feed and dashboard data.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name">strand:read</span>
+          <span class="scope-desc">Read strand details and event lists for strands the user owns or subscribes to.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name">subscriptions:read</span>
+          <span class="scope-desc">List strands and braids the user is subscribed to.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name">strand:write</span>
+          <span class="scope-desc">Create and update strands owned by the user.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name">events:create</span>
+          <span class="scope-desc">Add new events to strands the user owns.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name">events:update</span>
+          <span class="scope-desc">Modify existing events — update schedules, add exceptions, cancel occurrences.</span>
+        </div>
+      </div>
+
+      <h3 id="oauth-refresh">Refreshing Tokens</h3>
+      <p>Access tokens expire after 1 hour. Use the refresh token to obtain a new one without requiring the user to re-authorize.</p>
+      <div class="pre-header">
+        <span class="pre-lang">Request body</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>{
+  "grant_type":    "refresh_token",
+  "refresh_token": "ref_...",
+  "client_id":     "your_client_id",
+  "client_secret": "your_client_secret"
+}</code></pre>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <span>Refresh tokens expire after 30 days of inactivity. If expired, the user must re-authorize through the consent flow.</span>
+      </div>
     </div>
 
     <div class="doc-divider"></div>
