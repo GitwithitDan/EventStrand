@@ -1905,8 +1905,50 @@ upcoming.forEach(event => {
         <button class="settings-edit-btn" onclick="esSignOut()" style="color:var(--red);border-color:var(--red);">Sign Out</button>
       </div>
     </div>
+
+    <!-- API Keys section -->
+    <div class="settings-section">
+      <div class="settings-section-title">API Keys</div>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;line-height:1.6;">Use API keys to give agents or external tools access to your EventStrand data. Keys are shown once at creation and cannot be retrieved again.</p>
+      <div id="apikey-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+      <div id="apikey-create-form" style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:20px;display:none;margin-bottom:12px;">
+        <div class="field-group">
+          <label class="field-label">Label</label>
+          <input class="field-input" id="apikey-label" type="text" placeholder="e.g. My Agent, Claude Desktop…" maxlength="64">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Scopes</label>
+          <div id="apikey-scopes" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);cursor:pointer;"><input type="checkbox" value="portal:read" checked> portal:read</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);cursor:pointer;"><input type="checkbox" value="strand:read" checked> strand:read</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);cursor:pointer;"><input type="checkbox" value="subscriptions:read"> subscriptions:read</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);cursor:pointer;"><input type="checkbox" value="strand:write"> strand:write</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);cursor:pointer;"><input type="checkbox" value="events:create"> events:create</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);cursor:pointer;"><input type="checkbox" value="events:update"> events:update</label>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn btn-ghost" onclick="esHideApiKeyForm()">Cancel</button>
+          <button class="btn btn-primary" onclick="esCreateApiKey()">Generate Key</button>
+        </div>
+      </div>
+      <button class="btn btn-outline-primary" style="font-size:13px;" onclick="esShowApiKeyForm()">+ Generate New Key</button>
+    </div>
   </div>
-</div>
+
+  <!-- API Key reveal modal -->
+  <div id="apikey-reveal-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(4,6,26,0.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:32px;max-width:480px;width:100%;">
+      <div style="font-size:28px;margin-bottom:12px;">🔑</div>
+      <div style="font-family:'Fraunces',serif;font-size:20px;color:var(--text);margin-bottom:8px;">Save your key now</div>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;line-height:1.6;">This is the only time this key will be shown. Copy it somewhere safe — it cannot be retrieved again.</p>
+      <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);word-break:break-all;margin-bottom:16px;" id="apikey-reveal-value"></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="esCopyApiKey()">Copy Key</button>
+        <button class="btn btn-ghost" onclick="esCloseApiKeyReveal()">Done</button>
+      </div>
+    </div>
+  </div>
 
 <!-- ── ANALYTICS DRAWER ── -->
 <div id="analytics-drawer">
@@ -2856,6 +2898,82 @@ async function esConfirmHandle() {
   } catch(e) { showToast('Connection error'); }
 }
 
+// ── API KEY MANAGEMENT ────────────────────────────────────────
+
+let _revealedKey = '';
+
+function esShowApiKeyForm() {
+  document.getElementById('apikey-create-form').style.display = 'block';
+  document.getElementById('apikey-label').focus();
+}
+
+function esHideApiKeyForm() {
+  document.getElementById('apikey-create-form').style.display = 'none';
+  document.getElementById('apikey-label').value = '';
+  document.querySelectorAll('#apikey-scopes input[type=checkbox]').forEach(cb => {
+    cb.checked = cb.value === 'portal:read' || cb.value === 'strand:read';
+  });
+}
+
+async function esLoadApiKeys() {
+  const list = document.getElementById('apikey-list');
+  if (!list) return;
+  try {
+    const res = await esFetch('/api/apikeys');
+    const data = await res.json();
+    if (!data.keys?.length) {
+      list.innerHTML = '<div style="font-size:13px;color:var(--text-faint);">No keys yet.</div>';
+      return;
+    }
+    list.innerHTML = data.keys.map(k => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;">${k.label}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-faint);">${k.prefix}••••••••</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">${k.scopes.join(' · ')}${k.lastUsed?' · Last used '+new Date(k.lastUsed).toLocaleDateString():' · Never used'}</div>
+        </div>
+        <button onclick="esRevokeApiKey('${k.id}')" style="background:none;border:1px solid var(--border2);border-radius:8px;color:var(--text-faint);font-size:12px;padding:6px 12px;cursor:pointer;" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--text-faint)';this.style.borderColor='var(--border2)'">Revoke</button>
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text-faint);">Could not load keys.</div>';
+  }
+}
+
+async function esCreateApiKey() {
+  const label = document.getElementById('apikey-label').value.trim();
+  if (!label) { showToast('Enter a label for this key'); return; }
+  const scopes = [...document.querySelectorAll('#apikey-scopes input[type=checkbox]:checked')].map(cb => cb.value);
+  if (!scopes.length) { showToast('Select at least one scope'); return; }
+  try {
+    const res = await esFetch('/api/apikeys', { method: 'POST', body: JSON.stringify({ label, scopes }) });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Could not create key'); return; }
+    esHideApiKeyForm();
+    esLoadApiKeys();
+    _revealedKey = data.key;
+    document.getElementById('apikey-reveal-value').textContent = data.key;
+    document.getElementById('apikey-reveal-modal').style.display = 'flex';
+  } catch(e) { showToast('Connection error'); }
+}
+
+async function esRevokeApiKey(id) {
+  if (!confirm('Revoke this key? Any tool using it will immediately lose access.')) return;
+  try {
+    const res = await esFetch(`/api/apikeys/${id}`, { method: 'DELETE' });
+    if (res.ok) { showToast('Key revoked'); esLoadApiKeys(); }
+    else showToast('Could not revoke key');
+  } catch(e) { showToast('Connection error'); }
+}
+
+function esCopyApiKey() {
+  navigator.clipboard.writeText(_revealedKey).then(() => showToast('✓ Key copied to clipboard'));
+}
+
+function esCloseApiKeyReveal() {
+  document.getElementById('apikey-reveal-modal').style.display = 'none';
+  _revealedKey = '';
+}
+
 async function esSignOut() {
   ES_USER = null;
   ES_WORKSPACES = [];
@@ -3796,6 +3914,7 @@ function esRenderAccount() {
   if (nameRow) nameRow.textContent = ES_USER.displayName||'—';
   if (email) email.textContent = ES_USER.email||'—';
   if (handle) handle.textContent = '@' + (ES_USER.handle||'—');
+  esLoadApiKeys();
 }
 
 async function esEditHandle() {
