@@ -428,6 +428,13 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 .datelist-override-toggle:hover { color:var(--primary); }
 .datelist-times { display:flex; gap:8px; align-items:center; }
 
+/* ── Calendar view toggle ── */
+.cal-view-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+.cal-view-label { font-family:'Fraunces',serif; font-size:17px; color:var(--text); }
+.cal-view-tabs { display:flex; gap:3px; background:var(--surface); border-radius:10px; padding:3px; flex-shrink:0; }
+.cal-view-tab { padding:7px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; color:var(--text-dim); transition:all 0.18s; border:none; background:none; font-family:'Outfit',sans-serif; }
+.cal-view-tab:hover { color:var(--text); }
+.cal-view-tab.active { background:var(--primary); color:white; }
 
 
 
@@ -635,8 +642,8 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 <!-- ══ CONCEPT ══ -->
 <section id="concept">
   <div class="section-label">The Idea</div>
-  <h2 class="section-title">Not what you're doing.<br>What you <em style="font-style:italic;color:var(--primary)">could</em> be doing.</h2>
-  <p class="section-sub">Every other calendar answers the question you plan around. EventStrand answers the one you ask when your night suddenly clears.</p>
+  <h2 class="section-title">Your world has more<br>worth doing than any calendar shows you.</h2>
+  <p class="section-sub">Subscribe to the venues, artists, and communities that matter to you. EventStrand builds you a living calendar — plan the month ahead, or open it when tonight suddenly opens up.</p>
 
   <div class="concept-grid">
     <div class="concept-card c1">
@@ -646,8 +653,8 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     </div>
     <div class="concept-card c2">
       <span class="concept-icon">🌀</span>
-      <h3>Your portal appears</h3>
-      <p>It's 7pm and your plans fell through. Open EventStrand, pick a vibe, and see exactly what's alive in your world right now. Not what might happen someday — what's available tonight.</p>
+      <h3>Your portal, your timeframe</h3>
+      <p>It's Tuesday and you're mapping out the weekend. Or it's 7pm and plans just fell through. Open EventStrand — day, week, month, or year — filtered by vibe and distance. Everything your strands have for that window, right there.</p>
     </div>
     <div class="concept-card c3">
       <span class="concept-icon">📡</span>
@@ -1686,6 +1693,16 @@ upcoming.forEach(event => {
 
     <!-- Upcoming events feed -->
     <div id="dash-upcoming" class="dash-panel">
+      <!-- Calendar view selector -->
+      <div class="cal-view-bar">
+        <div class="cal-view-label" id="cal-view-label">This Week</div>
+        <div class="cal-view-tabs">
+          <button class="cal-view-tab" onclick="esSetCalView('today',this)">Today</button>
+          <button class="cal-view-tab active" onclick="esSetCalView('week',this)">Week</button>
+          <button class="cal-view-tab" onclick="esSetCalView('month',this)">Month</button>
+          <button class="cal-view-tab" onclick="esSetCalView('year',this)">Year</button>
+        </div>
+      </div>
       <div id="dash-upcoming-list">
         <div class="empty-state">
           <div class="empty-state-icon">📅</div>
@@ -2919,6 +2936,17 @@ function esGotoBuild() {
 // ── DASHBOARD ─────────────────────────────────────────────────
 let _activeDashTab = 'upcoming';
 let _activeWorkspaceId = null;
+let _dashCalView = 'week';
+
+function esSetCalView(view, btn) {
+  _dashCalView = view;
+  document.querySelectorAll('.cal-view-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const labels = { today: 'Today', week: 'This Week', month: 'This Month', year: 'This Year' };
+  const labelEl = document.getElementById('cal-view-label');
+  if (labelEl) labelEl.textContent = labels[view] || '';
+  esLoadUpcoming();
+}
 
 function esDashTab(el, tab) {
   _activeDashTab = tab;
@@ -2964,14 +2992,20 @@ async function esLoadUpcoming() {
   const list = document.getElementById('dash-upcoming-list');
   if (!list) return;
   try {
-    const wsParam = _activeWorkspaceId ? `?workspaceId=${_activeWorkspaceId}` : '';
-    const res = await esFetch(`/api/dashboard/upcoming${wsParam}`);
+    const daysByView = { today: 1, week: 7, month: 30, year: 365 };
+    const days = daysByView[_dashCalView] || 7;
+    const params = new URLSearchParams();
+    if (_activeWorkspaceId) params.set('workspaceId', _activeWorkspaceId);
+    params.set('days', days);
+    const res = await esFetch(`/api/dashboard/upcoming?${params.toString()}`);
     const data = await res.json();
     if (!data.events || !data.events.length) {
+      const viewLabels = { today: 'today', week: 'this week', month: 'this month', year: 'this year' };
+      const viewLabel = viewLabels[_dashCalView] || 'in this window';
       list.innerHTML = `<div class="empty-state">
         <div class="empty-state-icon">📅</div>
-        <div class="empty-state-title">Nothing lined up yet</div>
-        <div class="empty-state-sub">Subscribe to strands from venues you love. Their events will surface here when the time is right.</div>
+        <div class="empty-state-title">Nothing on ${viewLabel}</div>
+        <div class="empty-state-sub">Subscribe to strands from venues you love. Their events will surface here when they're scheduled.</div>
         <div class="empty-notes"><div class="empty-notes-label">Quick note</div>
         <textarea id="note-upcoming" placeholder="Jot a venue name, a night out idea, something to look up…" oninput="esSaveNote('upcoming',this.value)"></textarea></div></div>`;
       esRestoreNotes();
