@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Developer Docs — EventStrand API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
+<style>
+:root {
+  --bg:           #04061a;
+  --bg2:          #07091f;
+  --bg3:          #0b0d26;
+  --surface:      #10163a;
+  --surface2:     #171e48;
+  --border:       rgba(100,120,255,0.10);
+  --border2:      rgba(100,120,255,0.22);
+  --primary:      #6C8FFF;
+  --primary-glow: rgba(108,143,255,0.20);
+  --green:        #11DBA6;
+  --green-glow:   rgba(17,219,166,0.15);
+  --violet:       #B06FFF;
+  --violet-glow:  rgba(176,111,255,0.18);
+  --red:          #FF6B7A;
+  --amber:        #FFB347;
+  --text:         #ECF0FF;
+  --text-dim:     #8290C0;
+  --text-faint:   #454A72;
+  --nav-width:    260px;
+  --content-max:  760px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; font-size: 16px; line-height: 1.8; overflow-x: hidden; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+/* ── TOPBAR ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 56px; background: rgba(4,6,26,0.92); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 28px; gap: 20px;
+}
+.topbar-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+.topbar-logo img { width: 28px; height: 28px; border-radius: 7px; object-fit: cover; }
+.topbar-logo-text { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: var(--text); }
+.topbar-sep { width: 1px; height: 18px; background: var(--border2); }
+.topbar-section { font-size: 13px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.3px; }
+.topbar-links { margin-left: auto; display: flex; gap: 6px; }
+.topbar-links a { font-size: 13px; color: var(--text-dim); text-decoration: none; padding: 5px 12px; border-radius: 8px; transition: all 0.18s; }
+.topbar-links a:hover { color: var(--text); background: var(--surface); }
+.topbar-links a.cta { background: var(--primary); color: white; font-weight: 600; }
+.topbar-links a.cta:hover { background: #8aaeff; }
+
+/* ── LAYOUT ── */
+.layout { display: flex; padding-top: 56px; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--nav-width); flex-shrink: 0;
+  position: fixed; top: 56px; bottom: 0; left: 0;
+  overflow-y: auto; padding: 28px 0 40px;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--surface2); }
+.nav-group { margin-bottom: 28px; padding: 0 16px; }
+.nav-group-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--text-faint); margin-bottom: 8px; padding: 0 8px;
+}
+.nav-item {
+  display: block; padding: 7px 12px; border-radius: 8px;
+  font-size: 13px; color: var(--text-dim); text-decoration: none;
+  transition: all 0.15s; cursor: pointer; border: none; background: none;
+  width: 100%; text-align: left; font-family: 'Outfit', sans-serif;
+}
+.nav-item:hover { color: var(--text); background: var(--surface); }
+.nav-item.active { color: var(--primary); background: var(--primary-glow); }
+.nav-item code { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+/* ── CONTENT ── */
+.content {
+  margin-left: var(--nav-width);
+  padding: 56px 60px 100px;
+  max-width: calc(var(--nav-width) + var(--content-max) + 120px);
+  width: 100%;
+}
+
+/* ── SECTIONS ── */
+.doc-section { margin-bottom: 72px; scroll-margin-top: 80px; }
+.doc-section:last-child { margin-bottom: 0; }
+
+.section-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--primary); margin-bottom: 12px;
+}
+.section-eyebrow::before { content: ''; width: 16px; height: 2px; background: var(--primary); display: block; }
+
+h1 { font-family: 'Fraunces', serif; font-size: clamp(30px, 3vw, 44px); font-weight: 400; line-height: 1.12; color: var(--text); margin-bottom: 16px; }
+h2 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 400; color: var(--text); margin-bottom: 14px; }
+h3 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 400; color: var(--text); margin-bottom: 10px; margin-top: 32px; }
+h3:first-child { margin-top: 0; }
+p { color: var(--text-dim); margin-bottom: 16px; line-height: 1.8; }
+p:last-child { margin-bottom: 0; }
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── DIVIDER ── */
+.doc-divider { height: 1px; background: var(--border); margin: 48px 0; }
+
+/* ── CODE ── */
+code { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; background: var(--surface); border: 1px solid var(--border2); border-radius: 5px; padding: 2px 6px; color: var(--primary); }
+pre {
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px;
+  overflow-x: auto; margin: 20px 0;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7;
+}
+.pre-header {
+  padding: 10px 18px; background: var(--surface); border-bottom: 1px solid var(--border);
+  border-radius: 14px 14px 0 0; display: flex; align-items: center; justify-content: space-between;
+}
+.pre-lang { font-size: 11px; font-weight: 600; color: var(--text-faint); letter-spacing: 0.8px; text-transform: uppercase; }
+.pre-copy { font-size: 11px; color: var(--text-faint); cursor: pointer; background: none; border: none; font-family: 'Outfit', sans-serif; transition: color 0.15s; }
+.pre-copy:hover { color: var(--primary); }
+pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 13px; display: block; padding: 18px; }
+
+/* syntax */
+.k { color: #7fb3f5; } /* key */
+.s { color: #a8d4a8; } /* string */
+.n { color: #f0a46a; } /* number */
+.b { color: var(--green); } /* boolean */
+.c { color: var(--text-faint); font-style: italic; } /* comment */
+.m { color: var(--primary); } /* method */
+.p { color: var(--violet); } /* path */
+
+/* ── METHOD BADGES ── */
+.method { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  padding: 3px 9px; border-radius: 5px; letter-spacing: 0.5px;
+}
+.badge-get  { background: rgba(17,219,166,0.15); color: var(--green); border: 1px solid rgba(17,219,166,0.3); }
+.badge-post { background: rgba(108,143,255,0.15); color: var(--primary); border: 1px solid rgba(108,143,255,0.3); }
+.badge-patch { background: rgba(255,179,71,0.12); color: var(--amber); border: 1px solid rgba(255,179,71,0.28); }
+.badge-delete { background: rgba(255,107,122,0.12); color: var(--red); border: 1px solid rgba(255,107,122,0.28); }
+.endpoint-path { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); }
+
+/* ── ENDPOINT BLOCK ── */
+.endpoint {
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px;
+  padding: 20px 24px; margin: 20px 0;
+}
+.endpoint-desc { font-size: 14px; color: var(--text-dim); margin: 8px 0 0; }
+
+/* ── PARAMS TABLE ── */
+.param-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+.param-table th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-faint); padding: 8px 12px; border-bottom: 1px solid var(--border2); }
+.param-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-dim); vertical-align: top; }
+.param-table tr:last-child td { border-bottom: none; }
+.param-table td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--primary); white-space: nowrap; }
+.param-table td:nth-child(2) { color: var(--text-faint); }
+.param-req { color: var(--red) !important; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+.param-opt { color: var(--text-faint) !important; font-size: 10px; }
+
+/* ── SCOPE GRID ── */
+.scope-grid { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+.scope-row {
+  display: flex; align-items: flex-start; gap: 16px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
+}
+.scope-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--green); white-space: nowrap; min-width: 160px; margin-top: 2px; }
+.scope-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+/* ── CALLOUT ── */
+.callout {
+  border-radius: 12px; padding: 16px 20px; margin: 20px 0;
+  display: flex; gap: 12px; align-items: flex-start;
+  font-size: 14px; line-height: 1.65;
+}
+.callout-info { background: var(--primary-glow); border: 1px solid rgba(108,143,255,0.3); color: var(--text-dim); }
+.callout-warn { background: rgba(255,179,71,0.10); border: 1px solid rgba(255,179,71,0.28); color: var(--text-dim); }
+.callout-green { background: var(--green-glow); border: 1px solid rgba(17,219,166,0.3); color: var(--text-dim); }
+.callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── COMING SOON CHIP ── */
+.chip-soon { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; background: var(--violet-glow); color: var(--violet); border: 1px solid rgba(176,111,255,0.3); border-radius: 20px; padding: 3px 10px; margin-left: 10px; vertical-align: middle; }
+
+/* ── BASE URL BLOCK ── */
+.base-url { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 16px; margin: 16px 0; }
+.base-url-label { font-size: 11px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+.base-url-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--green); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  .sidebar { display: none; }
+  .content { margin-left: 0; padding: 32px 20px 80px; }
+  .topbar { padding: 0 16px; }
+  .topbar-section { display: none; }
+  .topbar-sep { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── TOPBAR ── -->
+<nav class="topbar">
+  <a href="/" class="topbar-logo">
+    <img src="/icon-192.png" alt="EventStrand">
+    <span class="topbar-logo-text">EventStrand</span>
+  </a>
+  <div class="topbar-sep"></div>
+  <span class="topbar-section">Developer Docs</span>
+  <div class="topbar-links">
+    <a href="/spec">Spec (.rcal)</a>
+    <a href="https://github.com/GitwithitDan/EventStrand" target="_blank" rel="noopener">GitHub</a>
+    <a href="/" class="cta">Open App →</a>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR NAV ── -->
+  <nav class="sidebar">
+    <div class="nav-group">
+      <div class="nav-group-label">Overview</div>
+      <a class="nav-item active" href="#overview">Introduction</a>
+      <a class="nav-item" href="#base-url">Base URL</a>
+      <a class="nav-item" href="#rate-limits">Rate Limits</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Authentication</div>
+      <a class="nav-item" href="#auth-apikeys">API Keys</a>
+      <a class="nav-item" href="#auth-scopes">Scopes</a>
+      <a class="nav-item" href="#auth-usage">Using a Key</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">REST API</div>
+      <a class="nav-item" href="#endpoint-upcoming"><code>GET</code> Upcoming Events</a>
+      <a class="nav-item" href="#endpoint-subscriptions"><code>GET</code> Subscriptions</a>
+      <a class="nav-item" href="#endpoint-strands-mine"><code>GET</code> My Strands</a>
+      <a class="nav-item" href="#endpoint-strand-public"><code>GET</code> Public Strand</a>
+      <a class="nav-item" href="#endpoint-keys-create"><code>POST</code> Generate Key</a>
+      <a class="nav-item" href="#endpoint-keys-list"><code>GET</code> List Keys</a>
+      <a class="nav-item" href="#endpoint-keys-revoke"><code>DELETE</code> Revoke Key</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">MCP</div>
+      <a class="nav-item" href="#mcp-overview">MCP Server</a>
+      <a class="nav-item" href="#mcp-tools">Available Tools</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Format</div>
+      <a class="nav-item" href="/spec">.rcal Specification ↗</a>
+    </div>
+  </nav>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="content">
+
+    <!-- OVERVIEW -->
+    <div class="doc-section" id="overview">
+      <div class="section-eyebrow">Developer Docs</div>
+      <h1>EventStrand API</h1>
+      <p>EventStrand exposes a REST API for reading and writing strand and event data. Use it to build agents, integrations, and tooling on top of the open <a href="/spec">.rcal format</a>.</p>
+      <p>All endpoints return JSON. Authentication uses API keys issued from your account settings. The API is the same interface the EventStrand web app uses — there are no private endpoints.</p>
+
+      <div class="callout callout-info">
+        <span class="callout-icon">ℹ️</span>
+        <span>Public strand and QR endpoints require no authentication. All user-specific endpoints require an API key or session token.</span>
+      </div>
+    </div>
+
+    <div class="doc-divider"></div>
+
+    <!-- BASE URL -->
+    <div class="doc-section" id="base-url">
+      <h2>Base URL</h2>
+      <p>All API requests are made to:</p>
+      <div class="base-url">
+        <span class="base-url-label">Base</span>
+        <span class="base-url-val">https://api.eventstrand.com</span>
+      </div>
+      <p>Endpoints are prefixed with <code>/api/</code>. For example, the upcoming events endpoint is at <code>https://api.eventstrand.com/api/dashboard/upcoming</code>.</p>
+    </div>
+
+    <div class="doc-divider"></div>
+
+    <!-- RATE LIMITS -->
+    <div class="doc-section" id="rate-limits">
+      <h2>Rate Limits</h2>
+      <p>Auth endpoints are limited to 30 requests per 15-minute window. All other <code>/api/</code> endpoints are limited to 200 requests per minute per IP. Limits apply across API key and session token usage equally.</p>
+      <p>Responses include standard rate limit headers. When exceeded, the API returns <code>429 Too Many Requests</code>.</p>
+    </div>
+
+    <div class="doc-divider"></div>
+
+    <!-- AUTH — API KEYS -->
+    <div class="doc-section" id="auth-apikeys">
+      <h2>Authentication — API Keys</h2>
+      <p>API keys allow agents and external tools to authenticate without a user session. Generate keys from your EventStrand account under <strong>Account → API Keys</strong>.</p>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <span>Keys are shown once at generation and cannot be retrieved again. Store them immediately in a secrets manager or environment variable.</span>
+      </div>
+
+      <p>All keys are prefixed with <code>esk_</code> and stored as SHA-256 hashes server-side. Revoking a key is immediate — any tool using it loses access instantly.</p>
+
+      <h3 id="auth-scopes">Scopes</h3>
+      <p>Each key carries one or more scopes that determine what it can access. Request only the scopes your use case requires.</p>
+
+      <div class="scope-grid">
+        <div class="scope-row">
+          <span class="scope-name">portal:read</span>
+          <span class="scope-desc">Read the authenticated user's upcoming event feed and dashboard data.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name">strand:read</span>
+          <span class="scope-desc">Read strand details, event lists, and metadata for strands the user owns or subscribes to.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name">subscriptions:read</span>
+          <span class="scope-desc">List the strands and braids the user is subscribed to, including workspace breakdown.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name">strand:write</span>
+          <span class="scope-desc">Create and update strands owned by the authenticated user.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name">events:create</span>
+          <span class="scope-desc">Add new events (recurring, one-off, or date list) to strands the user owns.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name">events:update</span>
+          <span class="scope-desc">Modify existing events — update schedules, add exceptions, cancel occurrences.</span>
+        </div>
+      </div>
+
+      <h3 id="auth-usage">Using a Key</h3>
+      <p>Pass the key as a Bearer token in the <code>Authorization</code> header on every request:</p>
+
+      <div class="pre-header">
+        <span class="pre-lang">HTTP</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>Authorization: Bearer esk_your_key_here</code></pre>
+
+      <div class="pre-header" style="border-radius:14px 14px 0 0;margin-top:20px;">
+        <span class="pre-lang">JavaScript</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code><span class="c">// Example: fetch upcoming events with an API key</span>
+const res = await fetch(<span class="s">'https://api.eventstrand.com/api/dashboard/upcoming?days=7'</span>, {
+  headers: {
+    <span class="k">'Authorization'</span>: <span class="s">`Bearer ${process.env.EVENTSTRAND_API_KEY}`</span>
+  }
+});
+const data = await res.json();
+<span class="c">// data.events — array of upcoming event objects</span></code></pre>
+    </div>
+
+    <div class="doc-divider"></div>
+
+    <!-- ENDPOINTS -->
+    <div class="doc-section" id="endpoint-upcoming">
+      <h2>REST API</h2>
+      <h3>Upcoming Events</h3>
+      <div class="endpoint">
+        <div class="method">
+          <span class="badge badge-get">GET</span>
+          <span class="endpoint-path">/api/dashboard/upcoming</span>
+        </div>
+        <div class="endpoint-desc">Returns upcoming events from all strands the authenticated user subscribes to, within a given time window. Results are sorted by date ascending and capped at 100 events.</div>
+      </div>
+
+      <p><strong>Required scope:</strong> <code>portal:read</code></p>
+
+      <table class="param-table">
+        <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+        <tr><td>days</td><td>integer</td><td class="param-opt">optional</td><td>Days ahead to include. Min 1, max 365. Default 60.</td></tr>
+        <tr><td>workspaceId</td><td>string</td><td class="param-opt">optional</td><td>Filter to a specific workspace. Omit for all workspaces.</td></tr>
+      </table>
+
+      <div class="pre-header">
+        <span class="pre-lang">Response</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>{
+  <span class="k">"events"</span>: [
+    {
+      <span class="k">"title"</span>:       <span class="s">"Friday Jazz Night"</span>,
+      <span class="k">"date"</span>:        <span class="s">"2026-05-02"</span>,
+      <span class="k">"time"</span>:        <span class="s">"21:00"</span>,
+      <span class="k">"venue"</span>:       <span class="s">"The Rusty Nail"</span>,
+      <span class="k">"address"</span>:     <span class="s">"123 W Division St, Chicago"</span>,
+      <span class="k">"strandId"</span>:    <span class="s">"664f..."</span>,
+      <span class="k">"strandTitle"</span>: <span class="s">"The Rusty Nail"</span>,
+      <span class="k">"publisher"</span>:   <span class="s">"rusty-nail"</span>,
+      <span class="k">"color"</span>:       <span class="s">"#6C8FFF"</span>,
+      <span class="k">"vibes"</span>:       [<span class="s">"mellow"</span>, <span class="s">"social"</span>]
+    }
+  ]
+}</code></pre>
+    </div>
+
+    <div class="doc-section" id="endpoint-subscriptions">
+      <h3>Subscriptions</h3>
+      <div class="endpoint">
+        <div class="method">
+          <span class="badge badge-get">GET</span>
+          <span class="endpoint-path">/api/user/subscriptions</span>
+        </div>
+        <div class="endpoint-desc">Returns all strands and braids the authenticated user is subscribed to.</div>
+      </div>
+
+      <p><strong>Required scope:</strong> <code>subscriptions:read</code></p>
+
+      <table class="param-table">
+        <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+        <tr><td>workspaceId</td><td>string</td><td class="param-opt">optional</td><td>Filter results to a specific workspace.</td></tr>
+      </table>
+
+      <div class="pre-header">
+        <span class="pre-lang">Response</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>{
+  <span class="k">"strands"</span>: [
+    {
+      <span class="k">"_id"</span>:             <span class="s">"664f..."</span>,
+      <span class="k">"title"</span>:           <span class="s">"The Rusty Nail"</span>,
+      <span class="k">"venue"</span>:           <span class="s">"The Rusty Nail"</span>,
+      <span class="k">"publisherHandle"</span>: <span class="s">"rusty-nail"</span>,
+      <span class="k">"color"</span>:           <span class="s">"#6C8FFF"</span>
+    }
+  ],
+  <span class="k">"braids"</span>: []
+}</code></pre>
+    </div>
+
+    <div class="doc-section" id="endpoint-strands-mine">
+      <h3>My Strands</h3>
+      <div class="endpoint">
+        <div class="method">
+          <span class="badge badge-get">GET</span>
+          <span class="endpoint-path">/api/strands/mine</span>
+        </div>
+        <div class="endpoint-desc">Returns all strands owned and published by the authenticated user.</div>
+      </div>
+
+      <p><strong>Required scope:</strong> <code>strand:read</code></p>
+    </div>
+
+    <div class="doc-section" id="endpoint-strand-public">
+      <h3>Public Strand</h3>
+      <div class="endpoint">
+        <div class="method">
+          <span class="badge badge-get">GET</span>
+          <span class="endpoint-path">/api/public/strand/:handleOrId</span>
+        </div>
+        <div class="endpoint-desc">Returns public strand data by publisher handle or strand ID. No authentication required. Returns 403 for protected strands — pass a <code>passcode</code> query param if you have one.</div>
+      </div>
+
+      <table class="param-table">
+        <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+        <tr><td>handleOrId</td><td>string</td><td class="param-req">required</td><td>Publisher handle (e.g. <code>rusty-nail</code>) or strand ID.</td></tr>
+        <tr><td>passcode</td><td>string</td><td class="param-opt">optional</td><td>Required for protected strands.</td></tr>
+      </table>
+    </div>
+
+    <div class="doc-section" id="endpoint-keys-create">
+      <h3>Generate API Key</h3>
+      <div class="endpoint">
+        <div class="method">
+          <span class="badge badge-post">POST</span>
+          <span class="endpoint-path">/api/apikeys</span>
+        </div>
+        <div class="endpoint-desc">Generates a new API key. The raw key value is returned once in this response and cannot be retrieved again. Requires an active user session (JWT) — not an API key.</div>
+      </div>
+
+      <div class="pre-header">
+        <span class="pre-lang">Request body</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>{
+  <span class="k">"label"</span>:  <span class="s">"My Agent"</span>,
+  <span class="k">"scopes"</span>: [<span class="s">"portal:read"</span>, <span class="s">"strand:read"</span>]
+}</code></pre>
+
+      <div class="pre-header" style="margin-top:20px;">
+        <span class="pre-lang">Response 201</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>{
+  <span class="k">"id"</span>:        <span class="s">"664f..."</span>,
+  <span class="k">"label"</span>:     <span class="s">"My Agent"</span>,
+  <span class="k">"prefix"</span>:    <span class="s">"esk_a1b2c3d4"</span>,
+  <span class="k">"scopes"</span>:    [<span class="s">"portal:read"</span>, <span class="s">"strand:read"</span>],
+  <span class="k">"createdAt"</span>: <span class="s">"2026-04-26T12:00:00.000Z"</span>,
+  <span class="k">"key"</span>:       <span class="s">"esk_a1b2c3d4..."</span>  <span class="c">// shown once — store immediately</span>
+}</code></pre>
+    </div>
+
+    <div class="doc-section" id="endpoint-keys-list">
+      <h3>List API Keys</h3>
+      <div class="endpoint">
+        <div class="method">
+          <span class="badge badge-get">GET</span>
+          <span class="endpoint-path">/api/apikeys</span>
+        </div>
+        <div class="endpoint-desc">Returns all active (non-revoked) keys for the authenticated user. Raw key values are never returned — only prefix, label, scopes, and last-used timestamp.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="endpoint-keys-revoke">
+      <h3>Revoke API Key</h3>
+      <div class="endpoint">
+        <div class="method">
+          <span class="badge badge-delete">DELETE</span>
+          <span class="endpoint-path">/api/apikeys/:id</span>
+        </div>
+        <div class="endpoint-desc">Immediately revokes an API key. Any agent or tool using it loses access instantly. This action cannot be undone.</div>
+      </div>
+    </div>
+
+    <div class="doc-divider"></div>
+
+    <!-- MCP -->
+    <div class="doc-section" id="mcp-overview">
+      <h2>MCP Server <span class="chip-soon">Coming Soon</span></h2>
+      <p>EventStrand will expose a <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">Model Context Protocol</a> server, allowing any MCP-compatible agent or AI tool to connect to your EventStrand data natively — without custom integration code.</p>
+      <p>Once available, you'll be able to add EventStrand as a connector in Claude, Claude Code, Cursor, or any MCP-compatible client by pointing it at the server URL.</p>
+
+      <div class="callout callout-green">
+        <span class="callout-icon">🔗</span>
+        <span>The MCP server authenticates using the same API keys described above. Generate a key with the scopes you need, and provide it as the Bearer token when connecting.</span>
+      </div>
+
+      <h3 id="mcp-tools">Planned Tools</h3>
+      <p>The MCP server will expose the following tools to agents:</p>
+
+      <div class="scope-grid">
+        <div class="scope-row">
+          <span class="scope-name" style="color:var(--primary);">es_get_upcoming_events</span>
+          <span class="scope-desc">Fetch upcoming events from the user's portal for a given time window and optional vibe filter.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name" style="color:var(--primary);">es_get_subscriptions</span>
+          <span class="scope-desc">List all strands and braids the user is subscribed to, with workspace breakdown.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name" style="color:var(--primary);">es_get_strand</span>
+          <span class="scope-desc">Fetch full details for a strand — events, schedule, venue, vibes — by ID or public slug.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name" style="color:var(--primary);">es_search_strands</span>
+          <span class="scope-desc">Search public strands by location, vibe, or keyword.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name" style="color:var(--violet);">es_get_my_strands</span>
+          <span class="scope-desc">List strands owned by the authenticated user.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name" style="color:var(--violet);">es_create_event</span>
+          <span class="scope-desc">Add a new event (recurring, one-off, or date list) to a strand you own.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name" style="color:var(--violet);">es_update_event</span>
+          <span class="scope-desc">Modify an existing event's schedule, title, or vibes.</span>
+        </div>
+        <div class="scope-row">
+          <span class="scope-name" style="color:var(--violet);">es_cancel_event</span>
+          <span class="scope-desc">Add an exception to cancel a specific occurrence or date range.</span>
+        </div>
+      </div>
+
+      <p style="margin-top:16px;font-size:13px;color:var(--text-faint);">Blue = attendee read · Purple = venue write</p>
+    </div>
+
+    <div class="doc-divider"></div>
+
+    <!-- FOOTER -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div style="font-family:'Fraunces',serif;font-size:18px;color:var(--text);margin-bottom:4px;">EventStrand</div>
+        <div style="font-size:13px;color:var(--text-faint);">The open platform for recurring real-world life.</div>
+      </div>
+      <div style="display:flex;gap:20px;font-size:13px;">
+        <a href="/" style="color:var(--text-dim);">Home</a>
+        <a href="/spec" style="color:var(--text-dim);">.rcal Spec</a>
+        <a href="/privacy-policy.html" style="color:var(--text-dim);">Privacy</a>
+        <a href="/terms-of-service.html" style="color:var(--text-dim);">Terms</a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// Active nav highlight on scroll
+const sections = document.querySelectorAll('.doc-section[id], .doc-section h3[id]');
+const navItems = document.querySelectorAll('.nav-item');
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const match = document.querySelector(`.nav-item[href="#${entry.target.id}"]`);
+      if (match) match.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+document.querySelectorAll('[id]').forEach(el => observer.observe(el));
+
+// Copy code blocks
+function copyCode(btn) {
+  const pre = btn.closest('.pre-header').nextElementSibling;
+  const text = pre.querySelector('code').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1800);
+  });
+}
+</script>
+</body>
+</html>
