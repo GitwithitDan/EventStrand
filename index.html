@@ -497,6 +497,18 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 .installed-strand-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .installed-strand-name { color: var(--text); flex: 1; }
 .installed-strand-count { color: var(--text-faint); font-size: 11px; }
+
+/* ── VENUE GUIDES ─────────────────────────────────────────────── */
+.vg-picker-row { display: flex; justify-content: center; margin-top: 24px; }
+.vg-guide { animation: fadeIn .2s ease; }
+.vg-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.vg-intro { font-size: 14px; color: var(--text-dim); margin-bottom: 24px; max-width: 600px; }
+.vg-steps { display: flex; flex-direction: column; gap: 16px; max-width: 620px; }
+.vg-step { display: flex; gap: 16px; align-items: flex-start; }
+.vg-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--primary-glow); border: 1px solid rgba(108,143,255,.3); color: var(--primary); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.vg-step div { font-size: 14px; color: var(--text-dim); line-height: 1.6; padding-top: 4px; }
+.vg-step strong { color: var(--text); }
+.vg-step em { color: var(--text); font-style: normal; font-weight: 600; }
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#04061a">
@@ -522,6 +534,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     <li><a href="/spec">.rcal Spec</a></li>
     <li><a href="#builder">Builder</a></li>
     <li><a href="#library">Library</a></li>
+    <li><a href="#venue-guides">Venue Guides</a></li>
     <li><a href="#developer">Developers</a></li>
   </ul>
   <div class="nav-cta" id="nav-cta-area">
@@ -1153,6 +1166,27 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
               </div>
               <input class="field-input" id="builder-passcode-field" type="text" placeholder="Passcode" style="display:none;margin-top:8px;" oninput="pub.accessCode=this.value">
             </div>
+
+            <!-- Directory Opt-in -->
+            <div id="builder-directory-block" style="margin-bottom:16px;border:1px solid var(--border2);border-radius:12px;padding:14px 16px;background:var(--bg2);">
+              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+                <input type="checkbox" id="builder-dir-checkbox" style="margin-top:3px;accent-color:var(--primary);" onchange="esToggleDirectoryBlock(this.checked)">
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);">Submit to EventStrand Directory</div>
+                  <div style="font-size:12px;color:var(--text-dim);margin-top:2px;">Verified strands appear in the public directory. We'll confirm you've posted your strand link or QR code on your site.</div>
+                </div>
+              </label>
+              <div id="builder-dir-url-block" style="display:none;margin-top:12px;">
+                <label class="field-label" style="font-size:11px;margin-bottom:4px;">URL where you've posted your strand link or QR code</label>
+                <input class="field-input" type="url" id="builder-dir-url" placeholder="https://yoursite.com/events" style="margin-bottom:6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                  <a href="#venue-guides" style="font-size:12px;color:var(--primary);text-decoration:none;" onclick="esScrollToVenueGuides(event)">Need help posting your strand? →</a>
+                  <div id="builder-dir-status" style="font-size:11px;color:var(--text-faint);"></div>
+                </div>
+                <button class="btn btn-ghost" id="builder-dir-submit-btn" style="margin-top:10px;width:100%;justify-content:center;font-size:13px;" onclick="esSubmitToDirectory()">Submit for verification</button>
+              </div>
+            </div>
+
             <button class="btn btn-green btn-lg" style="width:100%;justify-content:center;" onclick="esPublishStrand()">🟢 Publish Strand + Get QR</button>
             <button class="btn btn-ghost btn-lg" style="width:100%;justify-content:center;margin-top:8px;" onclick="esSaveStrand()">💾 Save as Draft</button>
             <button class="btn btn-ghost btn-lg" style="width:100%;justify-content:center;margin-top:8px;" onclick="downloadRcal()">⬇ Download .rcal File</button>
@@ -1299,6 +1333,136 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
   </div>
 </section>
 
+<div class="divider"></div>
+
+<!-- ══ VENUE GUIDES ══ -->
+<section id="venue-guides">
+  <div class="section-label">For Venues &amp; Creators</div>
+  <h2 class="section-title">Posting your strand to your site</h2>
+  <p class="section-sub">Once you've published a strand, post the QR code or link on your website so people can find it. Pick your platform below for step-by-step instructions.</p>
+
+  <div class="vg-picker-row">
+    <select id="vg-platform-select" class="field-input" style="max-width:320px;font-size:15px;" onchange="esShowVenueGuide(this.value)">
+      <option value="">— Pick your platform —</option>
+      <option value="squarespace">Squarespace</option>
+      <option value="wix">Wix</option>
+      <option value="wordpress">WordPress</option>
+      <option value="shopify">Shopify</option>
+      <option value="webflow">Webflow</option>
+      <option value="godaddy">GoDaddy Website Builder</option>
+      <option value="google-business">Google Business Profile</option>
+      <option value="linktree">Linktree / Beacons</option>
+    </select>
+  </div>
+
+  <div id="vg-guide-area" style="margin-top:32px;display:none;">
+
+    <!-- SQUARESPACE -->
+    <div class="vg-guide" id="vg-squarespace" style="display:none;">
+      <h3 class="vg-title">Squarespace</h3>
+      <p class="vg-intro">Squarespace lets you add images and buttons through its block editor. You can post your strand as a QR image, a text link, or both.</p>
+      <div class="vg-steps">
+        <div class="vg-step"><span class="vg-num">1</span><div>Open your site in Squarespace and navigate to the page you want to post on — your homepage, events page, or a dedicated "Find Us" page.</div></div>
+        <div class="vg-step"><span class="vg-num">2</span><div><strong>To post the QR image:</strong> Click <em>Add Block</em>, choose <em>Image</em>, and upload your strand QR code PNG (download it from your EventStrand dashboard → QR Code).</div></div>
+        <div class="vg-step"><span class="vg-num">3</span><div><strong>To post a text link:</strong> Click <em>Add Block</em>, choose <em>Text</em>, type something like "Subscribe to our schedule," highlight it, click the link icon, and paste your strand URL (from dashboard → Copy Strand Link).</div></div>
+        <div class="vg-step"><span class="vg-num">4</span><div>Optionally add a caption below the QR image: "Scan to follow our events on EventStrand."</div></div>
+        <div class="vg-step"><span class="vg-num">5</span><div>Click <em>Save</em> in the top-right, then <em>Publish</em>. Copy your page URL and paste it into the Directory verification field in EventStrand.</div></div>
+      </div>
+    </div>
+
+    <!-- WIX -->
+    <div class="vg-guide" id="vg-wix" style="display:none;">
+      <h3 class="vg-title">Wix</h3>
+      <p class="vg-intro">Wix uses a drag-and-drop editor. You can add images, buttons, and text anywhere on the page.</p>
+      <div class="vg-steps">
+        <div class="vg-step"><span class="vg-num">1</span><div>Open the Wix Editor and click into the page where you want to post your strand.</div></div>
+        <div class="vg-step"><span class="vg-num">2</span><div><strong>To post the QR image:</strong> Click the blue <em>+</em> button in the left panel, select <em>Image</em>, and upload your strand QR code PNG.</div></div>
+        <div class="vg-step"><span class="vg-num">3</span><div>Resize and position the QR image. Right-click the image → <em>Link</em> → paste your strand URL so tapping the image on mobile also works.</div></div>
+        <div class="vg-step"><span class="vg-num">4</span><div><strong>To post a text link:</strong> Add a <em>Text</em> element, type your call-to-action, highlight the text, and use the link tool to paste your strand URL.</div></div>
+        <div class="vg-step"><span class="vg-num">5</span><div>Click <em>Publish</em> in the top-right. Use the published page URL for directory verification.</div></div>
+      </div>
+    </div>
+
+    <!-- WORDPRESS -->
+    <div class="vg-guide" id="vg-wordpress" style="display:none;">
+      <h3 class="vg-title">WordPress</h3>
+      <p class="vg-intro">Works with both the Block Editor (Gutenberg) and Classic Editor.</p>
+      <div class="vg-steps">
+        <div class="vg-step"><span class="vg-num">1</span><div>In your WordPress admin, go to <em>Pages</em> (or <em>Posts</em>) and open the page you want to edit — or create a new one called "Events" or "Find Us."</div></div>
+        <div class="vg-step"><span class="vg-num">2</span><div><strong>Block Editor:</strong> Click the <em>+</em> icon to add a block. Choose <em>Image</em> to upload your strand QR code, or <em>Paragraph</em> then highlight text and use the link icon to paste your strand URL.</div></div>
+        <div class="vg-step"><span class="vg-num">3</span><div><strong>Classic Editor:</strong> Click the image icon in the toolbar to upload your QR code, or highlight text and click the link icon to paste your strand URL.</div></div>
+        <div class="vg-step"><span class="vg-num">4</span><div>Add alt text to your QR image: "EventStrand QR code — scan to follow our schedule." This helps with accessibility and confirms the image purpose.</div></div>
+        <div class="vg-step"><span class="vg-num">5</span><div>Click <em>Update</em> or <em>Publish</em>. Use the page's public URL in the directory verification field.</div></div>
+      </div>
+    </div>
+
+    <!-- SHOPIFY -->
+    <div class="vg-guide" id="vg-shopify" style="display:none;">
+      <h3 class="vg-title">Shopify</h3>
+      <p class="vg-intro">Best placed on your homepage via a custom section, or on a dedicated page. If you host events in-store, the homepage or an "Events" page works well.</p>
+      <div class="vg-steps">
+        <div class="vg-step"><span class="vg-num">1</span><div>In your Shopify admin, go to <em>Online Store → Pages</em> and click <em>Add page</em> (or open an existing one like your homepage).</div></div>
+        <div class="vg-step"><span class="vg-num">2</span><div>In the page editor, click the image icon in the content area to upload your strand QR code PNG.</div></div>
+        <div class="vg-step"><span class="vg-num">3</span><div>To add a text link: type your call-to-action, highlight it, click the link icon, and paste your strand URL. Set it to open in a new tab.</div></div>
+        <div class="vg-step"><span class="vg-num">4</span><div>For homepage sections: go to <em>Online Store → Themes → Customize</em>, find a section that accepts images or rich text, and add your QR image or link there.</div></div>
+        <div class="vg-step"><span class="vg-num">5</span><div>Click <em>Save</em>. Use your published page URL for directory verification.</div></div>
+      </div>
+    </div>
+
+    <!-- WEBFLOW -->
+    <div class="vg-guide" id="vg-webflow" style="display:none;">
+      <h3 class="vg-title">Webflow</h3>
+      <p class="vg-intro">Webflow gives you complete layout control. The easiest approach is adding an Image element with a link wrapper, or a Rich Text block.</p>
+      <div class="vg-steps">
+        <div class="vg-step"><span class="vg-num">1</span><div>Open your Webflow Designer and click into the page you want to edit.</div></div>
+        <div class="vg-step"><span class="vg-num">2</span><div><strong>QR image:</strong> Drag an <em>Image</em> element onto the canvas. In the Settings panel on the right, upload your strand QR code PNG.</div></div>
+        <div class="vg-step"><span class="vg-num">3</span><div>Wrap the image in a <em>Link Block</em> (drag Link Block first, then drop the Image inside it). Set the link's URL to your strand URL so mobile taps work.</div></div>
+        <div class="vg-step"><span class="vg-num">4</span><div><strong>Text link:</strong> Add a <em>Text Link</em> element, set its text (e.g., "Follow our event schedule"), and paste your strand URL in the Link Settings panel.</div></div>
+        <div class="vg-step"><span class="vg-num">5</span><div>Publish your site. Copy the published page URL and paste it into the directory verification field.</div></div>
+      </div>
+    </div>
+
+    <!-- GODADDY -->
+    <div class="vg-guide" id="vg-godaddy" style="display:none;">
+      <h3 class="vg-title">GoDaddy Website Builder</h3>
+      <p class="vg-intro">GoDaddy's builder uses a section-based editor. Add an image section for your QR code or use a text section for a link.</p>
+      <div class="vg-steps">
+        <div class="vg-step"><span class="vg-num">1</span><div>Log into GoDaddy and open your website editor. Navigate to the page you want to update.</div></div>
+        <div class="vg-step"><span class="vg-num">2</span><div>Click the <em>+</em> icon between sections to add a new section. Choose <em>Image &amp; Text</em> or a standalone <em>Image</em> section.</div></div>
+        <div class="vg-step"><span class="vg-num">3</span><div>Click the image placeholder and upload your strand QR code PNG from your device.</div></div>
+        <div class="vg-step"><span class="vg-num">4</span><div>To add a text link: click into the text area of the section, highlight your call-to-action text, and use the link icon to paste your strand URL.</div></div>
+        <div class="vg-step"><span class="vg-num">5</span><div>Click <em>Publish</em> in the top-right corner. Copy your live page URL and use it for directory verification.</div></div>
+      </div>
+    </div>
+
+    <!-- GOOGLE BUSINESS PROFILE -->
+    <div class="vg-guide" id="vg-google-business" style="display:none;">
+      <h3 class="vg-title">Google Business Profile</h3>
+      <p class="vg-intro">Google Business doesn't support clickable links in posts, but you can post your QR code as a photo and include the strand URL in the post text. Use your website URL for directory verification instead.</p>
+      <div class="vg-steps">
+        <div class="vg-step"><span class="vg-num">1</span><div>Go to <a href="https://business.google.com" target="_blank" rel="noopener" style="color:var(--primary)">business.google.com</a> and select your business profile.</div></div>
+        <div class="vg-step"><span class="vg-num">2</span><div>Click <em>Add update</em> (or <em>Create post</em>). Write your post text including your strand URL — for example: "Follow our weekly schedule at eventstrand.com/s/yourhandle/strandid"</div></div>
+        <div class="vg-step"><span class="vg-num">3</span><div>Click the photo icon to attach your strand QR code image to the post. This lets customers scan it directly from your Google listing.</div></div>
+        <div class="vg-step"><span class="vg-num">4</span><div>Also go to <em>Edit profile → Website</em> and add your events page URL (or the strand link directly) so it appears permanently on your profile.</div></div>
+        <div class="vg-step"><span class="vg-num">5</span><div>For directory verification, use your business website URL (where you've also posted the link) rather than your Google profile URL.</div></div>
+      </div>
+    </div>
+
+    <!-- LINKTREE / BEACONS -->
+    <div class="vg-guide" id="vg-linktree" style="display:none;">
+      <h3 class="vg-title">Linktree / Beacons</h3>
+      <p class="vg-intro">Link-in-bio tools are the fastest option. Add your strand as a button — when your followers tap your bio link, they'll see it immediately.</p>
+      <div class="vg-steps">
+        <div class="vg-step"><span class="vg-num">1</span><div>Log into your Linktree or Beacons dashboard.</div></div>
+        <div class="vg-step"><span class="vg-num">2</span><div><strong>Linktree:</strong> Click <em>Add link</em>, paste your strand URL into the URL field, and give it a title like "📅 Follow our weekly schedule."</div></div>
+        <div class="vg-step"><span class="vg-num">3</span><div><strong>Beacons:</strong> Click <em>Add block</em>, choose <em>Link</em>, paste your strand URL, and enter a display name.</div></div>
+        <div class="vg-step"><span class="vg-num">4</span><div>Drag the link to near the top of your list so it's visible without scrolling.</div></div>
+        <div class="vg-step"><span class="vg-num">5</span><div>Save changes. Use your Linktree or Beacons profile URL (e.g., linktr.ee/yourvenue) as the verification URL in EventStrand.</div></div>
+      </div>
+    </div>
+
+  </div><!-- /vg-guide-area -->
+</section>
 <div class="divider"></div>
 
 <!-- ══ DEVELOPER ══ -->
@@ -1562,7 +1726,7 @@ upcoming.forEach(event => {
           <li><a href="#builder">Create a Strand</a></li>
           <li><a href="#how">How It Works</a></li>
           <li><a href="#account">Publisher Account</a></li>
-          <li><a href="#">QR Code Guide</a></li>
+          <li><a href="#venue-guides">Posting Your Strand</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -2676,9 +2840,12 @@ function copyRcalJson() {
 }
 
 function copyStrandLink() {
-  const name = (pub.name||'my-strand').toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  if (!_builderStrandId) {
+    showToast('Save your strand first to get a shareable link');
+    return;
+  }
   const handle = ES_USER?.handle || 'yourhandle';
-  const link = `https://eventstrand.com/s/${handle}/${name}`;
+  const link = `https://eventstrand.com/s/${handle}/${_builderStrandId}`;
   navigator.clipboard?.writeText(link);
   showToast('📋 Link copied: ' + link);
 }
@@ -2895,7 +3062,7 @@ async function esConfirmHandle() {
     esSetStoredUser(ES_USER);
     document.getElementById('es-handle-modal').classList.remove('open');
     esOnSignedIn();
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 // ── API KEY MANAGEMENT ────────────────────────────────────────
@@ -2953,7 +3120,7 @@ async function esCreateApiKey() {
     _revealedKey = data.key;
     document.getElementById('apikey-reveal-value').textContent = data.key;
     document.getElementById('apikey-reveal-modal').style.display = 'flex';
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 async function esRevokeApiKey(id) {
@@ -2962,7 +3129,7 @@ async function esRevokeApiKey(id) {
     const res = await esFetch(`/api/apikeys/${id}`, { method: 'DELETE' });
     if (res.ok) { showToast('Key revoked'); esLoadApiKeys(); }
     else showToast('Could not revoke key');
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 function esCopyApiKey() {
@@ -3071,7 +3238,6 @@ function esDashTab(el, tab) {
   document.querySelectorAll('.dash-tab').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   document.querySelectorAll('.dash-panel').forEach(p => p.style.display = 'none');
-  const panel = document.getElementById('dash-' + tab.replace('-','-'));
   const panelEl = document.getElementById(`dash-${tab}`);
   if (panelEl) panelEl.style.display = 'block';
   if (tab === 'subscriptions') esRenderInbox();
@@ -3242,6 +3408,9 @@ async function esRenderMyStrands() {
           <div class="strand-card-dot" style="background:${s.color||'var(--primary)'}"></div>
           <div class="strand-card-name">${s.title}</div>
           <span class="pub-status-badge ${s.published?'live':'draft'}">${s.published?'● Live':'○ Draft'}</span>
+          ${s.directoryStatus==='verified'?'<span class="pub-status-badge" style="background:rgba(0,210,110,.12);color:#00d26a;border-color:rgba(0,210,110,.3);">✓ Directory</span>':
+            s.directoryStatus==='pending'?'<span class="pub-status-badge" style="background:rgba(255,193,7,.1);color:#ffc107;border-color:rgba(255,193,7,.3);">⏳ Verifying</span>':
+            s.directoryStatus==='flagged'?'<span class="pub-status-badge" style="background:rgba(255,90,90,.1);color:#ff5a5a;border-color:rgba(255,90,90,.3);" title="Needs manual review">⚑ Review</span>':''}
           <div class="strand-card-subs">${s.subscriberCount||0} subscribers</div>
         </div>
         <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">${s.venue||''}${s.events?.length?' · '+s.events.length+' event'+(s.events.length!==1?'s':''):''}</div>
@@ -3251,6 +3420,7 @@ async function esRenderMyStrands() {
           <button class="sc-btn" onclick="esOpenAnalytics('${s._id}')">Analytics</button>
           <button class="sc-btn primary" onclick="esShowStrandQR('${s._id}','${s.title}')">QR Code</button>
           ${!s.published ? `<button class="sc-btn" style="background:var(--green-glow);color:var(--green);border-color:var(--green);" onclick="esPublishExistingStrand('${s._id}',this)">Publish →</button>` : ''}
+          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteStrand('${s._id}','${s.title.replace(/'/g,\'\'')}')">Delete</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -3287,6 +3457,8 @@ async function esRenderMyBraids() {
         <div class="strand-card-actions">
           <button class="sc-btn primary" onclick="esShowBraidQR('${b._id}','${b.title}')">QR Code</button>
           <button class="sc-btn" onclick="esOpenBraidAnalytics('${b._id}')">Analytics</button>
+          <button class="sc-btn" onclick="esEditBraid('${b._id}')">Edit</button>
+          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteBraid('${b._id}','${b.title.replace(/'/g,\'\'')}')">Delete</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -3308,7 +3480,7 @@ async function esSubscribeToStrand(strandId, workspaceId) {
     });
     if (res.ok) showToast('✓ Subscribed — this strand is now in your dashboard');
     else { const d = await res.json(); showToast(d.error||'Could not subscribe'); }
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 async function esUnsubscribeStrand(strandId, e) {
@@ -3333,7 +3505,7 @@ async function esSubscribeToBraid(braidId, workspaceId) {
     });
     if (res.ok) showToast('✓ Braid subscribed — all strands added to your dashboard');
     else { const d = await res.json(); showToast(d.error||'Could not subscribe'); }
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 async function esUnsubscribeBraid(braidId, e) {
@@ -3372,7 +3544,7 @@ async function esSubmitPasscode() {
     const data = await res.json();
     gate.style.display = 'none';
     esRenderStrandView(data.strand);
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 function esRenderStrandView(strand) {
@@ -3616,6 +3788,9 @@ async function esEditStrand(strandId) {
       return e;
     });
 
+    // Populate directory opt-in state for this strand
+    esPopulateDirectoryFields(s);
+
     // Navigate to builder and repaint
     esCloseApp();
     const builderSection = document.getElementById('builder');
@@ -3811,7 +3986,7 @@ async function esPublishBraid() {
         <button class="btn btn-ghost" onclick="navigator.clipboard?.writeText('${url}');showToast('📋 Copied')">Copy Link</button>
         <button class="btn btn-ghost" onclick="esGoto('dashboard')" title="View in dashboard">View in Dashboard</button>
       </div>`;
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 // ── WORKSPACES ────────────────────────────────────────────────
@@ -3848,6 +4023,7 @@ async function esRenderWorkspaces() {
       ${ws.isActive?'<span class="ws-active-badge">Active</span>':''}
       <div class="ws-actions">
         ${!ws.isActive?`<button class="sc-btn" onclick="esSetActiveWorkspaceDb('${ws._id}')">Set active</button>`:''}
+        <button class="sc-btn" onclick="esRenameWorkspace('${ws._id}','${ws.name.replace(/'/g,\'\'')}')">Rename</button>
         <button class="sc-btn" onclick="esDeleteWorkspace('${ws._id}')" style="color:var(--red);">Delete</button>
       </div>
     </div>`).join('') || '<div style="color:var(--text-faint);padding:20px;">No workspaces yet</div>';
@@ -3876,7 +4052,7 @@ async function esCreateWorkspace() {
     document.getElementById('ws-new-name').value = '';
     esRenderWorkspaces();
     showToast('✓ Workspace created');
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 async function esSetActiveWorkspaceDb(id) {
@@ -3896,6 +4072,203 @@ async function esDeleteWorkspace(id) {
     ES_WORKSPACES = ES_WORKSPACES.filter(w => w._id !== id);
     esRenderWorkspaces();
   } catch(e) { showToast('Could not delete workspace'); }
+}
+
+
+// ── VENUE GUIDES ─────────────────────────────────────────────────
+
+function esShowVenueGuide(platform) {
+  const area = document.getElementById('vg-guide-area');
+  if (!platform) { area.style.display = 'none'; return; }
+  area.style.display = 'block';
+  document.querySelectorAll('.vg-guide').forEach(el => el.style.display = 'none');
+  const guide = document.getElementById('vg-' + platform);
+  if (guide) guide.style.display = 'block';
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function esScrollToVenueGuides(e) {
+  e.preventDefault();
+  const section = document.getElementById('venue-guides');
+  if (section) section.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── DIRECTORY OPT-IN ──────────────────────────────────────────────
+
+function esToggleDirectoryBlock(checked) {
+  const urlBlock = document.getElementById('builder-dir-url-block');
+  if (urlBlock) urlBlock.style.display = checked ? 'block' : 'none';
+}
+
+// Populate directory fields when loading a strand into the builder for edit
+function esPopulateDirectoryFields(strand) {
+  const cb     = document.getElementById('builder-dir-checkbox');
+  const urlEl  = document.getElementById('builder-dir-url');
+  const status = document.getElementById('builder-dir-status');
+  if (!cb) return;
+
+  cb.checked = !!strand.directoryOptIn;
+  esToggleDirectoryBlock(cb.checked);
+
+  if (urlEl && strand.directoryVerificationUrl) {
+    urlEl.value = strand.directoryVerificationUrl;
+  }
+
+  if (status) {
+    const map = {
+      none:     '',
+      pending:  '⏳ Verification running…',
+      verified: '✓ Verified — your strand is in the directory',
+      flagged:  '⚑ Could not verify automatically — flagged for manual review',
+    };
+    const s = strand.directoryStatus || 'none';
+    status.textContent = map[s] || '';
+    status.style.color = s === 'verified' ? '#00d26a' : s === 'flagged' ? '#ff5a5a' : 'var(--text-faint)';
+
+    // Show re-verify button if previously submitted and not pending
+    const btn = document.getElementById('builder-dir-submit-btn');
+    if (btn && strand.directoryOptIn && s !== 'pending') {
+      btn.textContent = s === 'verified' ? '🔄 Re-verify' : '🔄 Try again';
+    }
+  }
+}
+
+// Poll for status update when pending
+let _dirPollTimer = null;
+function esStartDirectoryPoll(strandId) {
+  if (_dirPollTimer) clearInterval(_dirPollTimer);
+  _dirPollTimer = setInterval(async () => {
+    try {
+      const res = await esFetch(`/api/directory/${strandId}/status`);
+      if (!res.ok) { clearInterval(_dirPollTimer); return; }
+      const d = await res.json();
+      const status = document.getElementById('builder-dir-status');
+      const btn    = document.getElementById('builder-dir-submit-btn');
+      if (d.status !== 'pending') {
+        clearInterval(_dirPollTimer);
+        _dirPollTimer = null;
+        if (status) {
+          if (d.status === 'verified') {
+            status.textContent = '✓ Verified — your strand is in the directory';
+            status.style.color = '#00d26a';
+          } else {
+            status.textContent = '⚑ Could not verify automatically — our team will review it';
+            status.style.color = '#ff5a5a';
+          }
+        }
+        if (btn) btn.textContent = '🔄 Re-verify';
+        esRenderMyStrands(); // refresh dashboard badges
+      }
+    } catch(e) { clearInterval(_dirPollTimer); }
+  }, 4000); // poll every 4 seconds
+}
+
+async function esSubmitToDirectory() {
+  if (!_builderStrandId) {
+    showToast('Publish your strand first before submitting to the directory');
+    return;
+  }
+  const urlEl  = document.getElementById('builder-dir-url');
+  const status = document.getElementById('builder-dir-status');
+  const btn    = document.getElementById('builder-dir-submit-btn');
+  const url    = urlEl?.value?.trim();
+
+  if (!url) {
+    showToast('Enter the URL where you've posted your strand link or QR code');
+    urlEl?.focus();
+    return;
+  }
+  try { new URL(url); } catch(e) {
+    showToast('Enter a full URL including https://');
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  if (status) { status.textContent = '⏳ Submitting…'; status.style.color = 'var(--text-faint)'; }
+
+  try {
+    // Check if already submitted (re-verify path)
+    const isReverify = btn && (btn.textContent.includes('Re-verify') || btn.textContent.includes('Try again'));
+    const endpoint   = isReverify
+      ? `/api/directory/${_builderStrandId}/reverify`
+      : `/api/directory/${_builderStrandId}/submit`;
+    const body       = isReverify ? {} : { verificationUrl: url };
+
+    const res = await esFetch(endpoint, { method: 'POST', body: JSON.stringify(body) });
+    const d   = await res.json();
+
+    if (!res.ok) {
+      if (status) { status.textContent = d.error || 'Submission failed'; status.style.color = '#ff5a5a'; }
+      if (btn) btn.disabled = false;
+      return;
+    }
+
+    if (status) { status.textContent = '⏳ Verification running — this takes about a minute…'; status.style.color = '#ffc107'; }
+    if (btn) { btn.textContent = 'Verifying…'; }
+    esStartDirectoryPoll(_builderStrandId);
+
+  } catch(e) {
+    if (e.message !== '401') showToast('Connection error');
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ── STRAND / BRAID MANAGEMENT ────────────────────────────────
+
+async function esDeleteStrand(strandId, title) {
+  if (!confirm(`Delete "${title}"? This cannot be undone and will remove it from all subscriber workspaces.`)) return;
+  try {
+    const res = await esFetch(`/api/strands/${strandId}`, {method:'DELETE'});
+    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not delete'); return; }
+    showToast('Strand deleted');
+    esRenderMyStrands();
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+async function esDeleteBraid(braidId, title) {
+  if (!confirm(`Delete braid "${title}"? This cannot be undone.`)) return;
+  try {
+    const res = await esFetch(`/api/braids/${braidId}`, {method:'DELETE'});
+    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not delete'); return; }
+    showToast('Braid deleted');
+    esRenderMyBraids();
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+async function esEditBraid(braidId) {
+  try {
+    const mineRes = await esFetch('/api/braids/mine');
+    const d = await mineRes.json();
+    const braid = d.braids?.find(b => b._id === braidId);
+    if (!braid) { showToast('Could not load braid'); return; }
+    const newTitle = prompt('Braid title:', braid.title);
+    if (newTitle === null) return;
+    const newDesc  = prompt('Description (optional):', braid.description || '');
+    if (newDesc === null) return;
+    const body = { title: newTitle.trim() || braid.title };
+    if (newDesc.trim() !== (braid.description || '')) body.description = newDesc.trim();
+    const saveRes = await esFetch(`/api/braids/${braidId}`, { method: 'PUT', body: JSON.stringify(body) });
+    if (!saveRes.ok) { const e = await saveRes.json(); showToast(e.error||'Could not update braid'); return; }
+    showToast('✓ Braid updated');
+    esRenderMyBraids();
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+async function esRenameWorkspace(wsId, currentName) {
+  const newName = prompt('Rename workspace:', currentName);
+  if (!newName || !newName.trim() || newName.trim() === currentName) return;
+  try {
+    const res = await esFetch(`/api/user/workspaces/${wsId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name: newName.trim() }),
+    });
+    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not rename'); return; }
+    const ws = ES_WORKSPACES.find(w => w._id === wsId);
+    if (ws) ws.name = newName.trim();
+    esRenderWorkspaces();
+    esRenderWorkspaceBar();
+    showToast('✓ Workspace renamed');
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 // ── ACCOUNT SETTINGS ──────────────────────────────────────────
@@ -3930,7 +4303,7 @@ async function esEditHandle() {
     esRenderAccount();
     esRenderMarketingAuth();
     showToast('✓ Handle updated — old URLs redirect automatically');
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 async function esEditDisplayName() {
@@ -3945,7 +4318,7 @@ async function esEditDisplayName() {
     esRenderMarketingAuth();
     esRenderNavAuth();
     showToast('✓ Name updated');
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 async function esExportAll() {
@@ -3954,7 +4327,52 @@ async function esExportAll() {
     const d = await res.json();
     if (!d.strands?.length) { showToast('No strands to export'); return; }
     d.strands.forEach(s => {
-      const obj = { rcal: '0.1', meta: {title:s.title, location:s.address, timezone:s.timezone}, events: s.events||[] };
+      const cleanEvents = (s.events||[]).map(ev => {
+        const e = {};
+        if (ev.title)    e.title    = ev.title;
+        if (ev.category) e.category = ev.category;
+        if (ev.vibes?.length) e.vibes = ev.vibes;
+        if (ev.price && ev.price !== 'free') e.price = ev.price;
+        if (ev.price_note)    e.price_note    = ev.price_note;
+        if (ev.ticket_url)    e.ticket_url    = ev.ticket_url;
+        if (ev.lead_time_days) e.lead_time_days = ev.lead_time_days;
+        if (ev.notes)         e.notes         = ev.notes;
+        if (ev.event_type === 'oneoff') {
+          if (ev.date)       e.date       = ev.date;
+          if (ev.time_start) e.time_start = ev.time_start;
+          if (ev.time_end)   e.time_end   = ev.time_end;
+        } else if (ev.event_type === 'datelist') {
+          e.date_list = (ev.date_list||[]).map(d => {
+            const de = {date:d.date};
+            if (d.time_start) de.time_start = d.time_start;
+            if (d.time_end)   de.time_end   = d.time_end;
+            if (d.note)       de.note       = d.note;
+            return de;
+          });
+        } else {
+          if (ev.recurrence?.length) e.recurrence = ev.recurrence.map(r => {
+            const rule = {pattern: r.pattern};
+            if (r.every > 1)  rule.every = r.every;
+            if (r.days?.length) rule.days = r.days;
+            if (r.month_week) rule.month_week = r.month_week;
+            if (r.month_date) rule.month_date = r.month_date;
+            if (r.time_start) rule.time_start = r.time_start;
+            if (r.time_end)   rule.time_end   = r.time_end;
+            if (r.season_start) rule.season_start = r.season_start;
+            if (r.season_end)   rule.season_end   = r.season_end;
+            return rule;
+          });
+          if (ev.exceptions?.length) e.exceptions = ev.exceptions.map(x => {
+            const ex = {type:x.type, date:x.date};
+            if (x.date_end)   ex.date_end   = x.date_end;
+            if (x.note)       ex.note       = x.note;
+            if (x.time_start) ex.time_start = x.time_start;
+            return ex;
+          });
+        }
+        return e;
+      });
+      const obj = { rcal: '0.1', meta: {title:s.title, location:s.venue||s.address, timezone:s.timezone}, events: cleanEvents };
       const blob = new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -4051,6 +4469,7 @@ async function esSaveStrand() {
   const obj = buildRcalObj();
   obj.visibility = pub.visibility || 'public';
   if (pub.accessCode) obj.accessCode = pub.accessCode;
+  const wasNew = !_builderStrandId;
   const endpoint = _builderStrandId
     ? `/api/strands/${_builderStrandId}`
     : '/api/strands';
@@ -4060,9 +4479,9 @@ async function esSaveStrand() {
     const d = await res.json();
     if (!res.ok) { showToast(d.error||'Could not save'); return; }
     _builderStrandId = d.strand._id;
-    showToast(_builderStrandId ? '✓ Strand updated — subscribers will see changes' : '✓ Strand saved as draft');
+    showToast(wasNew ? '✓ Strand saved as draft' : '✓ Strand updated — subscribers will see changes');
     esShowBuilderQR(d.strand);
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 async function esPublishStrand() {
@@ -4075,7 +4494,7 @@ async function esPublishStrand() {
     if (!res.ok) { showToast(d.error||'Could not publish'); return; }
     showToast('🟢 Strand is live!');
     esShowBuilderQR(d.strand);
-  } catch(e) { showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
 }
 
 function esShowBuilderQR(strand) {
@@ -4192,8 +4611,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle hash routing
   esHandleHash();
 
+});
+
 // ══════════════════════════════════════════════════
-// POTENTIALLY INTERESTED FEATURE
+// POTENTIALLY INTERESTED FEATURE  (global scope)
 // ══════════════════════════════════════════════════
 
 const ES_INTERESTED_KEY = 'es_interested_v1';
@@ -4337,31 +4758,30 @@ function esInitSwipe(cardEl, ev) {
 
   window.addEventListener('hashchange', esHandleHash);
 
-  // Restore notes
-  esRestoreNotes();
+// Restore persisted notes across views
+esRestoreNotes();
 
-  // .rcal definition text — fade out as user scrolls past hero
-  (function() {
-    const el = document.getElementById('rcal-def-text');
-    if (!el) return;
-    const hero = document.getElementById('hero');
-    function updateRcalFade() {
-      const heroH = hero.offsetHeight;
-      const scroll = window.scrollY;
-      const fadeStart = heroH * 0.25;
-      const fadeEnd   = heroH * 0.65;
-      if (scroll <= fadeStart) {
-        el.style.opacity = '1';
-      } else if (scroll >= fadeEnd) {
-        el.style.opacity = '0';
-      } else {
-        el.style.opacity = String(1 - (scroll - fadeStart) / (fadeEnd - fadeStart));
-      }
+// .rcal definition text — fade out as user scrolls past hero
+(function() {
+  const el = document.getElementById('rcal-def-text');
+  if (!el) return;
+  const hero = document.getElementById('hero');
+  function updateRcalFade() {
+    const heroH = hero.offsetHeight;
+    const scroll = window.scrollY;
+    const fadeStart = heroH * 0.25;
+    const fadeEnd   = heroH * 0.65;
+    if (scroll <= fadeStart) {
+      el.style.opacity = '1';
+    } else if (scroll >= fadeEnd) {
+      el.style.opacity = '0';
+    } else {
+      el.style.opacity = String(1 - (scroll - fadeStart) / (fadeEnd - fadeStart));
     }
-    window.addEventListener('scroll', updateRcalFade, { passive: true });
-    updateRcalFade();
-  })();
-});
+  }
+  window.addEventListener('scroll', updateRcalFade, { passive: true });
+  updateRcalFade();
+})();
 </script>
 <script>
 if ('serviceWorker' in navigator) {
