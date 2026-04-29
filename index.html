@@ -494,6 +494,12 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 .auth-tabs { display: flex; background: var(--surface); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 24px; }
 .auth-tab { flex: 1; padding: 10px; border-radius: 8px; border: none; background: none; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; color: var(--text-dim); cursor: pointer; transition: all 0.2s; }
 .auth-tab.active { background: var(--primary); color: white; }
+/* ── APP OVERLAY ── */
+#es-app { display: none; position: fixed; inset: 0; z-index: 200; flex-direction: column; background: var(--bg); overflow-y: auto; }
+.app-view { display: none; flex: 1; padding: 24px 40px 60px; max-width: 900px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+.app-view.active { display: block; }
+.app-topbar { position: sticky; top: 0; z-index: 201; display: flex; align-items: center; padding: 0 40px; height: 64px; background: rgba(4,6,26,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; }
+
 .auth-panel { display: none; }
 .auth-panel.active { display: block; }
 .auth-success { display: none; text-align: center; padding: 32px 0; }
