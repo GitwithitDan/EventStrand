@@ -343,7 +343,20 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 
 .divider { height: 1px; background: var(--border); max-width: 1200px; margin: 0 auto; }
 
-/* ── EVENT CARDS ── */
+/* ── DIRECTORY ── */
+.directory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+.dir-card { background: var(--surface); border: 1.5px solid var(--border2); border-radius: 14px; overflow: hidden; cursor: pointer; transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s; }
+.dir-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.18); border-color: rgba(108,143,255,0.4); }
+.dir-card-header { height: 100px; }
+.dir-card-body { padding: 14px 16px; }
+.dir-card-title { font-weight: 700; font-size: 15px; color: var(--text); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dir-card-meta { font-size: 12px; color: var(--text-dim); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dir-card-desc { font-size: 12px; color: var(--text-faint); margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.dir-card-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(46,125,50,0.15); color: #4caf50; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 99px; margin-top: 8px; }
+.dir-page-btn { padding: 6px 14px; border-radius: 8px; border: 1.5px solid var(--border2); background: var(--surface); color: var(--text-dim); font-size: 13px; font-family: 'Outfit', sans-serif; cursor: pointer; transition: all 0.15s; }
+.dir-page-btn:hover, .dir-page-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+
 .events-list-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
 .events-count { font-size:13px; color:var(--text-faint); font-family:'JetBrains Mono',monospace; }
 .add-event-btn { display:flex; align-items:center; gap:8px; padding:10px 18px; background:var(--primary-glow); border:1.5px dashed var(--primary); border-radius:10px; color:var(--primary); font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; font-family:'Outfit',sans-serif; }
@@ -547,6 +560,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     <li><a href="#builder">Builder</a></li>
     <li><a href="#library">Library</a></li>
     <li><a href="#venue-guides">Venue Guides</a></li>
+    <li><a href="#directory">Directory</a></li>
     <li><a href="#developer">Developers</a></li>
   </ul>
   <div class="nav-cta" id="nav-cta-area">
@@ -1343,6 +1357,43 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
       <a href="#" class="btn btn-ghost btn-lg" href="https://github.com/" target="_blank">View on GitHub</a>
     </div>
   </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ PUBLIC DIRECTORY ══ -->
+<section id="directory">
+  <div class="section-label">Verified Venues</div>
+  <h2 class="section-title">Venue Directory</h2>
+  <p class="section-sub">Discover verified event spaces with a strand — browsable, filterable, always current.</p>
+
+  <div class="directory-filters" id="directoryFilters" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:2rem;">
+    <select id="filterType" class="field-input" style="max-width:200px;font-size:14px;" onchange="esLoadDirectory(true)">
+      <option value="">All Types</option>
+      <option value="bar">Bar</option>
+      <option value="restaurant">Restaurant</option>
+      <option value="venue">Venue</option>
+      <option value="rooftop">Rooftop</option>
+      <option value="gallery">Gallery</option>
+      <option value="cafe">Café</option>
+      <option value="club">Club</option>
+      <option value="outdoor">Outdoor</option>
+    </select>
+    <input
+      type="text"
+      id="filterCity"
+      class="field-input"
+      placeholder="Filter by city..."
+      style="max-width:220px;font-size:14px;"
+      oninput="esDebounceDirectory()"
+    />
+  </div>
+
+  <div class="directory-grid" id="directoryGrid">
+    <div style="color:var(--text-dim);font-size:14px;padding:2rem 0;">Loading venues…</div>
+  </div>
+
+  <div class="directory-pagination" id="directoryPagination" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2rem;"></div>
 </section>
 
 <div class="divider"></div>
@@ -4794,6 +4845,89 @@ esRestoreNotes();
   window.addEventListener('scroll', updateRcalFade, { passive: true });
   updateRcalFade();
 })();
+
+// ── PUBLIC DIRECTORY ──────────────────────────────────────────────────────────
+let esDirectoryPage = 1;
+let esDirectoryDebounceTimer;
+
+async function esLoadDirectory(resetPage = false) {
+  if (resetPage) esDirectoryPage = 1;
+  const type = document.getElementById('filterType')?.value || '';
+  const city = document.getElementById('filterCity')?.value?.trim() || '';
+  const grid = document.getElementById('directoryGrid');
+  const pagination = document.getElementById('directoryPagination');
+  if (!grid) return;
+
+  grid.innerHTML = '<div style="color:var(--text-dim);font-size:14px;padding:2rem 0;">Loading venues…</div>';
+
+  const params = new URLSearchParams({ page: esDirectoryPage });
+  if (type) params.append('type', type);
+  if (city) params.append('city', city);
+
+  try {
+    const res  = await fetch(`${BACKEND_URL}/api/directory/public/directory?${params}`);
+    const data = await res.json();
+
+    if (!data.strands || data.strands.length === 0) {
+      grid.innerHTML = '<div style="color:var(--text-faint);font-size:14px;padding:2rem 0;">No verified venues yet — check back soon.</div>';
+      if (pagination) pagination.innerHTML = '';
+      return;
+    }
+
+    grid.innerHTML = data.strands.map(s => {
+      const strandUrl = `${BACKEND_URL.replace('api.', '')}/s/${s.publisherHandle}/${s._id}`;
+      const bg = s.color || '#6C8FFF';
+      const meta = [s.type, s.venue, s.city].filter(Boolean).join(' · ');
+      return `
+        <div class="dir-card" onclick="window.open('${strandUrl}', '_blank')">
+          <div class="dir-card-header" style="background:${bg};"></div>
+          <div class="dir-card-body">
+            <div class="dir-card-title">${s.title}</div>
+            ${meta ? `<div class="dir-card-meta">${meta}</div>` : ''}
+            ${s.description ? `<div class="dir-card-desc">${s.description}</div>` : ''}
+            <div class="dir-card-badge">✓ Verified</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    if (pagination) {
+      pagination.innerHTML = '';
+      if (data.pages > 1) {
+        for (let i = 1; i <= data.pages; i++) {
+          const btn = document.createElement('button');
+          btn.textContent = i;
+          btn.className = 'dir-page-btn' + (i === esDirectoryPage ? ' active' : '');
+          btn.onclick = () => { esDirectoryPage = i; esLoadDirectory(); };
+          pagination.appendChild(btn);
+        }
+      }
+    }
+  } catch (err) {
+    grid.innerHTML = '<div style="color:var(--text-faint);font-size:14px;padding:2rem 0;">Could not load directory — try again shortly.</div>';
+    console.error('[directory]', err);
+  }
+}
+
+function esDebounceDirectory() {
+  clearTimeout(esDirectoryDebounceTimer);
+  esDirectoryDebounceTimer = setTimeout(() => esLoadDirectory(true), 400);
+}
+
+// Lazy-load: only fetch when section scrolls into view
+(function() {
+  const section = document.getElementById('directory');
+  if (!section) return;
+  let loaded = false;
+  const obs = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !loaded) {
+      loaded = true;
+      esLoadDirectory();
+      obs.disconnect();
+    }
+  }, { threshold: 0.1 });
+  obs.observe(section);
+})();
+
 </script>
 <script>
 if ('serviceWorker' in navigator) {
