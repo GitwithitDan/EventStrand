@@ -691,6 +691,76 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
   </div>
 </div>
 
+<!-- ══ ACCOUNT / LOGIN ══ -->
+<div id="account" class="section-full" style="background:var(--bg2);">
+  <div class="section-inner">
+    <div class="section-label">Account</div>
+    <h2 class="section-title">Your portal,<br><em style="font-style:italic;color:var(--primary)">any device</em></h2>
+    <p class="section-sub">One account. Your strands, braids, and workspaces — always in sync, always yours.</p>
+
+    <div class="account-split">
+      <div class="login-box" id="auth-box">
+        <!-- Signed-out state -->
+        <div id="auth-signedout">
+          <p style="color:var(--text-dim);font-size:15px;margin-bottom:24px;line-height:1.7;">Sign in to subscribe to strands, build your own, manage workspaces, and open your dashboard.</p>
+          <div id="g_signin_marketing"></div>
+          <p style="font-size:12px;color:var(--text-faint);text-align:center;margin-top:16px;line-height:1.6;">By signing in you agree to our <a href="/terms-of-service.html" style="color:var(--primary)">Terms</a> and <a href="/privacy-policy.html" style="color:var(--primary)">Privacy Policy</a>.</p>
+        </div>
+        <!-- Signed-in state -->
+        <div id="auth-signedin" style="display:none;">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+            <div class="user-avatar" id="user-avatar-marketing">?</div>
+            <div>
+              <div style="font-family:'Fraunces',serif;font-size:20px;color:var(--text);" id="user-greeting-marketing">Welcome back!</div>
+              <div style="font-size:13px;color:var(--text-dim);" id="user-handle-marketing">@handle</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="esGoto('dashboard')">Open Dashboard →</button>
+            <button class="btn btn-ghost" style="flex:1;justify-content:center;" onclick="esSignOut()">Sign Out</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="perks-col">
+        <div style="margin-bottom:20px;"><div class="section-label">Why create an account?</div></div>
+        <div class="account-perks">
+          <div class="perk">
+            <div class="perk-icon">🌐</div>
+            <div>
+              <h4>Your dashboard</h4>
+              <p>Every strand you follow, every event coming up — in one place. Open it when your evening clears.</p>
+            </div>
+          </div>
+          <div class="perk">
+            <div class="perk-icon">📡</div>
+            <div>
+              <h4>Live strand publishing</h4>
+              <p>Your strand lives at <code>eventstrand.com/s/yourhandle/strand-name</code>. Update once — every subscriber gets it silently.</p>
+            </div>
+          </div>
+          <div class="perk">
+            <div class="perk-icon">🎭</div>
+            <div>
+              <h4>Workspaces</h4>
+              <p>Weekend, Work, Kids — separate strand libraries for each context. Switch between them instantly.</p>
+            </div>
+          </div>
+          <div class="perk">
+            <div class="perk-icon">📊</div>
+            <div>
+              <h4>Strand analytics</h4>
+              <p>Subscriber counts, view trends, scan origins. There when you want them — not in your face when you don't.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
 <!-- ══ CONCEPT ══ -->
 <section id="concept">
   <div class="section-label">The Idea</div>
@@ -1705,76 +1775,6 @@ upcoming.forEach(event => {
     <div class="qr-code-demo"><div class="qr-inner"></div></div>
   </div>
 </section>
-
-<div class="divider"></div>
-
-<!-- ══ ACCOUNT / LOGIN ══ -->
-<div id="account" class="section-full" style="background:var(--bg2);">
-  <div class="section-inner">
-    <div class="section-label">Account</div>
-    <h2 class="section-title">Your portal,<br><em style="font-style:italic;color:var(--primary)">any device</em></h2>
-    <p class="section-sub">One account. Your strands, braids, and workspaces — always in sync, always yours.</p>
-
-    <div class="account-split">
-      <div class="login-box" id="auth-box">
-        <!-- Signed-out state -->
-        <div id="auth-signedout">
-          <p style="color:var(--text-dim);font-size:15px;margin-bottom:24px;line-height:1.7;">Sign in to subscribe to strands, build your own, manage workspaces, and open your dashboard.</p>
-          <div id="g_signin_marketing"></div>
-          <p style="font-size:12px;color:var(--text-faint);text-align:center;margin-top:16px;line-height:1.6;">By signing in you agree to our <a href="/terms-of-service.html" style="color:var(--primary)">Terms</a> and <a href="/privacy-policy.html" style="color:var(--primary)">Privacy Policy</a>.</p>
-        </div>
-        <!-- Signed-in state -->
-        <div id="auth-signedin" style="display:none;">
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
-            <div class="user-avatar" id="user-avatar-marketing">?</div>
-            <div>
-              <div style="font-family:'Fraunces',serif;font-size:20px;color:var(--text);" id="user-greeting-marketing">Welcome back!</div>
-              <div style="font-size:13px;color:var(--text-dim);" id="user-handle-marketing">@handle</div>
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="esGoto('dashboard')">Open Dashboard →</button>
-            <button class="btn btn-ghost" style="flex:1;justify-content:center;" onclick="esSignOut()">Sign Out</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="perks-col">
-        <div style="margin-bottom:20px;"><div class="section-label">Why create an account?</div></div>
-        <div class="account-perks">
-          <div class="perk">
-            <div class="perk-icon">🌐</div>
-            <div>
-              <h4>Your dashboard</h4>
-              <p>Every strand you follow, every event coming up — in one place. Open it when your evening clears.</p>
-            </div>
-          </div>
-          <div class="perk">
-            <div class="perk-icon">📡</div>
-            <div>
-              <h4>Live strand publishing</h4>
-              <p>Your strand lives at <code>eventstrand.com/s/yourhandle/strand-name</code>. Update once — every subscriber gets it silently.</p>
-            </div>
-          </div>
-          <div class="perk">
-            <div class="perk-icon">🎭</div>
-            <div>
-              <h4>Workspaces</h4>
-              <p>Weekend, Work, Kids — separate strand libraries for each context. Switch between them instantly.</p>
-            </div>
-          </div>
-          <div class="perk">
-            <div class="perk-icon">📊</div>
-            <div>
-              <h4>Strand analytics</h4>
-              <p>Subscriber counts, view trends, scan origins. There when you want them — not in your face when you don't.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ══ FOOTER ══ -->
 <footer>
