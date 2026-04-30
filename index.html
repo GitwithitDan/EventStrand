@@ -500,6 +500,13 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 .app-view.active { display: block; }
 .app-topbar { position: sticky; top: 0; z-index: 201; display: flex; align-items: center; padding: 0 40px; height: 64px; background: rgba(4,6,26,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; }
 
+/* ── AUTH + HANDLE MODALS ── */
+#es-auth-modal, #es-handle-modal { display: none; position: fixed; inset: 0; z-index: 300; align-items: center; justify-content: center; padding: 20px; background: rgba(4,6,26,0.82); backdrop-filter: blur(12px); }
+#es-auth-modal.open, #es-handle-modal.open { display: flex; }
+.auth-modal-box { background: var(--surface); border: 1.5px solid var(--border2); border-radius: 20px; padding: 32px; width: 100%; box-shadow: 0 32px 80px rgba(0,0,0,0.5); }
+.auth-modal-title { font-family: 'Fraunces', serif; font-size: 22px; color: var(--text); margin-bottom: 8px; }
+.auth-modal-sub { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
+
 .auth-panel { display: none; }
 .auth-panel.active { display: block; }
 .auth-success { display: none; text-align: center; padding: 32px 0; }
