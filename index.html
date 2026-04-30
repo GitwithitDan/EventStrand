@@ -704,8 +704,11 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
       <div class="login-box" id="auth-box">
         <!-- Signed-out state -->
         <div id="auth-signedout">
-          <p style="color:var(--text-dim);font-size:15px;margin-bottom:24px;line-height:1.7;">Sign in to subscribe to strands, build your own, manage workspaces, and open your dashboard.</p>
-          <div id="g_signin_marketing"></div>
+          <p style="color:var(--text-dim);font-size:15px;margin-bottom:28px;line-height:1.7;">Sign in to subscribe to strands, build your own, manage workspaces, and open your dashboard.</p>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px;" onclick="esShowAuth();esAuthTab('signin')">Sign In →</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center;font-size:15px;padding:14px;" onclick="esShowAuth();esAuthTab('register')">Create Account</button>
+          </div>
           <p style="font-size:12px;color:var(--text-faint);text-align:center;margin-top:16px;line-height:1.6;">By signing in you agree to our <a href="/terms-of-service.html" style="color:var(--primary)">Terms</a> and <a href="/privacy-policy.html" style="color:var(--primary)">Privacy Policy</a>.</p>
         </div>
         <!-- Signed-in state -->
@@ -1843,6 +1846,27 @@ upcoming.forEach(event => {
     </div>
 
     <div class="auth-modal-sub" id="auth-modal-reason" style="margin-bottom:20px;">Subscribe to strands, build your own, and open your dashboard.</div>
+
+    <!-- Account type (Create Account tab only) -->
+    <div id="auth-account-type" style="display:none;margin-bottom:20px;">
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">I'm signing up as a:</div>
+      <div style="display:flex;gap:10px;">
+        <label id="auth-type-personal-label" style="flex:1;display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface);border:2px solid var(--primary);border-radius:10px;cursor:pointer;transition:border-color 0.15s;">
+          <input type="radio" name="auth-account-type" id="auth-type-personal" value="personal" checked style="accent-color:var(--primary);">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">Personal</div>
+            <div style="font-size:11px;color:var(--text-dim);">Follow venues &amp; events</div>
+          </div>
+        </label>
+        <label id="auth-type-venue-label" style="flex:1;display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface);border:2px solid var(--border2);border-radius:10px;cursor:pointer;transition:border-color 0.15s;">
+          <input type="radio" name="auth-account-type" id="auth-type-venue" value="venue" style="accent-color:var(--primary);">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">Venue / Publisher</div>
+            <div style="font-size:11px;color:var(--text-dim);">Publish &amp; manage strands</div>
+          </div>
+        </label>
+      </div>
+    </div>
 
     <!-- Google button (both tabs) -->
     <div id="g_signin_modal" style="display:flex;justify-content:center;margin-bottom:16px;"></div>
@@ -3054,9 +3078,24 @@ function esAuthTab(mode) {
   document.getElementById('auth-tab-register').style.borderBottomColor  = isRegister ? 'var(--primary)' : 'transparent';
   document.getElementById('auth-tab-register').style.color              = isRegister ? 'var(--text)' : 'var(--text-dim)';
   document.getElementById('auth-name').style.display                    = isRegister ? 'block' : 'none';
+  document.getElementById('auth-account-type').style.display            = isRegister ? 'block' : 'none';
   document.getElementById('auth-submit-btn').textContent                = isRegister ? 'Create Account' : 'Sign In';
   document.getElementById('auth-error').textContent = '';
 }
+
+// Highlight selected account type radio border
+(function() {
+  function syncAccountTypeHighlight() {
+    const personal = document.getElementById('auth-type-personal');
+    const venue    = document.getElementById('auth-type-venue');
+    if (!personal || !venue) return;
+    document.getElementById('auth-type-personal-label').style.borderColor = personal.checked ? 'var(--primary)' : 'var(--border2)';
+    document.getElementById('auth-type-venue-label').style.borderColor    = venue.checked    ? 'var(--primary)' : 'var(--border2)';
+  }
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.name === 'auth-account-type') syncAccountTypeHighlight();
+  });
+})();
 
 async function esAuthSubmit() {
   const email    = document.getElementById('auth-email').value.trim();
@@ -3072,8 +3111,9 @@ async function esAuthSubmit() {
   errEl.textContent = '';
 
   const endpoint = _esAuthMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+  const accountType = document.querySelector('input[name="auth-account-type"]:checked')?.value || 'personal';
   const body = _esAuthMode === 'register'
-    ? { email, password, displayName: name || undefined }
+    ? { email, password, displayName: name || undefined, accountType }
     : { email, password };
 
   try {
