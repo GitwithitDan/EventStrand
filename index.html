@@ -704,12 +704,43 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
       <div class="login-box" id="auth-box">
         <!-- Signed-out state -->
         <div id="auth-signedout">
-          <p style="color:var(--text-dim);font-size:15px;margin-bottom:28px;line-height:1.7;">Sign in to subscribe to strands, build your own, manage workspaces, and open your dashboard.</p>
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px;" onclick="esShowAuth();esAuthTab('signin')">Sign In →</button>
-            <button class="btn btn-ghost" style="width:100%;justify-content:center;font-size:15px;padding:14px;" onclick="esShowAuth();esAuthTab('register')">Create Account</button>
+          <!-- Tabs -->
+          <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:24px;">
+            <button id="mkt-tab-signin" onclick="esMktTab('signin')" style="flex:1;padding:12px;background:none;border:none;border-bottom:2px solid var(--primary);color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Sign In</button>
+            <button id="mkt-tab-register" onclick="esMktTab('register')" style="flex:1;padding:12px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Create Account</button>
           </div>
-          <p style="font-size:12px;color:var(--text-faint);text-align:center;margin-top:16px;line-height:1.6;">By signing in you agree to our <a href="/terms-of-service.html" style="color:var(--primary)">Terms</a> and <a href="/privacy-policy.html" style="color:var(--primary)">Privacy Policy</a>.</p>
+
+          <!-- Account type (register only) -->
+          <div id="mkt-account-type" style="display:none;margin-bottom:20px;">
+            <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">I'm signing up as a:</div>
+            <div style="display:flex;gap:10px;">
+              <label id="mkt-type-personal-label" style="flex:1;display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface);border:2px solid var(--primary);border-radius:10px;cursor:pointer;">
+                <input type="radio" name="mkt-account-type" id="mkt-type-personal" value="personal" checked style="accent-color:var(--primary);">
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);">Personal</div>
+                  <div style="font-size:11px;color:var(--text-dim);">Follow venues &amp; events</div>
+                </div>
+              </label>
+              <label id="mkt-type-venue-label" style="flex:1;display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface);border:2px solid var(--border2);border-radius:10px;cursor:pointer;">
+                <input type="radio" name="mkt-account-type" id="mkt-type-venue" value="venue" style="accent-color:var(--primary);">
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);">Venue / Publisher</div>
+                  <div style="font-size:11px;color:var(--text-dim);">Publish &amp; manage strands</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Fields -->
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <input id="mkt-email" type="email" placeholder="Email address" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
+            <input id="mkt-password" type="password" placeholder="Password (min 8 characters)" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
+            <input id="mkt-name" type="text" placeholder="Display name (optional)" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;display:none;" />
+            <div id="mkt-error" style="font-size:13px;color:#ff6b6b;min-height:16px;text-align:center;"></div>
+            <button id="mkt-submit-btn" onclick="esMktSubmit()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px;">Sign In</button>
+          </div>
+
+          <p style="font-size:12px;color:var(--text-faint);text-align:center;margin-top:16px;line-height:1.6;">By continuing you agree to our <a href="/terms-of-service.html" style="color:var(--primary)">Terms</a> and <a href="/privacy-policy.html" style="color:var(--primary)">Privacy Policy</a>.</p>
         </div>
         <!-- Signed-in state -->
         <div id="auth-signedin" style="display:none;">
@@ -3428,7 +3459,7 @@ async function esLoadUpcoming() {
             <div class="efi-meta">${ev.venue||''}${ev.time?' · '+ev.time:''}</div>
             <div class="efi-strand">→ ${ev.strandTitle||''}</div>
             <div class="efi-actions">
-              <button class="efi-btn-interested${esIsInterested(ev.id||ev._id,ev.date)?' active':''}" onclick="esToggleInterested(this,${JSON.stringify(ev).replace(/'/g,\"&#39;\")})" title="Maybe interested">🤔 Maybe</button>
+              <button class="efi-btn-interested${esIsInterested(ev.id||ev._id,ev.date)?' active':''}" onclick="esToggleInterested(this,${JSON.stringify(ev).replace(/'/g,'&#39;')})" title="Maybe interested">🤔 Maybe</button>
             </div>
           </div>
         </div>`).join('');
@@ -3538,7 +3569,7 @@ async function esRenderMyStrands() {
           <button class="sc-btn" onclick="esOpenAnalytics('${s._id}')">Analytics</button>
           <button class="sc-btn primary" onclick="esShowStrandQR('${s._id}','${s.title}')">QR Code</button>
           ${!s.published ? `<button class="sc-btn" style="background:var(--green-glow);color:var(--green);border-color:var(--green);" onclick="esPublishExistingStrand('${s._id}',this)">Publish →</button>` : ''}
-          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteStrand('${s._id}','${s.title.replace(/'/g,\'\'')}')">Delete</button>
+          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteStrand('${s._id}','${s.title.replace(/'/g,"'")}')">Delete</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -3576,7 +3607,7 @@ async function esRenderMyBraids() {
           <button class="sc-btn primary" onclick="esShowBraidQR('${b._id}','${b.title}')">QR Code</button>
           <button class="sc-btn" onclick="esOpenBraidAnalytics('${b._id}')">Analytics</button>
           <button class="sc-btn" onclick="esEditBraid('${b._id}')">Edit</button>
-          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteBraid('${b._id}','${b.title.replace(/'/g,\'\'')}')">Delete</button>
+          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteBraid('${b._id}','${b.title.replace(/'/g,"'")}')">Delete</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -4141,7 +4172,7 @@ async function esRenderWorkspaces() {
       ${ws.isActive?'<span class="ws-active-badge">Active</span>':''}
       <div class="ws-actions">
         ${!ws.isActive?`<button class="sc-btn" onclick="esSetActiveWorkspaceDb('${ws._id}')">Set active</button>`:''}
-        <button class="sc-btn" onclick="esRenameWorkspace('${ws._id}','${ws.name.replace(/'/g,\'\'')}')">Rename</button>
+        <button class="sc-btn" onclick="esRenameWorkspace('${ws._id}','${ws.name.replace(/'/g,"'")}')">Rename</button>
         <button class="sc-btn" onclick="esDeleteWorkspace('${ws._id}')" style="color:var(--red);">Delete</button>
       </div>
     </div>`).join('') || '<div style="color:var(--text-faint);padding:20px;">No workspaces yet</div>';
@@ -4292,7 +4323,7 @@ async function esSubmitToDirectory() {
   const url    = urlEl?.value?.trim();
 
   if (!url) {
-    showToast('Enter the URL where you've posted your strand link or QR code');
+    showToast('Enter the URL where you\'ve posted your strand link or QR code');
     urlEl?.focus();
     return;
   }
@@ -4900,6 +4931,70 @@ esRestoreNotes();
   window.addEventListener('scroll', updateRcalFade, { passive: true });
   updateRcalFade();
 })();
+
+// ── MARKETING INLINE AUTH FORM ────────────────────────────────────────────────
+let _esMktMode = 'signin';
+
+function esMktTab(mode) {
+  _esMktMode = mode;
+  const isReg = mode === 'register';
+  document.getElementById('mkt-tab-signin').style.borderBottomColor  = isReg ? 'transparent' : 'var(--primary)';
+  document.getElementById('mkt-tab-signin').style.color              = isReg ? 'var(--text-dim)' : 'var(--text)';
+  document.getElementById('mkt-tab-register').style.borderBottomColor = isReg ? 'var(--primary)' : 'transparent';
+  document.getElementById('mkt-tab-register').style.color            = isReg ? 'var(--text)' : 'var(--text-dim)';
+  document.getElementById('mkt-name').style.display                  = isReg ? 'block' : 'none';
+  document.getElementById('mkt-account-type').style.display          = isReg ? 'block' : 'none';
+  document.getElementById('mkt-submit-btn').textContent              = isReg ? 'Create Account' : 'Sign In';
+  document.getElementById('mkt-error').textContent = '';
+}
+
+// Radio border highlight for marketing form
+document.addEventListener('change', function(e) {
+  if (e.target && e.target.name === 'mkt-account-type') {
+    const isVenue = document.getElementById('mkt-type-venue').checked;
+    document.getElementById('mkt-type-personal-label').style.borderColor = isVenue ? 'var(--border2)' : 'var(--primary)';
+    document.getElementById('mkt-type-venue-label').style.borderColor    = isVenue ? 'var(--primary)' : 'var(--border2)';
+  }
+});
+
+async function esMktSubmit() {
+  const email    = document.getElementById('mkt-email').value.trim();
+  const password = document.getElementById('mkt-password').value;
+  const name     = document.getElementById('mkt-name').value.trim();
+  const errEl    = document.getElementById('mkt-error');
+  const btn      = document.getElementById('mkt-submit-btn');
+
+  if (!email || !password) { errEl.textContent = 'Email and password are required.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = _esMktMode === 'register' ? 'Creating account…' : 'Signing in…';
+  errEl.textContent = '';
+
+  const endpoint = _esMktMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+  const accountType = document.querySelector('input[name="mkt-account-type"]:checked')?.value || 'personal';
+  const body = _esMktMode === 'register'
+    ? { email, password, displayName: name || undefined, accountType }
+    : { email, password };
+
+  try {
+    const res  = await fetch(BACKEND_URL + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Something went wrong.'; return; }
+    esSetJwt(data.token);
+    ES_USER = data.user;
+    esSetStoredUser(data.user);
+    if (!data.user.handle) {
+      esShowHandleSetup();
+    } else {
+      esOnSignedIn();
+    }
+  } catch(e) {
+    errEl.textContent = 'Network error — please try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = _esMktMode === 'register' ? 'Create Account' : 'Sign In';
+  }
+}
 
 // ── PUBLIC DIRECTORY ──────────────────────────────────────────────────────────
 let esDirectoryPage = 1;
