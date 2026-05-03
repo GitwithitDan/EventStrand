@@ -547,7 +547,20 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script type="text/javascript">
   (function(f,b){if(!b.__SV){var e,g,i,h;window.mixpanel=b;b._i=[];b.init=function(e,f,c){function g(a,d){var b=d.split(".");2==b.length&&(a=a[b[0]],d=b[1]);a[d]=function(){a.push([d].concat(Array.prototype.slice.call(arguments,0)))}}var a=b;"undefined"!==typeof c?a=b[c]=[]:c="mixpanel";a.people=a.people||[];a.toString=function(a){var d="mixpanel";"mixpanel"!==c&&(d+="."+c);a||(d+=" (stub)");return d};a.people.toString=function(){return a.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms track_with_groups add_group set_group remove_group register register_once alias unregister identify name_tag set_config reset opt_in_tracking opt_out_tracking has_opted_in_tracking has_opted_out_tracking clear_opt_in_out_tracking start_batch_senders people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user people.remove".split(" ");for(h=0;h<i.length;h++)g(a,i[h]);var j="set set_once union unset remove delete".split(" ");a.get_group=function(){function b(c){d[c]=function(){call2_args=arguments;call2=[c].concat(Array.prototype.slice.call(call2_args,0));a.push([e,call2])}}for(var d={},e=arguments[0],c=1;c<arguments.length;c++)b(arguments[c]);return d};b._i.push([e,f,c])};b.__SV=1.2;e=f.createElement("script");e.type="text/javascript";e.async=!0;e.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===f.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";g=f.getElementsByTagName("script")[0];g.parentNode.insertBefore(e,g)}})(document,window.mixpanel||[]);
-  mixpanel.init('c6accac9cb7abaff6168b5a10f9b65c3', { autocapture: true, record_sessions_percent: 100 });
+  // Only initialise Mixpanel if the user has accepted analytics cookies,
+  // GPC is not set, and consent has been explicitly given.
+  // Passwords are masked so session recordings cannot capture credentials.
+  (function() {
+    if (navigator.globalPrivacyControl) return;
+    var consent;
+    try { consent = JSON.parse(localStorage.getItem('es_consent_v1') || 'null'); } catch(e){}
+    if (!consent || consent.analytics !== true) return;
+    mixpanel.init('c6accac9cb7abaff6168b5a10f9b65c3', {
+      autocapture: true,
+      record_sessions_percent: 10,
+      record_mask_text_selector: 'input[type=password]',
+    });
+  })();
 </script>
 </head>
 <body>
@@ -603,7 +616,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
         Your Friday night just opened up. Your gym has a class in 40 minutes. There's a jazz residency two blocks away. You already knew both — you just forgot to look. EventStrand remembers for you.
       </p>
       <div class="hero-actions fade-up fade-up-4">
-        <a href="#download" class="btn btn-primary btn-lg">Get the App</a>
+        <a href="#" class="btn btn-primary btn-lg" onclick="esTriggerPwaInstall();return false;">Get the App</a>
         <a href="#builder" class="btn btn-ghost btn-lg">Create a Strand</a>
         <a href="/spec" class="btn btn-ghost btn-lg">View .rcal Spec</a>
       </div>
@@ -1463,7 +1476,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     <p>EventStrand is the platform. <code>.rcal</code> is the open format it runs on. We publish the spec and maintain the reference implementation — but the format belongs to everyone. Build parsers, integrations, your own readers. No permission needed.</p>
     <div class="actions">
       <a href="/spec" class="btn btn-primary btn-lg">Read the Spec</a>
-      <a href="#" class="btn btn-ghost btn-lg" href="https://github.com/" target="_blank">View on GitHub</a>
+      <a href="https://github.com/eventstrand" class="btn btn-ghost btn-lg" target="_blank" rel="noopener noreferrer">View on GitHub</a>
     </div>
   </div>
 </section>
@@ -1836,7 +1849,7 @@ upcoming.forEach(event => {
         <ul>
           <li><a href="#format">.rcal Spec</a></li>
           <li><a href="#developer">API Docs</a></li>
-          <li><a href="#" href="https://github.com/" target="_blank">GitHub</a></li>
+          <li><a href="https://github.com/eventstrand" target="_blank" rel="noopener noreferrer">GitHub</a></li>
           <li><a href="#">NPM Package</a></li>
         </ul>
       </div>
@@ -2794,7 +2807,7 @@ function bRenderPreviewEvents() {
           return 'Next: '+new Date(upcoming[0].date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+(upcoming.length>1?' +'+( upcoming.length-1)+' more':'');
         })()
       : ev.rules[0] ? (ev.rules[0].days.slice(0,2).map(d=>d.charAt(0).toUpperCase()+d.slice(1)).join('/') + ' · ' + (ev.rules[0].timeStart||'')) : 'Recurring';
-    const tags = ev.vibes.slice(0,2).map(v => `<span class="preview-event-tag">${v}</span>`).join('');
+    const tags = ev.vibes.slice(0,2).map(v => `<span class="preview-event-tag">${esc(v)}</span>`).join('');
     return `<div class="preview-event">
       <div class="preview-event-name">${ev.name||'Unnamed Event'}</div>
       <div class="preview-event-time">${timeStr}</div>
@@ -2985,6 +2998,14 @@ function copyStrandLink() {
 let ES_USER = null; // { id, handle, displayName, email, picture, jwt }
 let ES_WORKSPACES = [];
 let ES_NOTIFICATIONS = [];
+
+// ── XSS ESCAPE HELPER ────────────────────────────────────────
+// Use esc() on every server-returned, user-controlled string before
+// interpolating into innerHTML. Covers &, <, >, ", ' characters.
+function esc(s) {
+  const m = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+  return String(s ?? '').replace(/[&<>"']/g, c => m[c]);
+}
 
 function esGetJwt() { try { return localStorage.getItem('es_jwt'); } catch(e){return null;} }
 function esSetJwt(t) { try { localStorage.setItem('es_jwt',t); } catch(e){} }
@@ -3409,7 +3430,7 @@ function esRenderWorkspaceBar() {
       color:${_activeWorkspaceId===ws._id||(!_activeWorkspaceId&&ws._id==='all')?'white':'var(--text-dim)'};
       border:1px solid ${_activeWorkspaceId===ws._id||(!_activeWorkspaceId&&ws._id==='all')?'var(--primary)':'var(--border)'};
       padding:6px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
-      ${ws.icon||''} ${ws.name}</button>`
+      ${esc(ws.icon||'')} ${esc(ws.name)}</button>`
   ).join('');
 }
 
@@ -3481,8 +3502,8 @@ async function esRenderInbox() {
   let activeWsId = allWs[0]._id;
   wsList.innerHTML = allWs.map((ws,i) => `
     <div class="inbox-ws-tab${i===0?' active':''}" onclick="esInboxSetWs('${ws._id}',this)">
-      <span>${ws.icon||'📁'}</span>
-      <span class="inbox-ws-name">${ws.name}</span>
+      <span>${esc(ws.icon||'📁')}</span>
+      <span class="inbox-ws-name">${esc(ws.name)}</span>
     </div>`).join('');
   esLoadInboxRows('all');
 }
@@ -3513,7 +3534,7 @@ async function esLoadInboxRows(wsId) {
       html += `<div class="inbox-row inbox-braid-row${b.unread?' unread':''}">
         <div class="inbox-unread-dot" style="opacity:${b.unread?1:0}"></div>
         <span style="font-size:18px;">🪢</span>
-        <div class="inbox-row-name">${b.title}</div>
+        <div class="inbox-row-name">${esc(b.title)}</div>
         <div class="inbox-row-meta">${b.strandCount||0} strands</div>
         <button class="unsub-btn" onclick="esUnsubscribeBraid('${b._id}',event)">Unsubscribe</button>
       </div>`;
@@ -3521,8 +3542,8 @@ async function esLoadInboxRows(wsId) {
     (data.strands||[]).forEach(s => {
       html += `<div class="inbox-row${s.unread?' unread':''}">
         <div class="inbox-unread-dot" style="opacity:${s.unread?1:0}"></div>
-        <div class="inbox-row-name">${s.title}</div>
-        <div class="inbox-row-meta">${s.publisherHandle||s.publisher||''}</div>
+        <div class="inbox-row-name">${esc(s.title)}</div>
+        <div class="inbox-row-meta">${esc(s.publisherHandle||s.publisher||'')}</div>
         <button class="unsub-btn" onclick="esUnsubscribeStrand('${s._id}',event)">Unsubscribe</button>
       </div>`;
     });
@@ -3553,21 +3574,21 @@ async function esRenderMyStrands() {
       <div class="strand-card">
         <div class="strand-card-header">
           <div class="strand-card-dot" style="background:${s.color||'var(--primary)'}"></div>
-          <div class="strand-card-name">${s.title}</div>
+          <div class="strand-card-name">${esc(s.title)}</div>
           <span class="pub-status-badge ${s.published?'live':'draft'}">${s.published?'● Live':'○ Draft'}</span>
           ${s.directoryStatus==='verified'?'<span class="pub-status-badge" style="background:rgba(0,210,110,.12);color:#00d26a;border-color:rgba(0,210,110,.3);">✓ Directory</span>':
             s.directoryStatus==='pending'?'<span class="pub-status-badge" style="background:rgba(255,193,7,.1);color:#ffc107;border-color:rgba(255,193,7,.3);">⏳ Verifying</span>':
             s.directoryStatus==='flagged'?'<span class="pub-status-badge" style="background:rgba(255,90,90,.1);color:#ff5a5a;border-color:rgba(255,90,90,.3);" title="Needs manual review">⚑ Review</span>':''}
           <div class="strand-card-subs">${s.subscriberCount||0} subscribers</div>
         </div>
-        <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">${s.venue||''}${s.events?.length?' · '+s.events.length+' event'+(s.events.length!==1?'s':''):''}</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">${esc(s.venue||'')${s.events?.length?' · '+s.events.length+' event'+(s.events.length!==1?'s':''):''}</div>
         <div class="strand-card-actions">
           <button class="sc-btn" onclick="window.location.hash='/s/${ES_USER.handle}/${s._id}'">View public page</button>
           <button class="sc-btn" onclick="esEditStrand('${s._id}')">Edit</button>
           <button class="sc-btn" onclick="esOpenAnalytics('${s._id}')">Analytics</button>
-          <button class="sc-btn primary" onclick="esShowStrandQR('${s._id}','${s.title}')">QR Code</button>
+          <button class="sc-btn primary" onclick="esShowStrandQR('${s._id}','${esc(s.title)}')">QR Code</button>
           ${!s.published ? `<button class="sc-btn" style="background:var(--green-glow);color:var(--green);border-color:var(--green);" onclick="esPublishExistingStrand('${s._id}',this)">Publish →</button>` : ''}
-          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteStrand('${s._id}','${s.title.replace(/'/g,"'")}')">Delete</button>
+          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteStrand('${s._id}','${esc(s.title)}')">Delete</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -3596,16 +3617,16 @@ async function esRenderMyBraids() {
       <div class="strand-card">
         <div class="strand-card-header">
           <span style="font-size:20px;">🪢</span>
-          <div class="strand-card-name">${b.title}</div>
+          <div class="strand-card-name">${esc(b.title)}</div>
           <span class="pub-status-badge ${b.published?'live':'draft'}">${b.published?'● Live':'○ Draft'}</span>
           <div class="strand-card-subs">${b.subscriberCount||0} subscribers</div>
         </div>
         <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">${b.strands?.length||0} strands</div>
         <div class="strand-card-actions">
-          <button class="sc-btn primary" onclick="esShowBraidQR('${b._id}','${b.title}')">QR Code</button>
+          <button class="sc-btn primary" onclick="esShowBraidQR('${b._id}','${esc(b.title)}')">QR Code</button>
           <button class="sc-btn" onclick="esOpenBraidAnalytics('${b._id}')">Analytics</button>
           <button class="sc-btn" onclick="esEditBraid('${b._id}')">Edit</button>
-          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteBraid('${b._id}','${b.title.replace(/'/g,"'")}')">Delete</button>
+          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteBraid('${b._id}','${esc(b.title)}')">Delete</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -3701,13 +3722,13 @@ function esRenderStrandView(strand) {
   const banner = document.getElementById('pub-signup-banner');
   inner.style.display = 'block';
 
-  const wsOptions = ES_USER ? ES_WORKSPACES.map(w => `<option value="${w._id}">${w.icon||''} ${w.name}</option>`).join('') : '';
+  const wsOptions = ES_USER ? ES_WORKSPACES.map(w => `<option value="${w._id}">${esc(w.icon||'')} ${esc(w.name)}</option>`).join('') : '';
   header.innerHTML = `
     <div class="pub-strand-type-badge">🧵 Strand</div>
-    <div class="pub-strand-title">${strand.title}</div>
-    <div class="pub-strand-venue">${strand.venue||''}${strand.address?` · ${strand.address}`:''}</div>
+    <div class="pub-strand-title">${esc(strand.title)}</div>
+    <div class="pub-strand-venue">${esc(strand.venue||'')}${strand.address?` · ${esc(strand.address)}`:''}</div>
     <div class="pub-strand-meta">
-      ${strand.publisherHandle?`<span>@${strand.publisherHandle}</span>`:''}
+      ${strand.publisherHandle?`<span>@${esc(strand.publisherHandle)}</span>`:''}
       <span class="view-count-badge">👁 ${strand.viewCount||0} views</span>
     </div>
     <div class="pub-subscribe-row">
@@ -3726,9 +3747,9 @@ function esRenderStrandView(strand) {
 
   evList.innerHTML = upcoming.map(ev => `
     <div class="pub-event-row">
-      <div class="pub-event-name">${ev.title||ev.name||'Event'}</div>
+      <div class="pub-event-name">${esc(ev.title||ev.name||'Event')}</div>
       <div class="pub-event-time">${ev.date||'Recurring'}${ev.time_start?' · '+ev.time_start:''}</div>
-      ${ev.vibes?.length ? `<div class="pub-event-vibes">${ev.vibes.map(v=>`<span class="pub-vibe-tag">${v}</span>`).join('')}</div>` : ''}
+      ${ev.vibes?.length ? `<div class="pub-event-vibes">${ev.vibes.map(v=>`<span class="pub-vibe-tag">${esc(v)}</span>`).join('')}</div>` : ''}
     </div>`).join('') || '<div style="color:var(--text-faint);padding:20px;text-align:center;">No upcoming events listed</div>';
 
   if (banner) banner.style.display = ES_USER ? 'none' : 'flex';
@@ -3744,13 +3765,13 @@ async function esLoadPublicBraid(handle, braidId, src) {
     const res = await fetch(`${BACKEND_URL}/api/public/braid/${handle}/${braidId}${srcParam}`);
     const data = await res.json();
     const b = data.braid;
-    const wsOptions = ES_USER ? ES_WORKSPACES.map(w => `<option value="${w._id}">${w.icon||''} ${w.name}</option>`).join('') : '';
+    const wsOptions = ES_USER ? ES_WORKSPACES.map(w => `<option value="${w._id}">${esc(w.icon||'')} ${esc(w.name)}</option>`).join('') : '';
     content.innerHTML = `
       <div class="pub-strand-header">
         <div class="pub-strand-type-badge">🪢 Braid</div>
-        <div class="pub-strand-title">${b.title}</div>
-        <div class="pub-strand-venue">${b.description||''}</div>
-        <div class="pub-strand-meta">${b.publisherHandle?`<span>@${b.publisherHandle}</span>`:''}</div>
+        <div class="pub-strand-title">${esc(b.title)}</div>
+        <div class="pub-strand-venue">${esc(b.description||'')} </div>
+        <div class="pub-strand-meta">${b.publisherHandle?`<span>@${esc(b.publisherHandle)}</span>`:''}</div>
         <div class="pub-subscribe-row">
           ${ES_USER?`${wsOptions?`<select id="braid-ws-sel">${wsOptions}</select>`:''}
             <button class="btn btn-primary" onclick="esSubscribeToBraid('${b._id}',document.getElementById('braid-ws-sel')?.value)">Subscribe to all strands</button>`
@@ -3760,8 +3781,8 @@ async function esLoadPublicBraid(handle, braidId, src) {
       <h3 style="font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);margin-bottom:14px;">Strands in this braid</h3>
       ${(b.strands||[]).map(s => `
         <div class="pub-strand-header" style="margin-bottom:12px;cursor:pointer;" onclick="esLoadPublicStrand('${s.publisherHandle}','${s._id}')">
-          <div class="pub-strand-title" style="font-size:18px;">${s.title}</div>
-          <div class="pub-strand-venue">${s.venue||s.publisherHandle||''}</div>
+          <div class="pub-strand-title" style="font-size:18px;">${esc(s.title)}</div>
+          <div class="pub-strand-venue">${esc(s.venue||s.publisherHandle||'')} </div>
           <div style="display:flex;gap:8px;margin-top:10px;">
             ${ES_USER?`<button class="sc-btn primary" onclick="event.stopPropagation();esSubscribeToStrand('${s._id}')">Subscribe</button>`:''}
             <button class="sc-btn" onclick="event.stopPropagation();esLoadPublicStrand('${s.publisherHandle||handle}','${s._id}')">View strand →</button>
@@ -3785,7 +3806,7 @@ async function esLoadPublicProfile(handle) {
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:32px;">
         <div class="profile-pic">${(p.displayName||handle)[0].toUpperCase()}</div>
         <div>
-          <div style="font-family:'Fraunces',serif;font-size:24px;color:var(--text);">${p.displayName||handle}</div>
+          <div style="font-family:'Fraunces',serif;font-size:24px;color:var(--text);">${esc(p.displayName||handle)}</div>
           <div style="color:var(--text-dim);font-size:14px;">@${handle}</div>
         </div>
       </div>
@@ -3794,17 +3815,17 @@ async function esLoadPublicProfile(handle) {
         <div class="strand-card" style="cursor:pointer;" onclick="esLoadPublicStrand('${handle}','${s._id}')">
           <div class="strand-card-header">
             <div class="strand-card-dot" style="background:${s.color||'var(--primary)'}"></div>
-            <div class="strand-card-name">${s.title}</div>
+            <div class="strand-card-name">${esc(s.title)}</div>
             <div class="strand-card-subs">${s.subscriberCount||0} subscribers</div>
           </div>
-          ${s.venue?`<div style="font-size:13px;color:var(--text-dim);">${s.venue}</div>`:''}
+          ${s.venue?`<div style="font-size:13px;color:var(--text-dim);">${esc(s.venue)}</div>`:''}
         </div>`).join('')}
       ${p.braids?.length ? `<h3 style="font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);margin:24px 0 14px;">Braids</h3>
       ${p.braids.map(b => `
         <div class="strand-card" style="cursor:pointer;" onclick="esLoadPublicBraid('${handle}','${b._id}')">
           <div class="strand-card-header">
             <span style="font-size:18px;">🪢</span>
-            <div class="strand-card-name">${b.title}</div>
+            <div class="strand-card-name">${esc(b.title)}</div>
           </div>
         </div>`).join('')}` : ''}`;
   } catch(e) {
@@ -3824,7 +3845,7 @@ async function esOpenAnalytics(strandId) {
     const bars = (d.viewsLast30||[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
     const maxBar = Math.max(...bars, 1);
     content.innerHTML = `
-      <h3 style="font-family:'Fraunces',serif;font-size:20px;color:var(--text);margin-bottom:16px;">${d.title||'Analytics'}</h3>
+      <h3 style="font-family:'Fraunces',serif;font-size:20px;color:var(--text);margin-bottom:16px;">${esc(d.title||'Analytics')}</h3>
       <div class="analytics-stat-grid">
         <div class="analytics-stat"><div class="analytics-stat-num">${d.subscriberCount||0}</div><div class="analytics-stat-label">Subscribers</div></div>
         <div class="analytics-stat"><div class="analytics-stat-num">${d.totalViews||0}</div><div class="analytics-stat-label">Total views</div></div>
@@ -3836,9 +3857,9 @@ async function esOpenAnalytics(strandId) {
         ${bars.map(v=>`<div class="chart-bar" style="height:${Math.round((v/maxBar)*100)}%"></div>`).join('')}
       </div>
       ${d.topScanOrigins?.length ? `<div style="font-size:12px;color:var(--text-faint);margin-bottom:8px;margin-top:16px;text-transform:uppercase;letter-spacing:1px;">Scan origins</div>
-      ${d.topScanOrigins.map(o=>`<div class="analytics-bar-row"><span style="min-width:80px;color:var(--text-dim)">${o.label}</span><div class="analytics-bar"><div class="analytics-bar-fill" style="width:${o.pct}%"></div></div><span style="color:var(--text-faint)">${o.count}</span></div>`).join('')}` : ''}
+      ${d.topScanOrigins.map(o=>`<div class="analytics-bar-row"><span style="min-width:80px;color:var(--text-dim)">${esc(o.label)}</span><div class="analytics-bar"><div class="analytics-bar-fill" style="width:${o.pct}%"></div></div><span style="color:var(--text-faint)">${o.count}</span></div>`).join('')}` : ''}
       ${d.events?.length ? `<div style="font-size:12px;color:var(--text-faint);margin-bottom:8px;margin-top:16px;text-transform:uppercase;letter-spacing:1px;">Events by engagement</div>
-      ${d.events.map(e=>`<div class="analytics-bar-row"><span style="flex:1;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.title||'Event'}</span><span style="color:var(--text-faint);font-size:12px;">${e.views||0} views</span></div>`).join('')}` : ''}`;
+      ${d.events.map(e=>`<div class="analytics-bar-row"><span style="flex:1;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(e.title||'Event')}</span><span style="color:var(--text-faint);font-size:12px;">${e.views||0} views</span></div>`).join('')}` : ''}`;
   } catch(e) {
     content.innerHTML = '<div style="color:var(--text-faint);padding:20px;">Could not load analytics</div>';
   }
@@ -3858,7 +3879,7 @@ async function esOpenBraidAnalytics(braidId) {
     const res = await esFetch(`/api/braids/${braidId}/analytics`);
     const d = await res.json();
     content.innerHTML = `
-      <h3 style="font-family:'Fraunces',serif;font-size:20px;color:var(--text);margin-bottom:4px;">🪢 ${d.title||'Braid Analytics'}</h3>
+      <h3 style="font-family:'Fraunces',serif;font-size:20px;color:var(--text);margin-bottom:4px;">🪢 ${esc(d.title||'Braid Analytics')}</h3>
       <div style="font-size:13px;color:var(--text-faint);margin-bottom:16px;">${d.strandCount||0} strands</div>
       <div class="analytics-stat-grid">
         <div class="analytics-stat"><div class="analytics-stat-num">${d.subscriberCount||0}</div><div class="analytics-stat-label">Subscribers</div></div>
@@ -3866,9 +3887,9 @@ async function esOpenBraidAnalytics(braidId) {
         <div class="analytics-stat"><div class="analytics-stat-num">${d.scanCount||0}</div><div class="analytics-stat-label">QR scans</div></div>
       </div>
       ${d.topScanOrigins?.length ? `<div style="font-size:12px;color:var(--text-faint);margin-bottom:8px;margin-top:16px;text-transform:uppercase;letter-spacing:1px;">Scan origins</div>
-      ${d.topScanOrigins.map(o=>`<div class="analytics-bar-row"><span style="min-width:80px;color:var(--text-dim)">${o.label}</span><div class="analytics-bar"><div class="analytics-bar-fill" style="width:${o.pct}%"></div></div><span style="color:var(--text-faint)">${o.count}</span></div>`).join('')}` : ''}
+      ${d.topScanOrigins.map(o=>`<div class="analytics-bar-row"><span style="min-width:80px;color:var(--text-dim)">${esc(o.label)}</span><div class="analytics-bar"><div class="analytics-bar-fill" style="width:${o.pct}%"></div></div><span style="color:var(--text-faint)">${o.count}</span></div>`).join('')}` : ''}
       ${d.strands?.length ? `<div style="font-size:12px;color:var(--text-faint);margin-bottom:8px;margin-top:16px;text-transform:uppercase;letter-spacing:1px;">Strands in this braid</div>
-      ${d.strands.map(s=>`<div class="analytics-bar-row"><span style="flex:1;color:var(--text-dim);">${s.title}</span><span style="color:var(--text-faint);font-size:12px;">${s.subscribers||0} subscribers</span></div>`).join('')}` : ''}`;
+      ${d.strands.map(s=>`<div class="analytics-bar-row"><span style="flex:1;color:var(--text-dim);">${esc(s.title)}</span><span style="color:var(--text-faint);font-size:12px;">${s.subscribers||0} subscribers</span></div>`).join('')}` : ''}`;
   } catch(e) {
     content.innerHTML = '<div style="color:var(--text-faint);padding:20px;">Could not load analytics</div>';
   }
@@ -4164,13 +4185,13 @@ async function esRenderWorkspaces() {
     <div class="ws-card">
       <div class="ws-icon">${ws.icon||'📁'}</div>
       <div style="flex:1;">
-        <div class="ws-name">${ws.name}</div>
+        <div class="ws-name">${esc(ws.name)}</div>
         <div class="ws-meta">${ws.strandCount||0} strands · ${ws.braidCount||0} braids</div>
       </div>
       ${ws.isActive?'<span class="ws-active-badge">Active</span>':''}
       <div class="ws-actions">
         ${!ws.isActive?`<button class="sc-btn" onclick="esSetActiveWorkspaceDb('${ws._id}')">Set active</button>`:''}
-        <button class="sc-btn" onclick="esRenameWorkspace('${ws._id}','${ws.name.replace(/'/g,"'")}')">Rename</button>
+        <button class="sc-btn" onclick="esRenameWorkspace('${ws._id}','${esc(ws.name)}')">Rename</button>
         <button class="sc-btn" onclick="esDeleteWorkspace('${ws._id}')" style="color:var(--red);">Delete</button>
       </div>
     </div>`).join('') || '<div style="color:var(--text-faint);padding:20px;">No workspaces yet</div>';
@@ -4555,8 +4576,8 @@ function esRenderNotifList() {
   if (!ES_NOTIFICATIONS.length) { list.innerHTML = '<div class="notif-empty">All caught up.</div>'; return; }
   list.innerHTML = ES_NOTIFICATIONS.map(n => `
     <div class="notif-item${n.read?'':' unread'}" onclick="esReadNotif('${n._id}')">
-      <div class="notif-item-text">${n.message}</div>
-      <div class="notif-item-meta">${n.strandTitle||''}${n.createdAt?' · '+esRelativeTime(n.createdAt):''}</div>
+      <div class="notif-item-text">${esc(n.message)}</div>
+      <div class="notif-item-meta">${esc(n.strandTitle||'')}${n.createdAt?' · '+esRelativeTime(n.createdAt):''}</div>
     </div>`).join('');
 }
 
@@ -5030,9 +5051,9 @@ async function esLoadDirectory(resetPage = false) {
         <div class="dir-card" onclick="window.open('${strandUrl}', '_blank')">
           <div class="dir-card-header" style="background:${bg};"></div>
           <div class="dir-card-body">
-            <div class="dir-card-title">${s.title}</div>
-            ${meta ? `<div class="dir-card-meta">${meta}</div>` : ''}
-            ${s.description ? `<div class="dir-card-desc">${s.description}</div>` : ''}
+            <div class="dir-card-title">${esc(s.title)}</div>
+            ${meta ? `<div class="dir-card-meta">${esc(meta)}</div>` : ''}
+            ${s.description ? `<div class="dir-card-desc">${esc(s.description)}</div>` : ''}
             <div class="dir-card-badge">✓ Verified</div>
           </div>
         </div>`;
