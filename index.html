@@ -616,7 +616,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
         Your Friday night just opened up. Your gym has a class in 40 minutes. There's a jazz residency two blocks away. You already knew both — you just forgot to look. EventStrand remembers for you.
       </p>
       <div class="hero-actions fade-up fade-up-4">
-        <a href="#" class="btn btn-primary btn-lg" onclick="esTriggerPwaInstall();return false;">Get the App</a>
+        <a href="#" class="btn btn-primary btn-lg" onclick="esPwaInstall();return false;">Get the App</a>
         <a href="#builder" class="btn btn-ghost btn-lg">Create a Strand</a>
         <a href="/spec" class="btn btn-ghost btn-lg">View .rcal Spec</a>
       </div>
@@ -2999,12 +2999,22 @@ let ES_USER = null; // { id, handle, displayName, email, picture, jwt }
 let ES_WORKSPACES = [];
 let ES_NOTIFICATIONS = [];
 
-// ── XSS ESCAPE HELPER ────────────────────────────────────────
-// Use esc() on every server-returned, user-controlled string before
-// interpolating into innerHTML. Covers &, <, >, ", ' characters.
+// ── XSS ESCAPE HELPERS ───────────────────────────────────────
+// esc()     — for values interpolated into innerHTML body text
+// escAttr() — for values interpolated inside inline JS attribute handlers
+//             e.g. onclick="fn('${escAttr(x)}')"
+//             HTML attributes decode entities BEFORE the JS engine runs,
+//             so esc() alone is not sufficient inside onclick="..." strings.
 function esc(s) {
   const m = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
   return String(s ?? '').replace(/[&<>"']/g, c => m[c]);
+}
+function escAttr(s) {
+  // 1. JSON-stringify to escape \, ", control chars, newlines
+  // 2. swap remaining ' → \' so the JS string literal stays intact
+  // 3. HTML-encode the result so it's safe inside the attribute value
+  const js = JSON.stringify(String(s ?? '')).slice(1, -1).replace(/'/g, "\\'");
+  return js.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function esGetJwt() { try { return localStorage.getItem('es_jwt'); } catch(e){return null;} }
@@ -3581,14 +3591,14 @@ async function esRenderMyStrands() {
             s.directoryStatus==='flagged'?'<span class="pub-status-badge" style="background:rgba(255,90,90,.1);color:#ff5a5a;border-color:rgba(255,90,90,.3);" title="Needs manual review">⚑ Review</span>':''}
           <div class="strand-card-subs">${s.subscriberCount||0} subscribers</div>
         </div>
-        <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">${esc(s.venue||'')${s.events?.length?' · '+s.events.length+' event'+(s.events.length!==1?'s':''):''}</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">${esc(s.venue||'')}${s.events?.length?' · '+s.events.length+' event'+(s.events.length!==1?'s':''):''}</div>
         <div class="strand-card-actions">
           <button class="sc-btn" onclick="window.location.hash='/s/${ES_USER.handle}/${s._id}'">View public page</button>
           <button class="sc-btn" onclick="esEditStrand('${s._id}')">Edit</button>
           <button class="sc-btn" onclick="esOpenAnalytics('${s._id}')">Analytics</button>
-          <button class="sc-btn primary" onclick="esShowStrandQR('${s._id}','${esc(s.title)}')">QR Code</button>
+          <button class="sc-btn primary" onclick="esShowStrandQR('${s._id}','${escAttr(s.title)}')">QR Code</button>
           ${!s.published ? `<button class="sc-btn" style="background:var(--green-glow);color:var(--green);border-color:var(--green);" onclick="esPublishExistingStrand('${s._id}',this)">Publish →</button>` : ''}
-          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteStrand('${s._id}','${esc(s.title)}')">Delete</button>
+          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteStrand('${s._id}','${escAttr(s.title)}')">Delete</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -3623,10 +3633,10 @@ async function esRenderMyBraids() {
         </div>
         <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px;">${b.strands?.length||0} strands</div>
         <div class="strand-card-actions">
-          <button class="sc-btn primary" onclick="esShowBraidQR('${b._id}','${esc(b.title)}')">QR Code</button>
+          <button class="sc-btn primary" onclick="esShowBraidQR('${b._id}','${escAttr(b.title)}')">QR Code</button>
           <button class="sc-btn" onclick="esOpenBraidAnalytics('${b._id}')">Analytics</button>
           <button class="sc-btn" onclick="esEditBraid('${b._id}')">Edit</button>
-          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteBraid('${b._id}','${esc(b.title)}')">Delete</button>
+          <button class="sc-btn" style="color:var(--red);border-color:var(--red);" onclick="esDeleteBraid('${b._id}','${escAttr(b.title)}')">Delete</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -4191,7 +4201,7 @@ async function esRenderWorkspaces() {
       ${ws.isActive?'<span class="ws-active-badge">Active</span>':''}
       <div class="ws-actions">
         ${!ws.isActive?`<button class="sc-btn" onclick="esSetActiveWorkspaceDb('${ws._id}')">Set active</button>`:''}
-        <button class="sc-btn" onclick="esRenameWorkspace('${ws._id}','${esc(ws.name)}')">Rename</button>
+        <button class="sc-btn" onclick="esRenameWorkspace('${ws._id}','${escAttr(ws.name)}')">Rename</button>
         <button class="sc-btn" onclick="esDeleteWorkspace('${ws._id}')" style="color:var(--red);">Delete</button>
       </div>
     </div>`).join('') || '<div style="color:var(--text-faint);padding:20px;">No workspaces yet</div>';
