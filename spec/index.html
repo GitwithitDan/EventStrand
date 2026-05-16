@@ -547,7 +547,6 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="topbar-sep"></div>
   <span class="topbar-title">.rcal Specification<span class="topbar-badge">v0.1</span></span>
   <div class="topbar-actions">
-    <a href="https://github.com/eventstrand/rcal-spec" class="topbar-link">GitHub</a>
     <a href="https://eventstrand.com/#builder" class="topbar-link primary">Strand Builder →</a>
   </div>
 </div>
@@ -632,7 +631,6 @@ h3:hover .anchor-link { opacity: 1; }
 
   <div class="intro-meta">
     <span class="meta-chip mc-version">v0.1</span>
-    <span class="meta-chip mc-status">✓ Draft</span>
     <span class="meta-chip mc-license">Open — No License Required</span>
     <span class="meta-chip mc-date">March 2026</span>
   </div>
@@ -667,7 +665,7 @@ h3:hover .anchor-link { opacity: 1; }
   <p>Files must use the <code>.rcal</code> extension. This extension is used by applications to identify the format and associate the correct parser.</p>
 
   <h3>Hosted strands</h3>
-  <p>A strand may be hosted at a permanent URL. Hosted strand URLs must return the .rcal file with an appropriate content type. EventStrand hosts published strands at <code>eventstrand.com/s/{username}</code> but any URL is valid.</p>
+  <p>A strand may be hosted at a permanent URL. Hosted strand URLs must return the .rcal file with an appropriate content type. EventStrand hosts published strands at <code>eventstrand.com/s/{handle}/{strand-id}</code> but any URL is valid.</p>
 
   <div class="callout callout-warn">
     <span class="callout-icon">⚠️</span>
@@ -687,9 +685,9 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="code-block">
     <div class="code-topbar"><span class="code-filename">structure.rcal</span><span class="code-lang">JSON</span></div>
     <pre>{
-  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,          <span class="cc">// required — spec version string</span>
-  <span class="ck">"meta"</span>: { <span class="cc">/* ... */</span> },  <span class="cc">// recommended — publisher metadata</span>
-  <span class="ck">"events"</span>: [ <span class="cc">/* ... */</span> ]  <span class="cc">// required — array of event objects</span>
+  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,
+  <span class="ck">"meta"</span>: { },
+  <span class="ck">"events"</span>: [ ]
 }</pre>
   </div>
 
@@ -1176,13 +1174,13 @@ h3:hover .anchor-link { opacity: 1; }
   <span class="ck">"name"</span>: <span class="cs">"Thursday Residency"</span>,
   <span class="ck">"category"</span>: <span class="cs">"music"</span>,
   <span class="ck">"vibe_tags"</span>: [<span class="cs">"social"</span>, <span class="cs">"curious"</span>],
-  <span class="ck">"time_start"</span>: <span class="cs">"21:00"</span>,  <span class="cc">// default — inherited by plain-string entries</span>
+  <span class="ck">"time_start"</span>: <span class="cs">"21:00"</span>,
   <span class="ck">"time_end"</span>: <span class="cs">"23:30"</span>,
   <span class="ck">"dates"</span>: [
-    <span class="cs">"2026-04-09"</span>,              <span class="cc">// inherits 21:00 – 23:30</span>
+    <span class="cs">"2026-04-09"</span>,
     <span class="cs">"2026-04-23"</span>,
     {
-      <span class="ck">"date"</span>: <span class="cs">"2026-05-14"</span>,    <span class="cc">// special late night — overrides times</span>
+      <span class="ck">"date"</span>: <span class="cs">"2026-05-14"</span>,
       <span class="ck">"time_start"</span>: <span class="cs">"22:00"</span>,
       <span class="ck">"time_end"</span>: <span class="cs">"02:00"</span>,
       <span class="ck">"note"</span>: <span class="cs">"Extended set with guest DJ"</span>
@@ -1233,7 +1231,7 @@ h3:hover .anchor-link { opacity: 1; }
   </table>
 
   <h3>Validation rules for <code>dates</code></h3>
-  <p>A strand must have exactly one of <code>recurrence</code>, <code>date</code>, or <code>dates</code>. Having more than one is invalid. All three produce a list of occurrences — they are three distinct authoring modes for the same underlying concept.</p>
+  <p><code>date</code> (singular one-off) is mutually exclusive with <code>recurrence</code> and <code>dates</code>. <code>recurrence</code> and <code>dates</code> may coexist on the same event — a single opening date plus an ongoing weekly pattern, for example. A strand must have at least one schedule field.</p>
   <p>Past dates in a <code>dates</code> array should be treated as informational by parser apps — they may be displayed in history views but should not appear in "what's coming up" queries. Publishers are encouraged (but not required) to remove past dates on each update to keep file size manageable.</p>
   <p>An empty <code>dates</code> array (<code>[]</code>) is valid. It means the strand exists but has no confirmed upcoming dates. Apps may surface it as "coming soon" if the strand has a name and description.</p>
 </div>
@@ -1476,7 +1474,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="spec-section-label">Concepts</div>
   <h2>One-Off Events <a href="#one-offs" class="anchor-link">#</a></h2>
 
-  <p>A strand without a <code>recurrence</code> array is treated as a one-off event. It must have a <code>date</code> field specifying when it occurs. One-off events can coexist in the same strand alongside recurring events — a venue's strand might have three recurring weekly events and two upcoming one-offs.</p>
+  <p>An event with only a <code>date</code> field (no <code>recurrence</code>, no <code>dates</code>) is a one-off — it happens once and never repeats. One-off events coexist alongside recurring events in the same strand file. Note that <code>date</code> can also be combined with <code>recurrence</code> — for example, an opening-night date plus a weekly pattern that follows — but it cannot be combined with <code>dates</code>.</p>
 
   <div class="code-block">
     <div class="code-topbar"><span class="code-filename">one-off.rcal snippet</span><span class="code-lang">JSON</span></div>
@@ -1490,7 +1488,6 @@ h3:hover .anchor-link { opacity: 1; }
   <span class="ck">"vibe_tags"</span>: [<span class="cs">"social"</span>, <span class="cs">"outdoor"</span>, <span class="cs">"free"</span>],
   <span class="ck">"price"</span>: <span class="cs">"free"</span>,
   <span class="ck">"notes"</span>: <span class="cs">"Rain date July 25."</span>
-  <span class="cc">// No "recurrence" field — this is a one-off</span>
 }</pre>
   </div>
 
@@ -1514,7 +1511,9 @@ h3:hover .anchor-link { opacity: 1; }
     <li>Strand <code>id</code> values are unique within the file.</li>
     <li>Every recurrence rule has a <code>pattern</code> field.</li>
     <li>One-off events (no <code>recurrence</code>, no <code>dates</code>) have a <code>date</code> field.</li>
-    <li>A strand has exactly one of <code>recurrence</code>, <code>date</code>, or <code>dates</code>. Two or more is invalid.</li>
+    <li><code>date</code> is mutually exclusive with <code>recurrence</code> and <code>dates</code>. A strand with <code>date</code> may not also have either of the others.</li>
+    <li><code>recurrence</code> and <code>dates</code> may coexist on the same event — occurrences from both are merged.</li>
+    <li>A strand must have at least one of <code>recurrence</code>, <code>date</code>, or <code>dates</code>.</li>
   </ul>
 
   <h3>Soft requirements (warn, do not reject)</h3>
@@ -1576,17 +1575,7 @@ h3:hover .anchor-link { opacity: 1; }
     <span class="ck">"title"</span>: <span class="cs">"The Rusty Nail"</span>,
     <span class="ck">"type"</span>: <span class="cs">"venue"</span>,
     <span class="ck">"description"</span>: <span class="cs">"Jazz bar in Logan Square, Chicago."</span>,
-    <span class="ck">
-    <div class="schema-field">
-      <div class="schema-field-name"><code>"visibility"</code></div>
-      <div class="schema-field-type">string</div>
-      <div class="schema-field-desc">Access level: <code>"public"</code> (default, discoverable), <code>"unlisted"</code> (accessible by link only), or <code>"protected"</code> (requires passcode). Unlisted and protected strands do not appear in publisher profiles or search.</div>
-    </div>
-    <div class="schema-field">
-      <div class="schema-field-name"><code>"access_code"</code></div>
-      <div class="schema-field-type">string</div>
-      <div class="schema-field-desc">Required when <code>visibility</code> is <code>"protected"</code>. Passcode subscribers must enter to view the strand.</div>
-    </div>"color"</span>: <span class="cs">"#C0392B"</span>,
+    <span class="ck">"color"</span>: <span class="cs">"#C0392B"</span>,
     <span class="ck">"website"</span>: <span class="cs">"https://therustynail.com"</span>,
     <span class="ck">"timezone"</span>: <span class="cs">"America/Chicago"</span>,
     <span class="ck">"live"</span>: <span class="cb">true</span>,
@@ -1635,14 +1624,12 @@ h3:hover .anchor-link { opacity: 1; }
       <span class="ck">"lead_time_days"</span>: <span class="cn">0</span>,
       <span class="ck">"recurrence"</span>: [
         {
-          <span class="cc">// Weekday happy hour</span>
           <span class="ck">"pattern"</span>: <span class="cs">"weekly"</span>,
           <span class="ck">"days"</span>: [<span class="cs">"weekday"</span>],
           <span class="ck">"time_start"</span>: <span class="cs">"16:00"</span>,
           <span class="ck">"time_end"</span>: <span class="cs">"19:00"</span>
         },
         {
-          <span class="cc">// Extended Saturday hours, summer only</span>
           <span class="ck">"pattern"</span>: <span class="cs">"weekly"</span>,
           <span class="ck">"days"</span>: [<span class="cs">"saturday"</span>],
           <span class="ck">"time_start"</span>: <span class="cs">"14:00"</span>,
@@ -1698,7 +1685,6 @@ h3:hover .anchor-link { opacity: 1; }
           <span class="ck">"pattern"</span>: <span class="cs">"monthly_date"</span>,
           <span class="ck">"month_date"</span>: <span class="cn">1</span>,
           <span class="ck">"every"</span>: <span class="cn">3</span>,
-          <span class="cc">// every 3 months — quarterly</span>
           <span class="ck">"time_start"</span>: <span class="cs">"09:00"</span>
         }
       ]
@@ -1740,7 +1726,6 @@ h3:hover .anchor-link { opacity: 1; }
   },
   <span class="ck">"events"</span>: [
     {
-      <span class="cc">// Recurring event — uses recurrence, no date field</span>
       <span class="ck">"id"</span>: <span class="cs">"open-mic"</span>,
       <span class="ck">"name"</span>: <span class="cs">"Open Mic Night"</span>,
       <span class="ck">"category"</span>: <span class="cs">"music"</span>,
@@ -1757,7 +1742,6 @@ h3:hover .anchor-link { opacity: 1; }
       ]
     },
     {
-      <span class="cc">// One-off event — uses date, no recurrence field</span>
       <span class="ck">"id"</span>: <span class="cs">"anniversary-show-2026"</span>,
       <span class="ck">"name"</span>: <span class="cs">"30th Anniversary Show"</span>,
       <span class="ck">"category"</span>: <span class="cs">"music"</span>,
@@ -1784,7 +1768,7 @@ h3:hover .anchor-link { opacity: 1; }
     <span class="changelog-version">v0.1</span>
     <span class="changelog-date">2026-03-17</span>
     <div class="changelog-notes">
-      Initial draft specification. Defines top-level structure, <code>meta</code>, <code>location</code>, <code>events</code>, <code>recurrence</code>, and <code>exceptions</code> objects. Renames <code>strands[]</code> to <code>events[]</code> to clarify that the file <em>is</em> the strand and the array contains events. Establishes canonical vibe tag list, category list, price values, recurrence patterns, and day shorthands. Introduces live vs static strand model, one-off event support (<code>date</code>), and manually-curated date list support (<code>dates</code>). Defines three mutually exclusive schedule authoring modes: <code>recurrence</code>, <code>date</code>, <code>dates</code>.
+      Initial draft specification. Defines top-level structure, <code>meta</code>, <code>location</code>, <code>events</code>, <code>recurrence</code>, and <code>exceptions</code> objects. Renames <code>strands[]</code> to <code>events[]</code> to clarify that the file <em>is</em> the strand and the array contains events. Establishes canonical vibe tag list, category list, price values, recurrence patterns, and day shorthands. Introduces live vs static strand model, one-off event support (<code>date</code>), and manually-curated date list support (<code>dates</code>). Defines schedule authoring modes: <code>recurrence</code> (pattern-based), <code>date</code> (singular one-off, mutually exclusive with <code>dates</code>), <code>dates</code> (curated list). <code>recurrence</code> and <code>dates</code> may coexist on one event; <code>date</code> and <code>recurrence</code> may also coexist.
     </div>
   </div>
 </div>
