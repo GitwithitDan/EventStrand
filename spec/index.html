@@ -26,7 +26,7 @@
   --red:          #FF6B7A;
   --text:         #ECF0FF;
   --text-dim:     #8290C0;
-  --text-faint:   #454A72;
+  --text-faint:   #7882B8;
   --nav-width:    268px;
   --content-max:  780px;
 }
@@ -287,6 +287,27 @@ code {
 .callout-info    { background: var(--primary-glow); border: 1px solid rgba(108,143,255,0.28); }
 .callout-warn    { background: rgba(255,179,71,0.12); border: 1px solid rgba(255,179,71,0.30); }
 .callout-success { background: var(--green-glow);   border: 1px solid rgba(17,219,166,0.28); }
+
+/* AI-quickstart elements at top of spec */
+.spec-copy-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 11px 20px; border-radius: 10px;
+  background: var(--primary); color: #fff;
+  border: none; font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 18px rgba(108,143,255,0.30);
+}
+.spec-copy-btn:hover { background: #8aaeff; transform: translateY(-1px); box-shadow: 0 6px 22px rgba(108,143,255,0.40); }
+.spec-copy-btn.copied { background: var(--green); box-shadow: 0 4px 18px var(--green-glow); }
+.spec-copy-icon { font-size: 16px; line-height: 1; }
+.ai-tip {
+  background: var(--primary-glow);
+  border: 1px solid rgba(108,143,255,0.32);
+  border-radius: 10px; padding: 12px 16px; margin-top: 8px;
+  font-size: 13.5px; color: var(--text); line-height: 1.55;
+}
+.ai-tip strong { color: var(--text); font-weight: 600; }
 
 /* ── CODE BLOCKS ── */
 .code-block {
@@ -623,6 +644,31 @@ h3:hover .anchor-link { opacity: 1; }
 <!-- ── MAIN ── -->
 <main class="main">
 
+<!-- ══ AI-ASSIST QUICKSTART ══ -->
+<div class="spec-section ai-quickstart" id="ai-quickstart" style="margin-bottom:32px;">
+
+  <div class="callout callout-info" style="display:flex;gap:14px;align-items:flex-start;padding:18px 20px;margin-bottom:18px;">
+    <span class="callout-icon" style="font-size:22px;line-height:1;">✨</span>
+    <div class="callout-text" style="font-size:15px;line-height:1.65;">
+      <strong>The fastest way to create a .rcal file:</strong> copy the full spec into any AI assistant (ChatGPT, Claude, etc.), then describe your schedule in plain language. It will output a block of code — paste that directly into EventStrand. No need to save it as a file.
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+    <button id="copy-spec-btn" onclick="copyFullSpec(this)" class="spec-copy-btn">
+      <span class="spec-copy-icon">📋</span>
+      <span class="spec-copy-label">Copy Full Spec</span>
+    </button>
+    <span style="color:var(--text-dim);font-size:13.5px;line-height:1.6;">
+      No code required. The format is plain JSON — readable by humans, writable by AI.
+    </span>
+  </div>
+
+  <div class="ai-tip">
+    <strong>Already use ChatGPT or Claude?</strong> Copy the spec, describe your schedule, paste the output here.
+  </div>
+</div>
+
 <!-- ══ INTRO ══ -->
 <div class="spec-section" id="intro">
   <div class="spec-section-label">Introduction</div>
@@ -637,7 +683,7 @@ h3:hover .anchor-link { opacity: 1; }
 
   <p>.rcal is an open file format for encoding recurring real-world events. It is designed to be simple to publish, simple to parse, and expressive enough to describe how venues, people, and communities actually operate — including weekly rhythms, monthly patterns, seasonal windows, exceptions, and one-off events.</p>
 
-  <p>The format is maintained by <a href="index.html">EventStrand</a> but is not owned by it. Anyone can read, write, parse, or build tools around .rcal files without permission, license, or fee.</p>
+  <p>The format is maintained by <a href="/">EventStrand</a> but is not owned by it. Anyone can read, write, parse, or build tools around .rcal files without permission, license, or fee.</p>
 
   <div class="callout callout-info">
     <span class="callout-icon">💡</span>
@@ -1820,5 +1866,59 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('[id]').forEach(el => observer.observe(el));
 </script>
 
+<script>
+  // ── COPY FULL SPEC ──
+  // Extracts the rendered text of the spec article and copies it to clipboard.
+  // Strips nav/topbar/sidebar — uses main.innerText so only spec content goes.
+  // After copy, briefly flips button label to confirm.
+  function copyFullSpec(btn) {
+    const main = document.querySelector('main.main');
+    if (!main) return;
+    // Clone the main element and strip the AI-quickstart section itself —
+    // no point including the "copy" button instructions in the copied text.
+    const clone = main.cloneNode(true);
+    const ai = clone.querySelector('#ai-quickstart');
+    if (ai) ai.remove();
+    const text = clone.innerText.replace(/\n{3,}/g, '\n\n').trim();
+
+    function done() {
+      const label = btn.querySelector('.spec-copy-label');
+      const icon  = btn.querySelector('.spec-copy-icon');
+      const oldLabel = label.textContent;
+      const oldIcon  = icon.textContent;
+      label.textContent = 'Copied!';
+      icon.textContent  = '✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        label.textContent = oldLabel;
+        icon.textContent  = oldIcon;
+        btn.classList.remove('copied');
+      }, 2200);
+    }
+    function fail() {
+      const label = btn.querySelector('.spec-copy-label');
+      label.textContent = 'Press Ctrl+C';
+      setTimeout(() => { label.textContent = 'Copy Full Spec'; }, 3000);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => {
+        // Fallback for clipboard API failures
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch(e) { fail(); }
+        document.body.removeChild(ta);
+      });
+    } else {
+      // No clipboard API at all — execCommand fallback
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch(e) { fail(); }
+      document.body.removeChild(ta);
+    }
+  }
+</script>
 </body>
 </html>
