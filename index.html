@@ -50,6 +50,9 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500; padding: 6px 14px; border-radius: 8px; transition: all 0.2s; }
 .nav-links a:hover { color: var(--text); background: var(--surface); }
 .nav-links a.active { color: var(--primary); }
+.nav-spec-pill { display: inline-flex; align-items: center; padding: 5px 11px; margin-right: 4px; border-radius: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.3px; color: var(--primary); background: var(--primary-glow); border: 1px solid rgba(108,143,255,0.32); text-decoration: none; transition: all 0.2s; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+.nav-spec-pill:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+@media (max-width: 760px) { .nav-spec-pill { display: none; } }
 .nav-cta { display: flex; align-items: center; gap: 10px; }
 
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; border: none; }
@@ -176,6 +179,7 @@ pre { padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px
 .builder-panel.active { display: block; }
 .field-group { margin-bottom: 24px; }
 .field-label { font-size: 13px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.3px; margin-bottom: 8px; display: block; }
+.field-helper { font-size: 12px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
 .field-input { width: 100%; background: var(--surface); border: 1.5px solid var(--border2); border-radius: 10px; padding: 12px 16px; font-family: 'Outfit', sans-serif; font-size: 15px; color: var(--text); transition: border-color 0.2s; outline: none; }
 .field-input:focus { border-color: var(--primary); }
 .field-input::placeholder { color: var(--text-faint); }
@@ -569,6 +573,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     <img src="/icon-192.png" alt="EventStrand" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">
     <span class="nav-logo-text">EventStrand</span>
   </a>
+  <a href="/spec" class="nav-spec-pill" title="Read the .rcal specification">.rcal&nbsp;Spec</a>
   <ul class="nav-links" id="nav-marketing-links">
     <li><a href="#concept">About</a></li>
     <li><a href="#how">How It Works</a></li>
@@ -812,7 +817,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 <!-- ══ CONCEPT ══ -->
 <section id="concept">
   <div class="section-label">The Idea</div>
-  <h2 class="section-title">Your world has more<br>worth doing than any calendar shows you.</h2>
+  <h2 class="section-title">Your world has more worth showing up for<br>than any calendar can hold.</h2>
   <p class="section-sub">Subscribe to the venues, artists, and communities that matter to you. EventStrand builds you a living calendar — plan the month ahead, or open it when tonight suddenly opens up.</p>
 
   <div class="concept-grid">
@@ -1237,6 +1242,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
           <div class="field-group">
             <label class="field-label">Name</label>
             <input class="field-input" type="text" id="pub-name" placeholder="The Rusty Nail" oninput="pub.name=this.value;bUpdatePreview()">
+            <div class="field-helper">This can be a venue, an event, a person, a tradition — anything.</div>
           </div>
           <div class="field-group">
             <label class="field-label">Description <span style="font-weight:400;color:var(--text-faint)">(optional)</span></label>
@@ -1984,6 +1990,7 @@ upcoming.forEach(event => {
       <button class="dash-tab active" onclick="esDashTab(this,'upcoming')">Upcoming</button>
       <button class="dash-tab" onclick="esDashTab(this,'subscriptions')">Subscriptions</button>
       <button class="dash-tab" onclick="esDashTab(this,'my-strands')">My Strands</button>
+      <button class="dash-tab" onclick="esDashTab(this,'personal')">Personal Strands</button>
       <button class="dash-tab" onclick="esDashTab(this,'my-braids')">My Braids</button>
       <button class="dash-tab" onclick="esDashTab(this,'interested')" id="dash-tab-interested">Starred ★</button>
     </div>
@@ -2075,6 +2082,35 @@ upcoming.forEach(event => {
           <div class="empty-notes" style="margin-top:20px;">
             <div class="empty-notes-label">Ideas</div>
             <textarea id="note-my-strands" placeholder="Strand ideas — venues to reach out to, events to document…" oninput="esSaveNote('my-strands',this.value)"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal strands -->
+    <div id="dash-personal" class="dash-panel" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:18px;font-weight:600;color:var(--text);">Personal strands</div>
+          <div style="font-size:14px;color:var(--text-dim);margin-top:6px;max-width:640px;line-height:1.6;">Birthdays, anniversaries, your kid's school schedule, the food truck you follow — anything recurring that belongs in your world. Use whatever makes sense as the title.</div>
+        </div>
+        <button class="btn btn-primary" style="padding:12px 22px;font-size:14px;font-weight:600;white-space:nowrap;" onclick="esGotoBuildPersonal()">+ New personal strand</button>
+      </div>
+      <div class="ai-callout">
+        <span class="ai-callout-icon">✨</span>
+        <div class="ai-callout-text">
+          <strong>Already use ChatGPT or Claude?</strong> <a href="/spec">Copy the spec</a>, describe your schedule, paste the output here.
+        </div>
+      </div>
+      <div id="personal-strands-list">
+        <div class="empty-state">
+          <div class="empty-state-icon">🎂</div>
+          <div class="empty-state-title">Nothing personal yet</div>
+          <div class="empty-state-sub">Add the recurring things that belong in your life — birthdays, anniversaries, family traditions, the local food truck schedule. Whatever repeats and matters to you.</div>
+          <button class="btn btn-primary" onclick="esGotoBuildPersonal()">Add your first one →</button>
+          <div class="empty-notes" style="margin-top:20px;">
+            <div class="empty-notes-label">Ideas</div>
+            <textarea id="note-personal" placeholder="Things to remember — birthdays, anniversaries, traditions…" oninput="esSaveNote('personal',this.value)"></textarea>
           </div>
         </div>
       </div>
@@ -3185,9 +3221,6 @@ function esCloseAuth() {
 }
 
 // ── CURATED LIBRARY DEMO ──────────────────────────────────────
-// Marketing-section "+ Install" buttons (6 of them). Real curated
-// strands aren't seeded yet — show auth modal for signed-out users,
-// or a "coming soon" toast for signed-in users.
 function esInstallCuratedDemo() {
   if (ES_USER) {
     showToast('Curated strands launching soon — we\'ll notify you when ready');
@@ -3196,22 +3229,67 @@ function esInstallCuratedDemo() {
   }
 }
 
+// ── PERSONAL STRANDS — DASHBOARD TAB ──────────────────────────
+// Jump to builder with the personal type pre-selected. Lets users
+// bypass the "what type are you creating this for" picker when they
+// click into the Personal Strands tab and hit + New.
+function esGotoBuildPersonal() {
+  if (!ES_USER) { esShowAuth('Sign in to create a personal strand'); return; }
+  esGoto('home');
+  setTimeout(() => {
+    const el = document.getElementById('builder');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      const btn = document.querySelector('.type-btn[onclick*="\'personal\'"]');
+      if (btn) btn.click();
+    }, 350);
+  }, 100);
+}
+
+// Renders the Personal Strands tab. Pulls user strands and filters to
+// the personal type. Falls back to the built-in empty state if no
+// list element is present (defensive — the panel ID may not always exist).
+async function esRenderPersonalStrands() {
+  const listEl = document.getElementById('personal-strands-list');
+  if (!listEl) return;
+
+  try {
+    const res = await esFetch('/api/strands/mine');
+    if (!res.ok) return;
+    const data = await res.json();
+    const personal = (data.strands || []).filter(s => s.type === 'personal');
+
+    if (!personal.length) return; // keep the default empty state
+
+    listEl.innerHTML = personal.map(s => `
+      <div class="my-strand-card">
+        <div class="my-strand-card-head">
+          <div class="my-strand-card-title">${esc(s.title)}</div>
+          <div class="my-strand-card-meta">${s.events?.length || 0} event${(s.events?.length || 0) === 1 ? '' : 's'} · ${s.published ? 'live' : 'draft'}</div>
+        </div>
+        <div class="my-strand-card-actions">
+          <button class="btn btn-ghost" onclick="esEditStrand('${s._id}')">Edit</button>
+          ${s.published ? `<button class="btn btn-ghost" onclick="esViewPublicStrand('${s.publisherHandle}','${s._id}')">View</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    /* keep default empty state on error */
+  }
+}
+
 // ── MODAL FOCUS TRAP ──────────────────────────────────────────
-// Keep keyboard focus inside an open modal. Restores focus to the
-// triggering element on close. Auto-engages on .open class changes.
 const _esFocusTraps = {};
 
 function esTrapFocus(modalId) {
   const modal = document.getElementById(modalId);
   if (!modal) return;
   const previouslyFocused = document.activeElement;
-
   function getFocusable() {
     return modal.querySelectorAll(
       'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
     );
   }
-
   function handleKey(e) {
     if (e.key === 'Escape') {
       esReleaseFocus(modalId);
@@ -3221,20 +3299,12 @@ function esTrapFocus(modalId) {
     if (e.key !== 'Tab') return;
     const focusable = getFocusable();
     if (!focusable.length) return;
-    const first = focusable[0];
-    const last  = focusable[focusable.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }
-
   modal.addEventListener('keydown', handleKey);
   _esFocusTraps[modalId] = { handleKey, previouslyFocused };
-
   const focusable = getFocusable();
   if (focusable.length) focusable[0].focus();
 }
@@ -3244,13 +3314,10 @@ function esReleaseFocus(modalId) {
   if (!trap) return;
   const modal = document.getElementById(modalId);
   if (modal) modal.removeEventListener('keydown', trap.handleKey);
-  if (trap.previouslyFocused && trap.previouslyFocused.focus) {
-    try { trap.previouslyFocused.focus(); } catch(_) {}
-  }
+  if (trap.previouslyFocused?.focus) { try { trap.previouslyFocused.focus(); } catch(_) {} }
   delete _esFocusTraps[modalId];
 }
 
-// Auto-trap focus when these modals open. MutationObserver on .open class.
 ['es-auth-modal', 'es-handle-modal'].forEach(id => {
   const el = document.getElementById(id);
   if (!el) return;
@@ -3267,12 +3334,10 @@ function esReleaseFocus(modalId) {
 
 // ── FORGOT PASSWORD (sub-view inside auth modal) ──────────────
 function esShowForgotPassword() {
-  // Hide normal form fields, show forgot form
   ['auth-email','auth-password','auth-name','auth-error','auth-submit-btn','auth-forgot-link','auth-tab-signin','auth-tab-register','auth-account-type','g_signin_modal','auth-modal-reason'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  // Hide the OR-divider sections too
   document.querySelectorAll('#es-auth-modal > .auth-modal-box > div').forEach(d => {
     if (d.querySelector('#g_signin_modal') || (d.textContent || '').toLowerCase().includes('continue with email')) {
       d.style.display = 'none';
@@ -3287,17 +3352,14 @@ function esHideForgotPassword() {
   if (ff) ff.style.display = 'none';
   const msg = document.getElementById('auth-forgot-msg'); if (msg) msg.textContent = '';
   const email = document.getElementById('auth-forgot-email'); if (email) email.value = '';
-  // Restore normal form
   ['auth-email','auth-password','auth-error','auth-submit-btn','auth-forgot-link','auth-tab-signin','auth-tab-register','g_signin_modal','auth-modal-reason'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = '';
   });
-  // auth-name + account-type only visible in register mode
   const nameEl = document.getElementById('auth-name');
   if (nameEl) nameEl.style.display = (typeof _esAuthMode !== 'undefined' && _esAuthMode === 'register') ? 'block' : 'none';
   const acctEl = document.getElementById('auth-account-type');
   if (acctEl) acctEl.style.display = (typeof _esAuthMode !== 'undefined' && _esAuthMode === 'register') ? 'block' : 'none';
-  // Restore divider/google sections
   document.querySelectorAll('#es-auth-modal > .auth-modal-box > div').forEach(d => {
     if (d.style.display === 'none' && (d.querySelector('#g_signin_modal') || (d.textContent || '').toLowerCase().includes('continue with email'))) {
       d.style.display = '';
@@ -3307,7 +3369,7 @@ function esHideForgotPassword() {
 
 async function esSubmitForgotPassword() {
   const email = document.getElementById('auth-forgot-email').value.trim();
-  const msg   = document.getElementById('auth-forgot-msg');
+  const msg = document.getElementById('auth-forgot-msg');
   if (!email) { msg.textContent = 'Enter your email address'; msg.style.color = '#ff6b6b'; return; }
   msg.textContent = 'Sending…';
   msg.style.color = 'var(--text-dim)';
@@ -3334,22 +3396,15 @@ async function esSubmitForgotPassword() {
 // ── RESET PASSWORD (full-page view at #/reset-password?token=…) ─
 let _esResetToken = '';
 function esShowResetPassword(token) {
-  if (!token) {
-    showToast('Reset link is missing or invalid');
-    window.location.hash = '/';
-    return;
-  }
+  if (!token) { showToast('Reset link is missing or invalid'); window.location.hash = '/'; return; }
   _esResetToken = token;
   esHideAllPublicViews();
   const v = document.getElementById('es-reset-view');
-  if (v) {
-    v.style.display = 'block';
-    setTimeout(() => document.getElementById('es-reset-pw')?.focus(), 50);
-  }
+  if (v) { v.style.display = 'block'; setTimeout(() => document.getElementById('es-reset-pw')?.focus(), 50); }
 }
 
 async function esSubmitResetPassword() {
-  const pw  = document.getElementById('es-reset-pw').value;
+  const pw = document.getElementById('es-reset-pw').value;
   const pw2 = document.getElementById('es-reset-pw2').value;
   const msg = document.getElementById('es-reset-msg');
   if (pw.length < 8) { msg.textContent = 'Password must be at least 8 characters'; return; }
@@ -3382,7 +3437,6 @@ async function esHandleVerifyToken(token) {
   if (v) v.style.display = 'block';
   const msgEl = document.getElementById('es-verify-msg');
   const titleEl = v?.querySelector('h2');
-
   if (!token) {
     if (titleEl) titleEl.textContent = 'Verification link missing';
     if (msgEl) msgEl.textContent = 'The link in your email is incomplete. Open it directly from the email.';
@@ -3413,7 +3467,6 @@ async function esHandleVerifyToken(token) {
   }
 }
 
-// Hide all public-view containers before showing a specific one.
 function esHideAllPublicViews() {
   const overlay = document.getElementById('es-public-overlay');
   if (overlay) overlay.style.display = 'block';
@@ -3423,17 +3476,11 @@ function esHideAllPublicViews() {
   document.getElementById('es-auth-modal')?.classList.remove('open');
 }
 
-// ── EMAIL VERIFICATION BANNER ─────────────────────────────────
-// Shown on dashboard when ES_USER && !ES_USER.emailVerified.
 function esRenderVerifyBanner() {
   if (!ES_USER) return;
   let banner = document.getElementById('es-verify-banner');
-  if (ES_USER.emailVerified) {
-    if (banner) banner.remove();
-    return;
-  }
+  if (ES_USER.emailVerified) { if (banner) banner.remove(); return; }
   if (banner) return;
-
   banner = document.createElement('div');
   banner.id = 'es-verify-banner';
   banner.style.cssText = 'position:sticky;top:0;z-index:50;background:rgba(108,143,255,0.16);border-bottom:1px solid rgba(108,143,255,0.4);padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text);';
@@ -3442,34 +3489,25 @@ function esRenderVerifyBanner() {
     <button onclick="esResendVerification(this)" style="background:var(--primary);color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">Resend email</button>
     <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--text-faint);font-size:18px;cursor:pointer;line-height:1;" aria-label="Dismiss verification banner">×</button>
   `;
-  const target = document.body;
-  target.insertBefore(banner, target.firstChild);
+  document.body.insertBefore(banner, document.body.firstChild);
 }
 
 async function esResendVerification(btn) {
   if (!ES_USER) return;
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
+  btn.disabled = true; btn.textContent = 'Sending…';
   try {
     const res = await fetch(`${BACKEND_URL}/api/auth/resend-verification`, {
       method: 'POST',
-      headers: {
-        'Content-Type':'application/json',
-        'Authorization': `Bearer ${ES_USER.jwt}`,
-      },
+      headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${ES_USER.jwt}`},
     });
-    if (res.ok) {
-      btn.textContent = 'Sent ✓';
-      showToast('Verification email sent — check your inbox');
-    } else {
-      btn.textContent = 'Resend email';
-      btn.disabled = false;
+    if (res.ok) { btn.textContent = 'Sent ✓'; showToast('Verification email sent — check your inbox'); }
+    else {
+      btn.textContent = 'Resend email'; btn.disabled = false;
       const d = await res.json().catch(() => ({}));
       showToast(d.error || 'Could not resend — try again later');
     }
   } catch (e) {
-    btn.textContent = 'Resend email';
-    btn.disabled = false;
+    btn.textContent = 'Resend email'; btn.disabled = false;
     showToast('Connection error');
   }
 }
@@ -3479,7 +3517,6 @@ let _esAuthMode = 'signin';
 function esAuthTab(mode) {
   _esAuthMode = mode;
   const isRegister = mode === 'register';
-  // Reset to email/password form (hide any forgot-password sub-view)
   if (typeof esHideForgotPassword === 'function') esHideForgotPassword();
   const fl = document.getElementById('auth-forgot-link');
   if (fl) fl.style.display = isRegister ? 'none' : 'block';
@@ -3742,6 +3779,15 @@ function esHandleHash() {
   } else if (type === 'account') {
     const accountSection = document.getElementById('account');
     if (accountSection) accountSection.scrollIntoView({behavior:'smooth'});
+  } else if (type === 'verify') {
+    const token = hashQuery ? new URLSearchParams(hashQuery).get('token') : '';
+    esHandleVerifyToken(token);
+  } else if (type === 'reset-password') {
+    const token = hashQuery ? new URLSearchParams(hashQuery).get('token') : '';
+    esShowResetPassword(token);
+  } else if (type === 'forgot-password') {
+    esShowAuth('');
+    setTimeout(() => esShowForgotPassword(), 50);
   }
 }
 
@@ -3776,6 +3822,7 @@ function esDashTab(el, tab) {
   if (panelEl) panelEl.style.display = 'block';
   if (tab === 'subscriptions') esRenderInbox();
   if (tab === 'my-strands') esRenderMyStrands();
+  if (tab === 'personal') esRenderPersonalStrands();
   if (tab === 'my-braids') esRenderMyBraids();
 }
 
