@@ -834,10 +834,13 @@ function esShowAuth(reason) {
   const r = document.getElementById('auth-modal-reason');
   if (r && reason) r.textContent = reason;
   modal.classList.add('open');
-  // Lazy-render Google button into modal: GIS won't render into display:none containers,
-  // so we (re)render each time the modal opens, only if the slot is empty.
+  // Always clear and re-render the Google button when the modal opens.
+  // GIS can't render correctly into display:none containers — the iframe ends up with
+  // zero dimensions and stays invisible. Clearing innerHTML and re-rendering each time
+  // the modal becomes visible guarantees a properly sized, visible button.
   const modEl = document.getElementById('g_signin_modal');
-  if (modEl && modEl.childElementCount === 0 && window.google?.accounts?.id) {
+  if (modEl && window.google?.accounts?.id) {
+    modEl.innerHTML = '';
     google.accounts.id.renderButton(modEl, { theme:'filled_black', size:'large', width:280 });
   }
 }
@@ -1197,6 +1200,13 @@ async function esAuthSubmit() {
     const res  = await fetch(BACKEND_URL + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     const data = await res.json();
     if (!res.ok) { errEl.textContent = data.error || 'Something went wrong.'; return; }
+    // B-5: backend returns { ok: true } (no token/user) when email already exists,
+    // to prevent enumeration. Show a helpful message instead of crashing on data.user.handle.
+    if (!data.token || !data.user) {
+      errEl.style.color = 'var(--primary)';
+      errEl.textContent = 'Check your inbox — if an account already exists for this email, we sent you a sign-in reminder.';
+      return;
+    }
     esSetJwt(data.token);
     ES_USER = data.user;
     esSetStoredUser(data.user);
@@ -2779,12 +2789,12 @@ function esInitGIS() {
     callback: esAuthWithGoogle,
     auto_select: false,
   });
-  // Render in marketing section
+  // Render in marketing section only.
+  // Do NOT render into the auth modal here — the modal is display:none at page load,
+  // which causes GIS to render a zero-dimension iframe that stays invisible even after
+  // the modal opens. The modal slot is populated lazily in esShowAuth() instead.
   const mEl = document.getElementById('g_signin_marketing');
   if (mEl) google.accounts.id.renderButton(mEl, { theme:'filled_black', size:'large', width:280 });
-  // Render in auth modal
-  const modEl = document.getElementById('g_signin_modal');
-  if (modEl) google.accounts.id.renderButton(modEl, { theme:'filled_black', size:'large', width:280 });
 }
 
 // Close notif/analytics drawers on outside click
