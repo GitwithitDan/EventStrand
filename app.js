@@ -45,6 +45,8 @@ const CATEGORIES = [
   {id:'theater',emoji:'🎭',label:'Theater'},
   {id:'maintenance',emoji:'🔧',label:'Maintenance'},
   {id:'personal',emoji:'🎂',label:'Personal'},
+  {id:'spiritual',emoji:'🕊',label:'Spiritual'},
+  {id:'general',emoji:'📌',label:'General'},
 ];
 
 const DAYS_SHORT = ['mon','tue','wed','thu','fri','sat','sun'];
@@ -146,7 +148,7 @@ function removeEvent(uid) {
 }
 
 function bUpdateCount() {
-  const el = document.getElementById('event-count');
+  const el = document.getElementById('events-count');
   if (el) el.textContent = events.length + ' event' + (events.length !== 1 ? 's' : '');
 }
 
@@ -842,17 +844,124 @@ function esCloseAuth() {
   document.getElementById('auth-name').value = '';
 }
 
+// ── CURATED LIBRARY DEMO ──────────────────────────────────────
+function esInstallCuratedDemo() {
+  if (ES_USER) {
+    showToast('Curated strands launching soon — we\'ll notify you when ready');
+  } else {
+    esShowAuth('Sign in and we\'ll save your spot for curated strands');
+  }
+}
+
+// ── PERSONAL STRANDS — DASHBOARD TAB ──────────────────────────
+// Jump to builder with the personal type pre-selected. Lets users
+// bypass the "what type are you creating this for" picker when they
+// click into the Personal Strands tab and hit + New.
+function esGotoBuildPersonal() {
+  if (!ES_USER) { esShowAuth('Sign in to create a personal strand'); return; }
+  esGoto('home');
+  setTimeout(() => {
+    const el = document.getElementById('builder');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      const btn = document.querySelector('.type-btn[onclick*="\'personal\'"]');
+      if (btn) btn.click();
+    }, 350);
+  }, 100);
+}
+
+// Renders the Personal Strands tab. Pulls user strands and filters to
+// the personal type. Falls back to the built-in empty state if no
+// list element is present (defensive — the panel ID may not always exist).
+async function esRenderPersonalStrands() {
+  const listEl = document.getElementById('personal-strands-list');
+  if (!listEl) return;
+
+  try {
+    const res = await esFetch('/api/strands/mine');
+    if (!res.ok) return;
+    const data = await res.json();
+    const personal = (data.strands || []).filter(s => s.type === 'personal');
+
+    if (!personal.length) return; // keep the default empty state
+
+    listEl.innerHTML = personal.map(s => `
+      <div class="my-strand-card">
+        <div class="my-strand-card-head">
+          <div class="my-strand-card-title">${esc(s.title)}</div>
+          <div class="my-strand-card-meta">${s.events?.length || 0} event${(s.events?.length || 0) === 1 ? '' : 's'} · ${s.published ? 'live' : 'draft'}</div>
+        </div>
+        <div class="my-strand-card-actions">
+          <button class="btn btn-ghost" onclick="esEditStrand('${s._id}')">Edit</button>
+          ${s.published ? `<button class="btn btn-ghost" onclick="esViewPublicStrand('${s.publisherHandle}','${s._id}')">View</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    /* keep default empty state on error */
+  }
+}
+
+// ── MODAL FOCUS TRAP ──────────────────────────────────────────
+const _esFocusTraps = {};
+
+function esTrapFocus(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  const previouslyFocused = document.activeElement;
+  function getFocusable() {
+    return modal.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+  }
+  function handleKey(e) {
+    if (e.key === 'Escape') {
+      esReleaseFocus(modalId);
+      modal.dispatchEvent(new CustomEvent('es:dismiss'));
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    const focusable = getFocusable();
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+  modal.addEventListener('keydown', handleKey);
+  _esFocusTraps[modalId] = { handleKey, previouslyFocused };
+  const focusable = getFocusable();
+  if (focusable.length) focusable[0].focus();
+}
+
+function esReleaseFocus(modalId) {
+  const trap = _esFocusTraps[modalId];
+  if (!trap) return;
+  const modal = document.getElementById(modalId);
+  if (modal) modal.removeEventListener('keydown', trap.handleKey);
+  if (trap.previouslyFocused?.focus) { try { trap.previouslyFocused.focus(); } catch(_) {} }
+  delete _esFocusTraps[modalId];
+}
+
+['es-auth-modal', 'es-handle-modal'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const obs = new MutationObserver(() => {
+    if (el.classList.contains('open')) esTrapFocus(id);
+    else esReleaseFocus(id);
+  });
+  obs.observe(el, { attributes: true, attributeFilter: ['class'] });
+  el.addEventListener('es:dismiss', () => {
+    if (id === 'es-auth-modal') esCloseAuth();
+    else el.classList.remove('open');
+  });
+});
+
 // ── FORGOT PASSWORD (sub-view inside auth modal) ──────────────
 function esShowForgotPassword() {
-  // Hide normal form, show forgot form
-  const formEls = document.querySelectorAll('#es-auth-modal #auth-email, #es-auth-modal #auth-password, #es-auth-modal #auth-name, #es-auth-modal #auth-error, #es-auth-modal #auth-submit-btn, #es-auth-modal #auth-forgot-link');
-  formEls.forEach(el => { if (el) el.style.display = 'none'; });
-  // Hide tabs and account-type selector too
-  ['auth-tab-signin','auth-tab-register','auth-account-type','g_signin_modal','auth-modal-reason'].forEach(id => {
+  ['auth-email','auth-password','auth-name','auth-error','auth-submit-btn','auth-forgot-link','auth-tab-signin','auth-tab-register','auth-account-type','g_signin_modal','auth-modal-reason'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  // Hide any divider between Google and email — it's the parent's siblings; cheaper to hide them
   document.querySelectorAll('#es-auth-modal > .auth-modal-box > div').forEach(d => {
     if (d.querySelector('#g_signin_modal') || (d.textContent || '').toLowerCase().includes('continue with email')) {
       d.style.display = 'none';
@@ -860,28 +969,21 @@ function esShowForgotPassword() {
   });
   const ff = document.getElementById('auth-forgot-form');
   if (ff) ff.style.display = 'flex';
-  document.getElementById('auth-modal-reason')?.setAttribute('data-stashed','1');
 }
 
 function esHideForgotPassword() {
   const ff = document.getElementById('auth-forgot-form');
   if (ff) ff.style.display = 'none';
-  document.getElementById('auth-forgot-msg').textContent = '';
-  document.getElementById('auth-forgot-email').value = '';
-  // Restore normal form
-  const formEls = document.querySelectorAll('#es-auth-modal #auth-email, #es-auth-modal #auth-password, #es-auth-modal #auth-error, #es-auth-modal #auth-submit-btn, #es-auth-modal #auth-forgot-link');
-  formEls.forEach(el => { if (el) el.style.display = ''; });
-  ['auth-tab-signin','auth-tab-register','g_signin_modal','auth-modal-reason'].forEach(id => {
+  const msg = document.getElementById('auth-forgot-msg'); if (msg) msg.textContent = '';
+  const email = document.getElementById('auth-forgot-email'); if (email) email.value = '';
+  ['auth-email','auth-password','auth-error','auth-submit-btn','auth-forgot-link','auth-tab-signin','auth-tab-register','g_signin_modal','auth-modal-reason'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = '';
   });
-  // auth-name only visible in register mode
   const nameEl = document.getElementById('auth-name');
-  if (nameEl) nameEl.style.display = (_esAuthMode === 'register') ? 'block' : 'none';
-  // Account type only in register mode
+  if (nameEl) nameEl.style.display = (typeof _esAuthMode !== 'undefined' && _esAuthMode === 'register') ? 'block' : 'none';
   const acctEl = document.getElementById('auth-account-type');
-  if (acctEl) acctEl.style.display = (_esAuthMode === 'register') ? 'block' : 'none';
-  // Restore the divider/google sections
+  if (acctEl) acctEl.style.display = (typeof _esAuthMode !== 'undefined' && _esAuthMode === 'register') ? 'block' : 'none';
   document.querySelectorAll('#es-auth-modal > .auth-modal-box > div').forEach(d => {
     if (d.style.display === 'none' && (d.querySelector('#g_signin_modal') || (d.textContent || '').toLowerCase().includes('continue with email'))) {
       d.style.display = '';
@@ -891,7 +993,7 @@ function esHideForgotPassword() {
 
 async function esSubmitForgotPassword() {
   const email = document.getElementById('auth-forgot-email').value.trim();
-  const msg   = document.getElementById('auth-forgot-msg');
+  const msg = document.getElementById('auth-forgot-msg');
   if (!email) { msg.textContent = 'Enter your email address'; msg.style.color = '#ff6b6b'; return; }
   msg.textContent = 'Sending…';
   msg.style.color = 'var(--text-dim)';
@@ -908,7 +1010,7 @@ async function esSubmitForgotPassword() {
       return;
     }
     msg.textContent = 'If an account exists for that email, a reset link is on its way.';
-    msg.style.color = 'var(--green, #11DBA6)';
+    msg.style.color = '#11DBA6';
   } catch (e) {
     msg.textContent = 'Connection error — try again';
     msg.style.color = '#ff6b6b';
@@ -918,22 +1020,15 @@ async function esSubmitForgotPassword() {
 // ── RESET PASSWORD (full-page view at #/reset-password?token=…) ─
 let _esResetToken = '';
 function esShowResetPassword(token) {
-  if (!token) {
-    showToast('Reset link is missing or invalid');
-    window.location.hash = '/';
-    return;
-  }
+  if (!token) { showToast('Reset link is missing or invalid'); window.location.hash = '/'; return; }
   _esResetToken = token;
   esHideAllPublicViews();
   const v = document.getElementById('es-reset-view');
-  if (v) {
-    v.style.display = 'block';
-    setTimeout(() => document.getElementById('es-reset-pw')?.focus(), 50);
-  }
+  if (v) { v.style.display = 'block'; setTimeout(() => document.getElementById('es-reset-pw')?.focus(), 50); }
 }
 
 async function esSubmitResetPassword() {
-  const pw  = document.getElementById('es-reset-pw').value;
+  const pw = document.getElementById('es-reset-pw').value;
   const pw2 = document.getElementById('es-reset-pw2').value;
   const msg = document.getElementById('es-reset-msg');
   if (pw.length < 8) { msg.textContent = 'Password must be at least 8 characters'; return; }
@@ -947,11 +1042,10 @@ async function esSubmitResetPassword() {
     });
     const d = await res.json().catch(() => ({}));
     if (!res.ok) { msg.textContent = d.error || 'Could not reset password'; return; }
-    // Auto sign in with the new token
     if (d.token && d.user) {
       ES_USER = { ...d.user, jwt: d.token };
       try { localStorage.setItem('es_user', JSON.stringify(ES_USER)); } catch(_) {}
-      esRenderAuthState();
+      if (typeof esRenderAuthState === 'function') esRenderAuthState();
     }
     showToast('✓ Password reset — you\'re signed in');
     window.location.hash = ES_USER ? '/dashboard' : '/';
@@ -967,13 +1061,11 @@ async function esHandleVerifyToken(token) {
   if (v) v.style.display = 'block';
   const msgEl = document.getElementById('es-verify-msg');
   const titleEl = v?.querySelector('h2');
-
   if (!token) {
     if (titleEl) titleEl.textContent = 'Verification link missing';
-    if (msgEl) msgEl.textContent = 'The link in your email is incomplete. Try opening it directly from the email.';
+    if (msgEl) msgEl.textContent = 'The link in your email is incomplete. Open it directly from the email.';
     return;
   }
-
   try {
     const res = await fetch(`${BACKEND_URL}/api/auth/verify-email`, {
       method: 'POST',
@@ -988,11 +1080,10 @@ async function esHandleVerifyToken(token) {
     }
     if (titleEl) titleEl.textContent = 'Email verified ✓';
     if (msgEl) msgEl.textContent = `${d.email} is confirmed. You're all set.`;
-    // If signed in, refresh user state
     if (ES_USER) {
       ES_USER.emailVerified = true;
       try { localStorage.setItem('es_user', JSON.stringify(ES_USER)); } catch(_) {}
-      esRenderAuthState();
+      if (typeof esRenderAuthState === 'function') esRenderAuthState();
     }
   } catch (e) {
     if (titleEl) titleEl.textContent = 'Connection error';
@@ -1000,77 +1091,57 @@ async function esHandleVerifyToken(token) {
   }
 }
 
-// Helper: hide all public-view containers before showing one.
-// Defined here in case it doesn't exist elsewhere (best-effort selector match).
 function esHideAllPublicViews() {
   const overlay = document.getElementById('es-public-overlay');
   if (overlay) overlay.style.display = 'block';
   document.querySelectorAll('.public-view, [id^="es-public-"], #es-verify-view, #es-reset-view').forEach(el => {
     if (el && el.style) el.style.display = 'none';
   });
-  // Also close any modals
   document.getElementById('es-auth-modal')?.classList.remove('open');
 }
 
-// ── EMAIL VERIFICATION BANNER ─────────────────────────────────
-// Shown on dashboard when ES_USER && !ES_USER.emailVerified.
-// Inserts a one-line banner with a "Resend verification email" button.
 function esRenderVerifyBanner() {
   if (!ES_USER) return;
   let banner = document.getElementById('es-verify-banner');
-  if (ES_USER.emailVerified) {
-    if (banner) banner.remove();
-    return;
-  }
-  if (banner) return; // already shown
-
+  if (ES_USER.emailVerified) { if (banner) banner.remove(); return; }
+  if (banner) return;
   banner = document.createElement('div');
   banner.id = 'es-verify-banner';
   banner.style.cssText = 'position:sticky;top:0;z-index:50;background:rgba(108,143,255,0.16);border-bottom:1px solid rgba(108,143,255,0.4);padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text);';
   banner.innerHTML = `
-    <span>📧 Please verify your email (${esc(ES_USER.email)}) to unlock all features.</span>
+    <span>📧 Please verify your email (${(typeof esc === 'function' ? esc(ES_USER.email) : ES_USER.email)}) to unlock all features.</span>
     <button onclick="esResendVerification(this)" style="background:var(--primary);color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">Resend email</button>
     <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--text-faint);font-size:18px;cursor:pointer;line-height:1;" aria-label="Dismiss verification banner">×</button>
   `;
-  // Insert at the top of the public overlay or app container
-  const target = document.getElementById('es-public-overlay') || document.body;
-  target.insertBefore(banner, target.firstChild);
+  document.body.insertBefore(banner, document.body.firstChild);
 }
 
 async function esResendVerification(btn) {
   if (!ES_USER) return;
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
+  btn.disabled = true; btn.textContent = 'Sending…';
   try {
     const res = await fetch(`${BACKEND_URL}/api/auth/resend-verification`, {
       method: 'POST',
-      headers: {
-        'Content-Type':'application/json',
-        'Authorization': `Bearer ${ES_USER.jwt}`,
-      },
+      headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + esGetJwt()},
     });
-    if (res.ok) {
-      btn.textContent = 'Sent ✓';
-      showToast('Verification email sent — check your inbox');
-    } else {
-      btn.textContent = 'Resend email';
-      btn.disabled = false;
+    if (res.ok) { btn.textContent = 'Sent ✓'; showToast('Verification email sent — check your inbox'); }
+    else {
+      btn.textContent = 'Resend email'; btn.disabled = false;
       const d = await res.json().catch(() => ({}));
       showToast(d.error || 'Could not resend — try again later');
     }
   } catch (e) {
-    btn.textContent = 'Resend email';
-    btn.disabled = false;
+    btn.textContent = 'Resend email'; btn.disabled = false;
     showToast('Connection error');
   }
 }
+
 
 let _esAuthMode = 'signin';
 function esAuthTab(mode) {
   _esAuthMode = mode;
   const isRegister = mode === 'register';
-  // Reset to email/password form (hide forgot-password sub-view)
-  esHideForgotPassword();
+  if (typeof esHideForgotPassword === 'function') esHideForgotPassword();
   const fl = document.getElementById('auth-forgot-link');
   if (fl) fl.style.display = isRegister ? 'none' : 'block';
   document.getElementById('auth-tab-signin').style.borderBottomColor    = isRegister ? 'transparent' : 'var(--primary)';
@@ -1083,91 +1154,7 @@ function esAuthTab(mode) {
   document.getElementById('auth-error').textContent = '';
 }
 
-// ── CURATED LIBRARY DEMO ──────────────────────────────────────
-// The 6 marketing-section "+ Install" buttons are demos. Real curated
-// strands aren't seeded yet. Show auth modal for signed-out users,
-// or a friendly "coming soon" toast for signed-in users.
-function esInstallCuratedDemo() {
-  if (ES_USER) {
-    showToast('Curated strands launching soon — we\'ll notify you when ready');
-  } else {
-    esShowAuth('Sign in and we\'ll save your spot for curated strands');
-  }
-}
-
-// ── MODAL FOCUS TRAP ──────────────────────────────────────────
-// Keep keyboard focus inside an open modal. Restores focus to the
-// triggering element on close. Activated when modal becomes visible.
-const _esFocusTraps = {};
-
-function esTrapFocus(modalId) {
-  const modal = document.getElementById(modalId);
-  if (!modal) return;
-  const previouslyFocused = document.activeElement;
-
-  function getFocusable() {
-    return modal.querySelectorAll(
-      'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    );
-  }
-
-  function handleKey(e) {
-    if (e.key === 'Escape') {
-      esReleaseFocus(modalId);
-      // Each modal has its own close path; fire a custom event the modal can listen to
-      modal.dispatchEvent(new CustomEvent('es:dismiss'));
-      return;
-    }
-    if (e.key !== 'Tab') return;
-    const focusable = getFocusable();
-    if (!focusable.length) return;
-    const first = focusable[0];
-    const last  = focusable[focusable.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  }
-
-  modal.addEventListener('keydown', handleKey);
-  _esFocusTraps[modalId] = { handleKey, previouslyFocused };
-
-  // Move focus to first focusable element
-  const focusable = getFocusable();
-  if (focusable.length) focusable[0].focus();
-}
-
-function esReleaseFocus(modalId) {
-  const trap = _esFocusTraps[modalId];
-  if (!trap) return;
-  const modal = document.getElementById(modalId);
-  if (modal) modal.removeEventListener('keydown', trap.handleKey);
-  if (trap.previouslyFocused && trap.previouslyFocused.focus) {
-    try { trap.previouslyFocused.focus(); } catch(_) {}
-  }
-  delete _esFocusTraps[modalId];
-}
-
-// Auto-trap when these modals open. Uses MutationObserver on .open class.
-['es-auth-modal', 'es-handle-modal'].forEach(id => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const obs = new MutationObserver(() => {
-    if (el.classList.contains('open')) esTrapFocus(id);
-    else esReleaseFocus(id);
-  });
-  obs.observe(el, { attributes: true, attributeFilter: ['class'] });
-  // Wire up dismiss listener
-  el.addEventListener('es:dismiss', () => {
-    if (id === 'es-auth-modal') esCloseAuth();
-    else el.classList.remove('open');
-  });
-});
-
-// // Highlight selected account type radio border
+// Highlight selected account type radio border
 (function() {
   function syncAccountTypeHighlight() {
     const personal = document.getElementById('auth-type-personal');
@@ -1395,15 +1382,7 @@ function _showView(view, params) {
 }
 
 function esHandleHash() {
-  let hash = window.location.hash.replace('#','');
-  // SSR fallback: if no hash but path matches /s/, /b/, or /p/, use pathname.
-  // This lets server-rendered pages hydrate via the same router without changing URLs.
-  if (!hash) {
-    const path = window.location.pathname;
-    if (/^\/(s|b|p)\//.test(path)) {
-      hash = path + window.location.search;
-    }
-  }
+  const hash = window.location.hash.replace('#','');
   if (!hash || hash === '/') return;
   // Split off any query string appended by the 404 redirect shim (e.g. ?src=qr)
   const [hashPath, hashQuery] = hash.split('?');
@@ -1418,10 +1397,18 @@ function esHandleHash() {
     esLoadPublicProfile(parts[1]);
   } else if (type === 'dashboard' && ES_USER) {
     esGoto('dashboard');
+  } else if (type === 'builder') {
+    const builderSection = document.getElementById('builder');
+    if (builderSection) builderSection.scrollIntoView({behavior:'smooth'});
+  } else if (type === 'account') {
+    const accountSection = document.getElementById('account');
+    if (accountSection) accountSection.scrollIntoView({behavior:'smooth'});
   } else if (type === 'verify') {
-    esHandleVerifyToken(hashQuery ? new URLSearchParams(hashQuery).get('token') : '');
+    const token = hashQuery ? new URLSearchParams(hashQuery).get('token') : '';
+    esHandleVerifyToken(token);
   } else if (type === 'reset-password') {
-    esShowResetPassword(hashQuery ? new URLSearchParams(hashQuery).get('token') : '');
+    const token = hashQuery ? new URLSearchParams(hashQuery).get('token') : '';
+    esShowResetPassword(token);
   } else if (type === 'forgot-password') {
     esShowAuth('');
     setTimeout(() => esShowForgotPassword(), 50);
@@ -1459,6 +1446,7 @@ function esDashTab(el, tab) {
   if (panelEl) panelEl.style.display = 'block';
   if (tab === 'subscriptions') esRenderInbox();
   if (tab === 'my-strands') esRenderMyStrands();
+  if (tab === 'personal') esRenderPersonalStrands();
   if (tab === 'my-braids') esRenderMyBraids();
 }
 
@@ -1528,7 +1516,7 @@ async function esLoadUpcoming() {
             <div class="efi-meta">${ev.venue||''}${ev.time?' · '+ev.time:''}</div>
             <div class="efi-strand">→ ${ev.strandTitle||''}</div>
             <div class="efi-actions">
-              <button class="efi-btn-interested${esIsInterested(ev.id||ev._id,ev.date)?' active':''}" onclick="esToggleInterested(this,${JSON.stringify(ev).replace(/'/g,'&#39;')})" title="Maybe interested">🤔 Maybe</button>
+              <button class="efi-btn-star${esIsInterested(ev.id||ev._id,ev.date)?' active':''}" onclick="esToggleInterested(this,${JSON.stringify(ev).replace(/'/g,'&#39;')})" title="Star this event">${esIsInterested(ev.id||ev._id,ev.date)?'★':'☆'}</button>
             </div>
           </div>
         </div>`).join('');
@@ -2020,4 +2008,1160 @@ async function esEditStrand(strandId) {
         setVal('pub-name', pub.name);
         setVal('pub-desc', pub.description);
         setVal('pub-tz', pub.timezone);
-        const colorEl = docum
+        const colorEl = document.getElementById('pub-color');
+        if (colorEl) colorEl.value = pub.color;
+        bUpdatePreview();
+        bUpdatePreviewColor(pub.color);
+        // Re-render all event cards
+        const stack = document.getElementById('events-list');
+        const count = document.getElementById('events-count');
+        if (stack) {
+          stack.innerHTML = '';
+          events.forEach(ev => renderEventCard(ev, true));
+        }
+        bUpdateCount();
+        bGoto(0);
+        esShowBuilderQR(s);
+        showToast(`Editing: ${s.title}`);
+      }, 300);
+    }
+  } catch(e) {
+    showToast('Could not load strand for editing');
+  }
+}
+
+// Quick-publish a draft strand from My Strands without re-opening the builder
+async function esPublishExistingStrand(strandId, btn) {
+  try {
+    btn.disabled = true;
+    btn.textContent = 'Publishing…';
+    const res = await esFetch(`/api/strands/${strandId}/publish`, { method: 'POST' });
+    const d = await res.json();
+    if (!res.ok) { showToast(d.error || 'Could not publish'); btn.disabled = false; btn.textContent = 'Publish →'; return; }
+    showToast('🟢 Strand is live!');
+    esRenderMyStrands(); // refresh the list
+  } catch(e) {
+    showToast('Connection error');
+    btn.disabled = false; btn.textContent = 'Publish →';
+  }
+}
+
+// ── QR DISPLAY ────────────────────────────────────────────────
+function esShowStrandQR(strandId, title) {
+  const url = `https://eventstrand.com/s/${ES_USER.handle}/${strandId}?src=qr`;
+  esShowQRModal(url, title);
+}
+
+function esShowBraidQR(braidId, title) {
+  const url = `https://eventstrand.com/b/${ES_USER.handle}/${braidId}?src=qr`;
+  esShowQRModal(url, title);
+}
+
+function esShowQRModal(url, title) {
+  showToast(`QR for: ${url}`);
+  // QR generation via canvas API
+  const existing = document.getElementById('es-qr-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'es-qr-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(4,6,26,0.85);display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:32px;max-width:360px;width:90%;text-align:center;">
+    <div style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:16px;color:var(--text);">${title}</div>
+    <canvas id="qr-canvas" style="border-radius:12px;margin-bottom:16px;"></canvas>
+    <div class="strand-url" style="margin-bottom:16px;">${url}</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="esDownloadQR()">Download QR</button>
+      <button class="btn btn-ghost" style="flex:1;justify-content:center;" onclick="navigator.clipboard?.writeText('${url}');showToast('📋 Copied')">Copy Link</button>
+    </div>
+    <button onclick="document.getElementById('es-qr-modal').remove()" style="margin-top:16px;background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:13px;">Close</button>
+  </div>`;
+  document.body.appendChild(modal);
+  esRenderQR('qr-canvas', url);
+}
+
+function esRenderQR(canvasId, url) {
+  // Simple QR code via API image (real implementation would use a JS QR library)
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  canvas.width = 200; canvas.height = 200;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0,0,200,200);
+  // Load QR image from backend
+  const img = new Image();
+  img.onload = () => ctx.drawImage(img, 0, 0, 200, 200);
+  img.src = `${BACKEND_URL}/api/qr?url=${encodeURIComponent(url)}`;
+}
+
+function esDownloadQR() {
+  const canvas = document.getElementById('qr-canvas');
+  if (!canvas) return;
+  const a = document.createElement('a');
+  a.download = 'eventstrand-qr.png';
+  a.href = canvas.toDataURL();
+  a.click();
+}
+
+// ── BRAID BUILDER ─────────────────────────────────────────────
+let _braidSelectedStrands = new Set();
+let _braidVis = 'public';
+
+async function esRenderBraidBuilder() {
+  _braidSelectedStrands = new Set();
+  _braidVis = 'public';
+  const picker = document.getElementById('braid-strand-picker');
+  if (!picker) return;
+  if (!ES_USER) { esShowAuth(); return; }
+  picker.innerHTML = '<div style="color:var(--text-faint);font-size:13px;padding:12px;">Loading your strands…</div>';
+  try {
+    const res = await esFetch('/api/strands/mine');
+    const d = await res.json();
+    if (!d.strands?.length) {
+      picker.innerHTML = '<div style="color:var(--text-faint);font-size:13px;padding:12px;">You have no published strands yet. <button onclick="esGotoBuild()" style="background:none;border:none;color:var(--primary);cursor:pointer;">Build one first</button></div>';
+      return;
+    }
+    picker.innerHTML = d.strands.map(s => `
+      <div class="strand-picker-row" id="spick-${s._id}" onclick="esToggleBraidStrand('${s._id}',this)">
+        <div class="strand-picker-check"></div>
+        <div>${s.title}</div>
+        <div style="font-size:12px;color:var(--text-faint);margin-left:auto;">${s.events?.length||0} events</div>
+      </div>`).join('');
+  } catch(e) {
+    picker.innerHTML = '<div style="color:var(--text-faint);padding:12px;">Could not load strands</div>';
+  }
+}
+
+function esToggleBraidStrand(id, el) {
+  if (_braidSelectedStrands.has(id)) { _braidSelectedStrands.delete(id); el.classList.remove('selected'); }
+  else { _braidSelectedStrands.add(id); el.classList.add('selected'); }
+  const check = el.querySelector('.strand-picker-check');
+  if (check) check.textContent = _braidSelectedStrands.has(id) ? '✓' : '';
+}
+
+function esSetBraidVis(vis, btn) {
+  _braidVis = vis;
+  document.querySelectorAll('.vis-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('braid-passcode').style.display = vis === 'protected' ? 'block' : 'none';
+}
+
+let _braidSearchTimer = null;
+function esSearchPublicStrands(val) {
+  clearTimeout(_braidSearchTimer);
+  const results = document.getElementById('braid-strand-search-results');
+  if (!val || val.length < 2) { if(results) results.innerHTML = ''; return; }
+  _braidSearchTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/public/strands/search?q=${encodeURIComponent(val)}`);
+      const d = await res.json();
+      if (results) results.innerHTML = (d.strands||[]).slice(0,5).map(s =>
+        `<div class="strand-picker-row" id="spick-pub-${s._id}" onclick="esToggleBraidStrand('${s._id}',this)">
+          <div class="strand-picker-check"></div>
+          <div>${s.title}</div>
+          <div style="font-size:12px;color:var(--text-faint);margin-left:auto;">@${s.publisherHandle}</div>
+        </div>`).join('');
+    } catch(e) {}
+  }, 400);
+}
+
+async function esPublishBraid() {
+  const name = document.getElementById('braid-name').value.trim();
+  const desc = document.getElementById('braid-desc').value.trim();
+  const passcode = document.getElementById('braid-passcode').value.trim();
+  if (!name) { showToast('Add a braid name first'); return; }
+  if (!_braidSelectedStrands.size) { showToast('Select at least one strand'); return; }
+  try {
+    const res = await esFetch('/api/braids', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: name, description: desc,
+        strandIds: [..._braidSelectedStrands],
+        visibility: _braidVis,
+        accessCode: _braidVis === 'protected' ? passcode : undefined
+      })
+    });
+    const d = await res.json();
+    if (!res.ok) { showToast(d.error||'Could not create braid'); return; }
+    showToast('🪢 Braid published!');
+    const panel = document.getElementById('braid-qr-panel');
+    const url = `https://eventstrand.com/b/${ES_USER.handle}/${d.braid._id}`;
+    panel.style.display = 'block';
+    panel.innerHTML = `<div class="strand-url">${url}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="esShowBraidQR('${d.braid._id}','${name}')">⬛ Show QR Code</button>
+        <button class="btn btn-ghost" onclick="navigator.clipboard?.writeText('${url}');showToast('📋 Copied')">Copy Link</button>
+        <button class="btn btn-ghost" onclick="esGoto('dashboard')" title="View in dashboard">View in Dashboard</button>
+      </div>`;
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+// ── WORKSPACES ────────────────────────────────────────────────
+let _wsNewIcon = '🌅';
+
+async function esLoadWorkspaces() {
+  try {
+    const res = await esFetch('/api/user/workspaces');
+    const d = await res.json();
+    ES_WORKSPACES = d.workspaces || [];
+    if (!ES_WORKSPACES.length) await esCreateDefaultWorkspace();
+    _activeWorkspaceId = ES_WORKSPACES.find(w=>w.isActive)?._id || ES_WORKSPACES[0]?._id || null;
+  } catch(e) {}
+}
+
+async function esCreateDefaultWorkspace() {
+  try {
+    const res = await esFetch('/api/user/workspaces', {method:'POST', body:JSON.stringify({name:'My Strands',icon:'🌅'})});
+    const d = await res.json();
+    if (d.workspace) ES_WORKSPACES = [d.workspace];
+  } catch(e) {}
+}
+
+async function esRenderWorkspaces() {
+  const list = document.getElementById('workspaces-list');
+  if (!list) return;
+  list.innerHTML = ES_WORKSPACES.map(ws => `
+    <div class="ws-card">
+      <div class="ws-icon">${ws.icon||'📁'}</div>
+      <div style="flex:1;">
+        <div class="ws-name">${esc(ws.name)}</div>
+        <div class="ws-meta">${ws.strandCount||0} strands · ${ws.braidCount||0} braids</div>
+      </div>
+      ${ws.isActive?'<span class="ws-active-badge">Active</span>':''}
+      <div class="ws-actions">
+        ${!ws.isActive?`<button class="sc-btn" onclick="esSetActiveWorkspaceDb('${ws._id}')">Set active</button>`:''}
+        <button class="sc-btn" onclick="esRenameWorkspace('${ws._id}','${escAttr(ws.name)}')">Rename</button>
+        <button class="sc-btn" onclick="esDeleteWorkspace('${ws._id}')" style="color:var(--red);">Delete</button>
+      </div>
+    </div>`).join('') || '<div style="color:var(--text-faint);padding:20px;">No workspaces yet</div>';
+}
+
+function esSetWsIcon(el, icon) {
+  _wsNewIcon = icon;
+  document.getElementById('ws-new-icon').value = icon;
+  document.querySelectorAll('#new-workspace-form span[onclick]').forEach(s => s.style.opacity = '0.4');
+  el.style.opacity = '1';
+}
+
+function esShowNewWorkspace() {
+  document.getElementById('new-workspace-form').style.display = 'block';
+}
+
+async function esCreateWorkspace() {
+  const name = document.getElementById('ws-new-name').value.trim();
+  if (!name) { showToast('Enter a workspace name'); return; }
+  try {
+    const res = await esFetch('/api/user/workspaces', {method:'POST', body:JSON.stringify({name, icon:_wsNewIcon})});
+    const d = await res.json();
+    if (!res.ok) { showToast(d.error||'Could not create workspace'); return; }
+    ES_WORKSPACES.push(d.workspace);
+    document.getElementById('new-workspace-form').style.display = 'none';
+    document.getElementById('ws-new-name').value = '';
+    esRenderWorkspaces();
+    showToast('✓ Workspace created');
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+async function esSetActiveWorkspaceDb(id) {
+  try {
+    await esFetch(`/api/user/workspaces/${id}/activate`, {method:'POST'});
+    ES_WORKSPACES.forEach(w => w.isActive = w._id === id);
+    _activeWorkspaceId = id;
+    esRenderWorkspaces();
+    esRenderWorkspaceBar();
+  } catch(e) { showToast('Could not set active workspace'); }
+}
+
+async function esDeleteWorkspace(id) {
+  if (ES_WORKSPACES.length <= 1) { showToast('You must have at least one workspace'); return; }
+  try {
+    await esFetch(`/api/user/workspaces/${id}`, {method:'DELETE'});
+    ES_WORKSPACES = ES_WORKSPACES.filter(w => w._id !== id);
+    esRenderWorkspaces();
+  } catch(e) { showToast('Could not delete workspace'); }
+}
+
+
+// ── VENUE GUIDES ─────────────────────────────────────────────────
+
+function esShowVenueGuide(platform) {
+  const area = document.getElementById('vg-guide-area');
+  if (!platform) { area.style.display = 'none'; return; }
+  area.style.display = 'block';
+  document.querySelectorAll('.vg-guide').forEach(el => el.style.display = 'none');
+  const guide = document.getElementById('vg-' + platform);
+  if (guide) guide.style.display = 'block';
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function esScrollToVenueGuides(e) {
+  e.preventDefault();
+  const section = document.getElementById('venue-guides');
+  if (section) section.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── DIRECTORY OPT-IN ──────────────────────────────────────────────
+
+function esToggleDirectoryBlock(checked) {
+  const urlBlock = document.getElementById('builder-dir-url-block');
+  if (urlBlock) urlBlock.style.display = checked ? 'block' : 'none';
+}
+
+// Populate directory fields when loading a strand into the builder for edit
+function esPopulateDirectoryFields(strand) {
+  const cb     = document.getElementById('builder-dir-checkbox');
+  const urlEl  = document.getElementById('builder-dir-url');
+  const status = document.getElementById('builder-dir-status');
+  if (!cb) return;
+
+  cb.checked = !!strand.directoryOptIn;
+  esToggleDirectoryBlock(cb.checked);
+
+  if (urlEl && strand.directoryVerificationUrl) {
+    urlEl.value = strand.directoryVerificationUrl;
+  }
+
+  if (status) {
+    const map = {
+      none:     '',
+      pending:  '⏳ Verification running…',
+      verified: '✓ Verified — your strand is in the directory',
+      flagged:  '⚑ Could not verify automatically — flagged for manual review',
+    };
+    const s = strand.directoryStatus || 'none';
+    status.textContent = map[s] || '';
+    status.style.color = s === 'verified' ? '#00d26a' : s === 'flagged' ? '#ff5a5a' : 'var(--text-faint)';
+
+    // Show re-verify button if previously submitted and not pending
+    const btn = document.getElementById('builder-dir-submit-btn');
+    if (btn && strand.directoryOptIn && s !== 'pending') {
+      btn.textContent = s === 'verified' ? '🔄 Re-verify' : '🔄 Try again';
+    }
+  }
+}
+
+// Poll for status update when pending
+let _dirPollTimer = null;
+function esStartDirectoryPoll(strandId) {
+  if (_dirPollTimer) clearInterval(_dirPollTimer);
+  _dirPollTimer = setInterval(async () => {
+    try {
+      const res = await esFetch(`/api/directory/${strandId}/status`);
+      if (!res.ok) { clearInterval(_dirPollTimer); return; }
+      const d = await res.json();
+      const status = document.getElementById('builder-dir-status');
+      const btn    = document.getElementById('builder-dir-submit-btn');
+      if (d.status !== 'pending') {
+        clearInterval(_dirPollTimer);
+        _dirPollTimer = null;
+        if (status) {
+          if (d.status === 'verified') {
+            status.textContent = '✓ Verified — your strand is in the directory';
+            status.style.color = '#00d26a';
+          } else {
+            status.textContent = '⚑ Could not verify automatically — our team will review it';
+            status.style.color = '#ff5a5a';
+          }
+        }
+        if (btn) btn.textContent = '🔄 Re-verify';
+        esRenderMyStrands(); // refresh dashboard badges
+      }
+    } catch(e) { clearInterval(_dirPollTimer); }
+  }, 4000); // poll every 4 seconds
+}
+
+async function esSubmitToDirectory() {
+  if (!_builderStrandId) {
+    showToast('Publish your strand first before submitting to the directory');
+    return;
+  }
+  const urlEl  = document.getElementById('builder-dir-url');
+  const status = document.getElementById('builder-dir-status');
+  const btn    = document.getElementById('builder-dir-submit-btn');
+  const url    = urlEl?.value?.trim();
+
+  if (!url) {
+    showToast('Enter the URL where you\'ve posted your strand link or QR code');
+    urlEl?.focus();
+    return;
+  }
+  try { new URL(url); } catch(e) {
+    showToast('Enter a full URL including https://');
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  if (status) { status.textContent = '⏳ Submitting…'; status.style.color = 'var(--text-faint)'; }
+
+  try {
+    // Check if already submitted (re-verify path)
+    const isReverify = btn && (btn.textContent.includes('Re-verify') || btn.textContent.includes('Try again'));
+    const endpoint   = isReverify
+      ? `/api/directory/${_builderStrandId}/reverify`
+      : `/api/directory/${_builderStrandId}/submit`;
+    const body       = isReverify ? {} : { verificationUrl: url };
+
+    const res = await esFetch(endpoint, { method: 'POST', body: JSON.stringify(body) });
+    const d   = await res.json();
+
+    if (!res.ok) {
+      if (status) { status.textContent = d.error || 'Submission failed'; status.style.color = '#ff5a5a'; }
+      if (btn) btn.disabled = false;
+      return;
+    }
+
+    if (status) { status.textContent = '⏳ Verification running — this takes about a minute…'; status.style.color = '#ffc107'; }
+    if (btn) { btn.textContent = 'Verifying…'; }
+    esStartDirectoryPoll(_builderStrandId);
+
+  } catch(e) {
+    if (e.message !== '401') showToast('Connection error');
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ── STRAND / BRAID MANAGEMENT ────────────────────────────────
+
+async function esDeleteStrand(strandId, title) {
+  if (!confirm(`Delete "${title}"? This cannot be undone and will remove it from all subscriber workspaces.`)) return;
+  try {
+    const res = await esFetch(`/api/strands/${strandId}`, {method:'DELETE'});
+    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not delete'); return; }
+    showToast('Strand deleted');
+    esRenderMyStrands();
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+async function esDeleteBraid(braidId, title) {
+  if (!confirm(`Delete braid "${title}"? This cannot be undone.`)) return;
+  try {
+    const res = await esFetch(`/api/braids/${braidId}`, {method:'DELETE'});
+    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not delete'); return; }
+    showToast('Braid deleted');
+    esRenderMyBraids();
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+async function esEditBraid(braidId) {
+  try {
+    const mineRes = await esFetch('/api/braids/mine');
+    const d = await mineRes.json();
+    const braid = d.braids?.find(b => b._id === braidId);
+    if (!braid) { showToast('Could not load braid'); return; }
+    const newTitle = prompt('Braid title:', braid.title);
+    if (newTitle === null) return;
+    const newDesc  = prompt('Description (optional):', braid.description || '');
+    if (newDesc === null) return;
+    const body = { title: newTitle.trim() || braid.title };
+    if (newDesc.trim() !== (braid.description || '')) body.description = newDesc.trim();
+    const saveRes = await esFetch(`/api/braids/${braidId}`, { method: 'PUT', body: JSON.stringify(body) });
+    if (!saveRes.ok) { const e = await saveRes.json(); showToast(e.error||'Could not update braid'); return; }
+    showToast('✓ Braid updated');
+    esRenderMyBraids();
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+async function esRenameWorkspace(wsId, currentName) {
+  const newName = prompt('Rename workspace:', currentName);
+  if (!newName || !newName.trim() || newName.trim() === currentName) return;
+  try {
+    const res = await esFetch(`/api/user/workspaces/${wsId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name: newName.trim() }),
+    });
+    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not rename'); return; }
+    const ws = ES_WORKSPACES.find(w => w._id === wsId);
+    if (ws) ws.name = newName.trim();
+    esRenderWorkspaces();
+    esRenderWorkspaceBar();
+    showToast('✓ Workspace renamed');
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+// ── ACCOUNT SETTINGS ──────────────────────────────────────────
+function esRenderAccount() {
+  if (!ES_USER) return;
+  const pic = document.getElementById('settings-profile-pic');
+  const name = document.getElementById('settings-display-name');
+  const nameRow = document.getElementById('settings-display-name-row');
+  const email = document.getElementById('settings-email-display');
+  const handle = document.getElementById('settings-handle');
+  if (pic) {
+    if (ES_USER.picture) pic.innerHTML = `<img src="${ES_USER.picture}">`;
+    else pic.textContent = (ES_USER.displayName||'?')[0].toUpperCase();
+  }
+  if (name) name.textContent = ES_USER.displayName||'—';
+  if (nameRow) nameRow.textContent = ES_USER.displayName||'—';
+  if (email) email.textContent = ES_USER.email||'—';
+  if (handle) handle.textContent = '@' + (ES_USER.handle||'—');
+  esLoadApiKeys();
+}
+
+async function esEditHandle() {
+  const newHandle = prompt('New handle (letters, numbers, - and _ only):', ES_USER.handle||'');
+  if (!newHandle || newHandle === ES_USER.handle) return;
+  if (!/^[a-zA-Z0-9_-]{3,30}$/.test(newHandle)) { showToast('Invalid handle — letters, numbers, - and _ only (3-30 chars)'); return; }
+  try {
+    const res = await esFetch('/api/auth/set-handle', {method:'POST', body:JSON.stringify({handle:newHandle})});
+    const d = await res.json();
+    if (!res.ok) { showToast(d.error||'Could not update handle'); return; }
+    ES_USER.handle = newHandle;
+    esSetStoredUser(ES_USER);
+    esRenderAccount();
+    esRenderMarketingAuth();
+    showToast('✓ Handle updated — old URLs redirect automatically');
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+async function esEditDisplayName() {
+  const newName = prompt('Display name:', ES_USER.displayName||'');
+  if (!newName || newName === ES_USER.displayName) return;
+  try {
+    const res = await esFetch('/api/auth/profile', {method:'PATCH', body:JSON.stringify({displayName:newName})});
+    if (!res.ok) { showToast('Could not update name'); return; }
+    ES_USER.displayName = newName;
+    esSetStoredUser(ES_USER);
+    esRenderAccount();
+    esRenderMarketingAuth();
+    esRenderNavAuth();
+    showToast('✓ Name updated');
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+async function esExportAll() {
+  try {
+    const res = await esFetch('/api/strands/mine');
+    const d = await res.json();
+    if (!d.strands?.length) { showToast('No strands to export'); return; }
+    d.strands.forEach(s => {
+      const cleanEvents = (s.events||[]).map(ev => {
+        const e = {};
+        if (ev.title)    e.title    = ev.title;
+        if (ev.category) e.category = ev.category;
+        if (ev.vibes?.length) e.vibes = ev.vibes;
+        if (ev.price && ev.price !== 'free') e.price = ev.price;
+        if (ev.price_note)    e.price_note    = ev.price_note;
+        if (ev.ticket_url)    e.ticket_url    = ev.ticket_url;
+        if (ev.lead_time_days) e.lead_time_days = ev.lead_time_days;
+        if (ev.notes)         e.notes         = ev.notes;
+        if (ev.event_type === 'oneoff') {
+          if (ev.date)       e.date       = ev.date;
+          if (ev.time_start) e.time_start = ev.time_start;
+          if (ev.time_end)   e.time_end   = ev.time_end;
+        } else if (ev.event_type === 'datelist') {
+          e.date_list = (ev.date_list||[]).map(d => {
+            const de = {date:d.date};
+            if (d.time_start) de.time_start = d.time_start;
+            if (d.time_end)   de.time_end   = d.time_end;
+            if (d.note)       de.note       = d.note;
+            return de;
+          });
+        } else {
+          if (ev.recurrence?.length) e.recurrence = ev.recurrence.map(r => {
+            const rule = {pattern: r.pattern};
+            if (r.every > 1)  rule.every = r.every;
+            if (r.days?.length) rule.days = r.days;
+            if (r.month_week) rule.month_week = r.month_week;
+            if (r.month_date) rule.month_date = r.month_date;
+            if (r.time_start) rule.time_start = r.time_start;
+            if (r.time_end)   rule.time_end   = r.time_end;
+            if (r.season_start) rule.season_start = r.season_start;
+            if (r.season_end)   rule.season_end   = r.season_end;
+            return rule;
+          });
+          if (ev.exceptions?.length) e.exceptions = ev.exceptions.map(x => {
+            const ex = {type:x.type, date:x.date};
+            if (x.date_end)   ex.date_end   = x.date_end;
+            if (x.note)       ex.note       = x.note;
+            if (x.time_start) ex.time_start = x.time_start;
+            return ex;
+          });
+        }
+        return e;
+      });
+      const obj = { rcal: '0.1', meta: {title:s.title, location:s.venue||s.address, timezone:s.timezone}, events: cleanEvents };
+      const blob = new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href=url; a.download=(s.title||'strand').toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.rcal';
+      a.click(); URL.revokeObjectURL(url);
+    });
+    showToast(`⬇ ${d.strands.length} .rcal files downloaded`);
+  } catch(e) { showToast('Export failed — try again'); }
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────
+async function esLoadNotifications() {
+  try {
+    const res = await esFetch('/api/user/notifications');
+    const d = await res.json();
+    ES_NOTIFICATIONS = d.notifications || [];
+    esRenderNotifBadge();
+    esRenderNotifList();
+  } catch(e) {}
+}
+
+function esRenderNotifBadge() {
+  const unread = ES_NOTIFICATIONS.filter(n => !n.read).length;
+  ['nav-notif-dot','app-notif-dot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = unread > 0 ? 'block' : 'none';
+  });
+}
+
+function esRenderNotifList() {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  if (!ES_NOTIFICATIONS.length) { list.innerHTML = '<div class="notif-empty">All caught up.</div>'; return; }
+  list.innerHTML = ES_NOTIFICATIONS.map(n => `
+    <div class="notif-item${n.read?'':' unread'}" onclick="esReadNotif('${n._id}')">
+      <div class="notif-item-text">${esc(n.message)}</div>
+      <div class="notif-item-meta">${esc(n.strandTitle||'')}${n.createdAt?' · '+esRelativeTime(n.createdAt):''}</div>
+    </div>`).join('');
+}
+
+async function esReadNotif(id) {
+  const n = ES_NOTIFICATIONS.find(x => x._id === id);
+  if (n) n.read = true;
+  esRenderNotifBadge();
+  esRenderNotifList();
+  try { await esFetch(`/api/user/notifications/${id}/read`, {method:'POST'}); } catch(e) {}
+}
+
+async function esMarkAllRead() {
+  ES_NOTIFICATIONS.forEach(n => n.read = true);
+  esRenderNotifBadge();
+  esRenderNotifList();
+  try { await esFetch('/api/user/notifications/read-all', {method:'POST'}); } catch(e) {}
+}
+
+function esToggleNotif() {
+  const drawer = document.getElementById('notif-drawer');
+  drawer.classList.toggle('open');
+  if (drawer.classList.contains('open') && ES_USER) {
+    esMarkAllRead();
+  }
+}
+
+function esRelativeTime(ts) {
+  const diff = Date.now() - new Date(ts).getTime();
+  if (diff < 60000) return 'just now';
+  if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+  if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+  return Math.floor(diff/86400000) + 'd ago';
+}
+
+// ── EMPTY STATE NOTES ─────────────────────────────────────────
+const _notes = {};
+function esSaveNote(key, val) {
+  _notes[key] = val;
+  try { localStorage.setItem('es_notes', JSON.stringify(_notes)); } catch(e) {}
+}
+function esRestoreNotes() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('es_notes')||'{}');
+    Object.assign(_notes, stored);
+    Object.keys(_notes).forEach(key => {
+      const el = document.getElementById('note-' + key);
+      if (el && _notes[key]) el.value = _notes[key];
+    });
+  } catch(e) {}
+}
+
+// ── STRAND BUILDER: BACKEND SAVE + QR ─────────────────────────
+let _builderStrandId = null;
+
+async function esSaveStrand() {
+  if (!ES_USER) { esShowAuth('Sign in to save and publish your strand'); return; }
+  const obj = buildRcalObj();
+  obj.visibility = pub.visibility || 'public';
+  if (pub.accessCode) obj.accessCode = pub.accessCode;
+  const wasNew = !_builderStrandId;
+  const endpoint = _builderStrandId
+    ? `/api/strands/${_builderStrandId}`
+    : '/api/strands';
+  const method = _builderStrandId ? 'PUT' : 'POST';
+  try {
+    const res = await esFetch(endpoint, {method, body: JSON.stringify(obj)});
+    const d = await res.json();
+    if (!res.ok) { showToast(d.error||'Could not save'); return; }
+    _builderStrandId = d.strand._id;
+    showToast(wasNew ? '✓ Strand saved as draft' : '✓ Strand updated — subscribers will see changes');
+    esShowBuilderQR(d.strand);
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+async function esPublishStrand() {
+  if (!ES_USER) { esShowAuth('Sign in to publish your strand'); return; }
+  if (!_builderStrandId) await esSaveStrand();
+  if (!_builderStrandId) return;
+  try {
+    const res = await esFetch(`/api/strands/${_builderStrandId}/publish`, {method:'POST'});
+    const d = await res.json();
+    if (!res.ok) { showToast(d.error||'Could not publish'); return; }
+    showToast('🟢 Strand is live!');
+    esShowBuilderQR(d.strand);
+  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+}
+
+function esShowBuilderQR(strand) {
+  const panel = document.getElementById('export-qr-panel');
+  if (!panel) return;
+  const url = `https://eventstrand.com/s/${ES_USER.handle}/${strand._id}?src=qr`;
+  panel.style.display = 'block';
+  panel.innerHTML = `<div class="qr-display">
+    <div class="pub-status-badge ${strand.published?'live':'draft'}" style="margin-bottom:12px;">${strand.published?'● Live':'○ Draft'}</div>
+    <div class="strand-url">${url}</div>
+    <canvas id="builder-qr" style="border-radius:10px;margin:12px auto;display:block;"></canvas>
+    <div style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">${strand.subscriberCount||0} subscribers</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="esDownloadBuilderQR()">⬛ Download QR</button>
+      <button class="btn btn-ghost" onclick="navigator.clipboard?.writeText('${url}');showToast('📋 Copied')">Copy Link</button>
+      ${!strand.published?`<button class="btn btn-green" onclick="esPublishStrand()">Publish →</button>`:''}
+      <button class="btn btn-ghost" onclick="esOpenAnalytics('${strand._id}')">Analytics</button>
+    </div>
+  </div>`;
+  esRenderQR('builder-qr', url);
+}
+
+function esDownloadBuilderQR() {
+  const canvas = document.getElementById('builder-qr');
+  if (!canvas) return;
+  const a = document.createElement('a'); a.download='eventstrand-qr.png'; a.href=canvas.toDataURL(); a.click();
+}
+
+// ── BUILDER: VISIBILITY ───────────────────────────────────────
+function esSetBuilderVis(vis, btn) {
+  pub.visibility = vis;
+  document.querySelectorAll('#builder-vis-selector .vis-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const pc = document.getElementById('builder-passcode-field');
+  if (pc) pc.style.display = vis === 'protected' ? 'block' : 'none';
+}
+
+// ── UTILITY: authenticated fetch ──────────────────────────────
+async function esFetch(path, opts={}) {
+  const jwt = esGetJwt();
+  const headers = { 'Content-Type': 'application/json', ...(jwt?{'Authorization':'Bearer '+jwt}:{}) };
+  const res = await fetch(BACKEND_URL + path, { ...opts, headers: {...headers,...(opts.headers||{})} });
+  if (res.status === 401) {
+    ES_USER = null; esClearJwt();
+    esRenderNavAuth(); esRenderMarketingAuth();
+    esShowAuth('Your session expired — sign in again');
+    throw new Error('401');
+  }
+  return res;
+}
+
+// ── PWA ───────────────────────────────────────────────────────
+let _pwaPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _pwaPrompt = e;
+  // Show banner after 30 seconds if user hasn't dismissed before
+  try { if (!localStorage.getItem('es_pwa_dismissed')) setTimeout(() => document.getElementById('pwa-banner')?.classList.add('show'), 30000); } catch(e) {}
+});
+function esPwaInstall() {
+  if (_pwaPrompt) { _pwaPrompt.prompt(); _pwaPrompt.userChoice.then(() => { document.getElementById('pwa-banner')?.classList.remove('show'); }); }
+  try { localStorage.setItem('es_pwa_dismissed','1'); } catch(e) {}
+}
+
+// ── GOOGLE IDENTITY SERVICES INIT ────────────────────────────
+function esInitGIS() {
+  if (!window.google?.accounts?.id) return;
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: esAuthWithGoogle,
+    auto_select: false,
+  });
+  // Render in marketing section
+  const mEl = document.getElementById('g_signin_marketing');
+  if (mEl) google.accounts.id.renderButton(mEl, { theme:'filled_black', size:'large', width:280 });
+  // Render in auth modal
+  const modEl = document.getElementById('g_signin_modal');
+  if (modEl) google.accounts.id.renderButton(modEl, { theme:'filled_black', size:'large', width:280 });
+}
+
+// Close notif/analytics drawers on outside click
+document.addEventListener('click', e => {
+  const notif = document.getElementById('notif-drawer');
+  const bell1 = document.getElementById('nav-bell');
+  const bell2 = document.getElementById('app-bell');
+  if (notif?.classList.contains('open') && !notif.contains(e.target) && e.target!==bell1 && e.target!==bell2) {
+    notif.classList.remove('open');
+  }
+  const analytics = document.getElementById('analytics-drawer');
+  if (analytics?.classList.contains('open') && !analytics.contains(e.target)) {
+    analytics.classList.remove('open');
+  }
+});
+
+// ── BOOT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildWheel();
+  renderWheelState();
+
+  // Restore user from localStorage
+  const stored = esGetStoredUser();
+  if (stored && esGetJwt()) {
+    ES_USER = stored;
+    esRenderNavAuth();
+    esRenderMarketingAuth();
+    esLoadWorkspaces();
+    esLoadNotifications();
+  }
+
+  // Init Google Identity Services (retry if script not yet loaded)
+  if (window.google?.accounts?.id) { esInitGIS(); }
+  else { window.addEventListener('load', () => setTimeout(esInitGIS, 500)); }
+
+  // Handle hash routing
+  esHandleHash();
+
+});
+
+// ══════════════════════════════════════════════════
+// POTENTIALLY INTERESTED FEATURE  (global scope)
+// ══════════════════════════════════════════════════
+
+const ES_INTERESTED_KEY = 'es_interested_v1';
+
+function esGetInterested() {
+  try { return JSON.parse(localStorage.getItem(ES_INTERESTED_KEY)||'[]'); } catch(e) { return []; }
+}
+
+function esSaveInterested(list) {
+  try { localStorage.setItem(ES_INTERESTED_KEY, JSON.stringify(list)); } catch(e) {}
+}
+
+function esIsInterested(eventId, date) {
+  if (!eventId) return false;
+  const key = eventId + '_' + date;
+  return esGetInterested().some(i => i.key === key);
+}
+
+function esToggleInterested(btn, ev) {
+  const eventId = ev.id || ev._id || '';
+  const key = eventId + '_' + ev.date;
+  let list = esGetInterested();
+  const idx = list.findIndex(i => i.key === key);
+  if (idx >= 0) {
+    list.splice(idx, 1);
+    btn.classList.remove('active');
+    btn.textContent = '☆';
+  } else {
+    list.push({
+      key, eventId, date: ev.date, time: ev.time||'',
+      title: ev.title||ev.name||'Event',
+      venue: ev.venue||'', strand: ev.strandTitle||'',
+      category: ev.category||'',
+      expiresAt: esInterestedExpiry(ev.date, ev.time)
+    });
+    btn.classList.add('active');
+    btn.textContent = '★';
+    showToast('Starred');
+  }
+  esSaveInterested(list);
+  if (document.getElementById('dash-interested').style.display !== 'none') esRenderInterestedList();
+}
+
+function esInterestedExpiry(date, time) {
+  // Expires at the event's date+time (or end of day if no time)
+  try {
+    const base = date + (time ? 'T' + time : 'T23:59');
+    return new Date(base).getTime();
+  } catch(e) { return Date.now() + 86400000; }
+}
+
+function esClearExpiredInterested() {
+  const now = Date.now();
+  const list = esGetInterested().filter(i => i.expiresAt > now);
+  esSaveInterested(list);
+  esRenderInterestedList();
+  showToast('Expired entries cleared');
+}
+
+let _esStarredRange = 'all';
+
+function esStarredSetRange(range, btn) {
+  _esStarredRange = range;
+  document.querySelectorAll('#dash-interested .cal-view-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  esRenderInterestedList();
+}
+
+function esStarredRangeEnd(range) {
+  const now = new Date();
+  if (range === 'today') { const d = new Date(now); d.setHours(23,59,59,999); return d.getTime(); }
+  if (range === 'week')  { const d = new Date(now); d.setDate(d.getDate()+(6-d.getDay())); d.setHours(23,59,59,999); return d.getTime(); }
+  if (range === 'month') { return new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59, 999).getTime(); }
+  if (range === 'year')  { return new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999).getTime(); }
+  return Infinity;
+}
+
+function esRenderInterestedList() {
+  const container = document.getElementById('dash-interested-list');
+  if (!container) return;
+  const now = Date.now();
+  const catFilter = document.getElementById('starred-cat-filter')?.value || '';
+  let list = esGetInterested();
+
+  if (_esStarredRange !== 'all') {
+    const rangeEnd = esStarredRangeEnd(_esStarredRange);
+    list = list.filter(i => i.expiresAt <= rangeEnd + 86400000);
+  }
+  if (catFilter) list = list.filter(i => i.category === catFilter);
+
+  const active  = list.filter(i => i.expiresAt > now);
+  const expired = list.filter(i => i.expiresAt <= now);
+
+  if (!active.length && !expired.length) {
+    container.innerHTML = '<div class="interested-empty"><div style="font-size:32px;margin-bottom:12px;color:var(--amber);">★</div><div style="font-weight:600;margin-bottom:4px;">Nothing starred yet</div><div>Tap the star on any event in your Upcoming feed to save it here.</div></div>';
+    return;
+  }
+
+  const renderItem = (item, isExpired) => `
+    <div class="interested-item" style="${isExpired ? 'opacity:0.45;' : ''}">
+      <div style="font-size:20px;color:var(--amber);">★</div>
+      <div class="interested-item-body">
+        <div class="interested-item-name">${item.title}</div>
+        <div class="interested-item-meta">${item.venue}${item.strand ? ' · ' + item.strand : ''}</div>
+        <div class="interested-item-time">${isExpired ? '<span style="color:var(--text-faint)">Expired</span>' : item.date + (item.time ? ' at ' + item.time : '')}</div>
+      </div>
+      <button class="interested-item-remove" onclick="esRemoveInterested('${item.key}')" title="Remove" aria-label="Remove from saved">✕</button>
+    </div>`;
+
+  container.innerHTML =
+    active.map(i => renderItem(i, false)).join('') +
+    (expired.length
+      ? `<div style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);margin:16px 0 8px;">Expired</div>` + expired.map(i => renderItem(i, true)).join('')
+      : '');
+}
+
+function esRemoveInterested(key) {
+  const list = esGetInterested().filter(i => i.key !== key);
+  esSaveInterested(list);
+  esRenderInterestedList();
+}
+
+// ── Swipe support for touch devices ──────────────────────────────
+function esInitSwipe(cardEl, ev) {
+  let startX = 0, startY = 0, dx = 0;
+  const THRESHOLD = 80;
+
+  cardEl.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dx = 0;
+    cardEl.classList.add('swiping');
+  }, { passive: true });
+
+  cardEl.addEventListener('touchmove', e => {
+    dx = e.touches[0].clientX - startX;
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if (Math.abs(dx) < dy) return; // vertical scroll wins
+    cardEl.style.transform = `translateX(${dx}px)`;
+    const hintR = cardEl.parentElement.querySelector('.swipe-hint-right');
+    const hintL = cardEl.parentElement.querySelector('.swipe-hint-left');
+    if (hintR) hintR.style.opacity = dx > 20 ? Math.min((dx-20)/60, 1) : '0';
+    if (hintL) hintL.style.opacity = dx < -20 ? Math.min((-dx-20)/60, 1) : '0';
+  }, { passive: true });
+
+  cardEl.addEventListener('touchend', () => {
+    cardEl.classList.remove('swiping');
+    const hintR = cardEl.parentElement.querySelector('.swipe-hint-right');
+    const hintL = cardEl.parentElement.querySelector('.swipe-hint-left');
+    if (hintR) hintR.style.opacity = '0';
+    if (hintL) hintL.style.opacity = '0';
+
+    if (dx > THRESHOLD) {
+      // Swipe right = interested
+      cardEl.style.transform = `translateX(110%)`;
+      cardEl.style.opacity = '0';
+      const btn = cardEl.querySelector('.efi-btn-star');
+      if (btn && !btn.classList.contains('active')) esToggleInterested(btn, ev);
+      setTimeout(() => { cardEl.style.transform=''; cardEl.style.opacity=''; }, 400);
+    } else if (dx < -THRESHOLD) {
+      // Swipe left = not interested (just dismiss visually, no action needed)
+      cardEl.style.transform = `translateX(-110%)`;
+      cardEl.style.opacity = '0';
+      setTimeout(() => { cardEl.style.transform=''; cardEl.style.opacity=''; }, 400);
+    } else {
+      cardEl.style.transform = '';
+    }
+  });
+}
+
+  window.addEventListener('hashchange', esHandleHash);
+
+// Restore persisted notes across views
+esRestoreNotes();
+
+// .rcal definition text — fade out as user scrolls past hero
+(function() {
+  const el = document.getElementById('rcal-def-text');
+  if (!el) return;
+  const hero = document.getElementById('hero');
+  function updateRcalFade() {
+    const heroH = hero.offsetHeight;
+    const scroll = window.scrollY;
+    const fadeStart = heroH * 0.25;
+    const fadeEnd   = heroH * 0.65;
+    if (scroll <= fadeStart) {
+      el.style.opacity = '1';
+    } else if (scroll >= fadeEnd) {
+      el.style.opacity = '0';
+    } else {
+      el.style.opacity = String(1 - (scroll - fadeStart) / (fadeEnd - fadeStart));
+    }
+  }
+  window.addEventListener('scroll', updateRcalFade, { passive: true });
+  updateRcalFade();
+})();
+
+// ── MARKETING INLINE AUTH FORM ────────────────────────────────────────────────
+let _esMktMode = 'signin';
+
+function esMktTab(mode) {
+  _esMktMode = mode;
+  const isReg = mode === 'register';
+  document.getElementById('mkt-tab-signin').style.borderBottomColor  = isReg ? 'transparent' : 'var(--primary)';
+  document.getElementById('mkt-tab-signin').style.color              = isReg ? 'var(--text-dim)' : 'var(--text)';
+  document.getElementById('mkt-tab-register').style.borderBottomColor = isReg ? 'var(--primary)' : 'transparent';
+  document.getElementById('mkt-tab-register').style.color            = isReg ? 'var(--text)' : 'var(--text-dim)';
+  document.getElementById('mkt-name').style.display                  = isReg ? 'block' : 'none';
+  document.getElementById('mkt-account-type').style.display          = isReg ? 'block' : 'none';
+  document.getElementById('mkt-submit-btn').textContent              = isReg ? 'Create Account' : 'Sign In';
+  document.getElementById('mkt-error').textContent = '';
+}
+
+// Radio border highlight for marketing form
+document.addEventListener('change', function(e) {
+  if (e.target && e.target.name === 'mkt-account-type') {
+    const isVenue = document.getElementById('mkt-type-venue').checked;
+    document.getElementById('mkt-type-personal-label').style.borderColor = isVenue ? 'var(--border2)' : 'var(--primary)';
+    document.getElementById('mkt-type-venue-label').style.borderColor    = isVenue ? 'var(--primary)' : 'var(--border2)';
+  }
+});
+
+async function esMktSubmit() {
+  const email    = document.getElementById('mkt-email').value.trim();
+  const password = document.getElementById('mkt-password').value;
+  const name     = document.getElementById('mkt-name').value.trim();
+  const errEl    = document.getElementById('mkt-error');
+  const btn      = document.getElementById('mkt-submit-btn');
+
+  if (!email || !password) { errEl.textContent = 'Email and password are required.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = _esMktMode === 'register' ? 'Creating account…' : 'Signing in…';
+  errEl.textContent = '';
+
+  const endpoint = _esMktMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+  const accountType = document.querySelector('input[name="mkt-account-type"]:checked')?.value || 'personal';
+  const body = _esMktMode === 'register'
+    ? { email, password, displayName: name || undefined, accountType }
+    : { email, password };
+
+  try {
+    const res  = await fetch(BACKEND_URL + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Something went wrong.'; return; }
+    esSetJwt(data.token);
+    ES_USER = data.user;
+    esSetStoredUser(data.user);
+    if (!data.user.handle) {
+      esShowHandleSetup();
+    } else {
+      esOnSignedIn();
+    }
+  } catch(e) {
+    errEl.textContent = 'Network error — please try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = _esMktMode === 'register' ? 'Create Account' : 'Sign In';
+  }
+}
+
+// ── PUBLIC DIRECTORY ──────────────────────────────────────────────────────────
+let esDirectoryPage = 1;
+let esDirectoryDebounceTimer;
+
+async function esLoadDirectory(resetPage = false) {
+  if (resetPage) esDirectoryPage = 1;
+  const type = document.getElementById('filterType')?.value || '';
+  const city = document.getElementById('filterCity')?.value?.trim() || '';
+  const grid = document.getElementById('directoryGrid');
+  const pagination = document.getElementById('directoryPagination');
+  if (!grid) return;
+
+  grid.innerHTML = '<div style="color:var(--text-dim);font-size:14px;padding:2rem 0;">Loading venues…</div>';
+
+  const params = new URLSearchParams({ page: esDirectoryPage });
+  if (type) params.append('type', type);
+  if (city) params.append('city', city);
+
+  try {
+    const res  = await fetch(`${BACKEND_URL}/api/directory/public/directory?${params}`);
+    const data = await res.json();
+
+    if (!data.strands || data.strands.length === 0) {
+      grid.innerHTML = '<div style="color:var(--text-faint);font-size:14px;padding:2rem 0;">No verified venues yet — check back soon.</div>';
+      if (pagination) pagination.innerHTML = '';
+      return;
+    }
+
+    grid.innerHTML = data.strands.map(s => {
+      const strandUrl = `${BACKEND_URL.replace('api.', '')}/s/${s.publisherHandle}/${s._id}`;
+      const bg = s.color || '#6C8FFF';
+      const meta = [s.type, s.venue, s.city].filter(Boolean).join(' · ');
+      return `
+        <div class="dir-card" onclick="window.open('${strandUrl}', '_blank')">
+          <div class="dir-card-header" style="background:${bg};"></div>
+          <div class="dir-card-body">
+            <div class="dir-card-title">${esc(s.title)}</div>
+            ${meta ? `<div class="dir-card-meta">${esc(meta)}</div>` : ''}
+            ${s.description ? `<div class="dir-card-desc">${esc(s.description)}</div>` : ''}
+            <div class="dir-card-badge">✓ Verified</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    if (pagination) {
+      pagination.innerHTML = '';
+      if (data.pages > 1) {
+        for (let i = 1; i <= data.pages; i++) {
+          const btn = document.createElement('button');
+          btn.textContent = i;
+          btn.className = 'dir-page-btn' + (i === esDirectoryPage ? ' active' : '');
+          btn.onclick = () => { esDirectoryPage = i; esLoadDirectory(); };
+          pagination.appendChild(btn);
+        }
+      }
+    }
+  } catch (err) {
+    grid.innerHTML = '<div style="color:var(--text-faint);font-size:14px;padding:2rem 0;">Could not load directory — try again shortly.</div>';
+    console.error('[directory]', err);
+  }
+}
+
+function esDebounceDirectory() {
+  clearTimeout(esDirectoryDebounceTimer);
+  esDirectoryDebounceTimer = setTimeout(() => esLoadDirectory(true), 400);
+}
+
+// Lazy-load: only fetch when section scrolls into view
+(function() {
+  const section = document.getElementById('directory');
+  if (!section) return;
+  let loaded = false;
+  const obs = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !loaded) {
+      loaded = true;
+      esLoadDirectory();
+      obs.disconnect();
+    }
+  }, { threshold: 0.1 });
+  obs.observe(section);
+})();
+
+</script>
