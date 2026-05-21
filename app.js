@@ -3082,6 +3082,12 @@ async function esMktSubmit() {
     const res  = await fetch(BACKEND_URL + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     const data = await res.json();
     if (!res.ok) { errEl.textContent = data.error || 'Something went wrong.'; return; }
+    // B-5: backend returns { ok: true } (no token/user) when email already exists.
+    if (!data.token || !data.user) {
+      errEl.style.color = 'var(--primary)';
+      errEl.textContent = 'Check your inbox — if an account already exists for this email, we sent you a sign-in reminder.';
+      return;
+    }
     esSetJwt(data.token);
     ES_USER = data.user;
     esSetStoredUser(data.user);
