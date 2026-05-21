@@ -834,6 +834,12 @@ function esShowAuth(reason) {
   const r = document.getElementById('auth-modal-reason');
   if (r && reason) r.textContent = reason;
   modal.classList.add('open');
+  // Lazy-render Google button into modal: GIS won't render into display:none containers,
+  // so we (re)render each time the modal opens, only if the slot is empty.
+  const modEl = document.getElementById('g_signin_modal');
+  if (modEl && modEl.childElementCount === 0 && window.google?.accounts?.id) {
+    google.accounts.id.renderButton(modEl, { theme:'filled_black', size:'large', width:280 });
+  }
 }
 
 function esCloseAuth() {
@@ -3163,5 +3169,3 @@ function esDebounceDirectory() {
   }, { threshold: 0.1 });
   obs.observe(section);
 })();
-
-</script>
