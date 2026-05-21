@@ -257,6 +257,27 @@ textarea.field-input { resize: vertical; min-height: 80px; }
 .strand-install-btn { padding: 6px 14px; border-radius: 8px; background: var(--primary-glow); border: 1px solid var(--primary); color: var(--primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif; }
 .strand-install-btn:hover { background: var(--primary); color: var(--bg); }
 
+/* ── Public strand/braid view ── */
+.pub-strand-title { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.pub-strand-venue { font-size: 14px; color: var(--text-dim); margin-bottom: 8px; }
+.pub-strand-meta  { display: flex; gap: 12px; align-items: center; font-size: 13px; color: var(--text-faint); margin-bottom: 16px; }
+.pub-strand-type-badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--primary); background: var(--primary-glow); border: 1px solid var(--primary); border-radius: 6px; padding: 3px 8px; margin-bottom: 10px; }
+.pub-subscribe-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.pub-event-row { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.pub-event-row:last-child { border-bottom: none; }
+.pub-event-name { font-size: 15px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.pub-event-time { font-size: 13px; color: var(--text-dim); margin-top: 3px; }
+.pub-event-note { font-size: 12px; color: var(--text-faint); margin-top: 3px; font-style: italic; }
+.pub-event-vibes { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.pub-vibe-tag { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border2); color: var(--text-dim); }
+.pub-event-cancelled .pub-event-name { text-decoration: line-through; opacity: 0.6; }
+.cancelled-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255,80,80,0.12); color: #ff5050; border-radius: 4px; padding: 2px 6px; text-decoration: none; }
+/* Past dates toggle section */
+.pub-past-section { margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px; }
+.pub-past-toggle { background: none; border: none; color: var(--text-dim); font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; font-family: 'Outfit', sans-serif; letter-spacing: 0.3px; }
+.pub-past-toggle:hover { color: var(--text); }
+.pub-past-list { margin-top: 12px; }
+
 #developer { background: var(--bg2); }
 .dev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 60px; }
 .dev-card { background: var(--bg3); border-radius: 16px; border: 1px solid var(--border); padding: 32px; transition: border-color 0.2s; }
@@ -1988,6 +2009,7 @@ upcoming.forEach(event => {
     <div class="dash-tabs">
       <button class="dash-tab active" onclick="esDashTab(this,'upcoming')">Upcoming</button>
       <button class="dash-tab" onclick="esDashTab(this,'subscriptions')">Subscriptions</button>
+      <button class="dash-tab" onclick="esDashTab(this,'library')">Library</button>
       <button class="dash-tab" onclick="esDashTab(this,'my-strands')">My Strands</button>
       <button class="dash-tab" onclick="esDashTab(this,'personal')">Personal Strands</button>
       <button class="dash-tab" onclick="esDashTab(this,'my-braids')">My Braids</button>
@@ -2061,6 +2083,25 @@ upcoming.forEach(event => {
         <div class="inbox-sidebar" id="inbox-ws-list"></div>
         <div class="inbox-main" id="inbox-rows"></div>
       </div>
+    </div>
+
+    <!-- Library strands (EventStrand-curated) -->
+    <div id="dash-library" class="dash-panel" style="display:none;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:18px;font-weight:600;color:var(--text);">Library</div>
+          <div style="font-size:13px;color:var(--text-dim);margin-top:4px;max-width:560px;line-height:1.5;">EventStrand-curated strands — federal holidays, sports championships, cultural calendars. Free to install. Updated by the platform.</div>
+        </div>
+      </div>
+      <div class="library-filters" id="lib-filter-chips" style="margin:0 0 20px;">
+        <button class="filter-chip active" onclick="esLibFilter('all',this)">All</button>
+        <button class="filter-chip" onclick="esLibFilter('holiday',this)">🎉 Holidays</button>
+        <button class="filter-chip" onclick="esLibFilter('sport',this)">⚽ Sports</button>
+        <button class="filter-chip" onclick="esLibFilter('cultural',this)">🌍 Cultural</button>
+        <button class="filter-chip" onclick="esLibFilter('seasonal',this)">🌿 Seasonal</button>
+        <button class="filter-chip" onclick="esLibFilter('personal',this)">📋 Personal</button>
+      </div>
+      <div id="dash-library-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
     </div>
 
     <!-- My strands -->
@@ -2149,6 +2190,7 @@ upcoming.forEach(event => {
         <div class="pub-strand-header" id="pub-strand-header"></div>
         <h3 style="font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);margin-bottom:14px;">Upcoming events</h3>
         <div id="pub-strand-events"></div>
+        <div id="pub-strand-past"></div>
         <div class="passive-signup" id="pub-signup-banner" style="display:none;">
           <div class="passive-signup-text">
             <h4>Never miss an event here</h4>
