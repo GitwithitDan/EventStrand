@@ -1443,6 +1443,10 @@ let _activeDashTab = 'upcoming';
 let _activeWorkspaceId = null;
 let _dashCalView = 'week';
 
+// Library strands (EventStrand-curated)
+let _libraryStrands = null;
+let _libraryFilter  = 'all';
+
 function esSetCalView(view, btn) {
   _dashCalView = view;
   document.querySelectorAll('.cal-view-tab').forEach(b => b.classList.remove('active'));
@@ -1464,6 +1468,7 @@ function esDashTab(el, tab) {
   if (tab === 'my-strands') esRenderMyStrands();
   if (tab === 'personal') esRenderPersonalStrands();
   if (tab === 'my-braids') esRenderMyBraids();
+  if (tab === 'library') esLoadLibraryStrands();
 }
 
 async function esRenderDashboard() {
@@ -1739,6 +1744,253 @@ async function esUnsubscribeBraid(braidId, e) {
   } catch(err) {}
 }
 
+// ── LIBRARY STRANDS ───────────────────────────────────────────
+async function esLoadLibraryStrands() {
+  const grid = document.getElementById('dash-library-grid');
+  if (!grid) return;
+  if (!_libraryStrands) {
+    grid.innerHTML = '<div style="color:var(--text-faint);font-size:14px;padding:24px 0;grid-column:1/-1;">Loading…</div>';
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/library/strands`);
+      const data = await res.json();
+      _libraryStrands = data.strands || [];
+    } catch(e) {
+      _libraryStrands = [];
+    }
+  }
+  esRenderLibraryStrands();
+}
+
+function esLibFilter(cat, btn) {
+  _libraryFilter = cat;
+  document.querySelectorAll('#lib-filter-chips .filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  esRenderLibraryStrands();
+}
+
+function esRenderLibraryStrands() {
+  const grid = document.getElementById('dash-library-grid');
+  if (!grid) return;
+  const filtered = (_libraryStrands || []).filter(s =>
+    _libraryFilter === 'all' || s.libraryCategory === _libraryFilter
+  );
+  if (!filtered.length) {
+    grid.innerHTML = '<div style="color:var(--text-faint);font-size:14px;padding:32px 0;grid-column:1/-1;text-align:center;">No library strands yet — check back soon.</div>';
+    return;
+  }
+  const catEmoji = { holiday:'🎉', sport:'⚽', cultural:'🌍', seasonal:'🌿', personal:'📋', general:'📌' };
+  const CAT_COLORS = {
+    holiday: 'linear-gradient(135deg,#1a2070,#6C8FFF)',
+    sport:   'linear-gradient(135deg,#0a1a44,#2050c0)',
+    cultural:'linear-gradient(135deg,#2d1060,#9B6DFF)',
+    seasonal:'linear-gradient(135deg,#0e3d24,#22D48A)',
+    personal:'linear-gradient(135deg,#1a0b48,#7B5EFF)',
+    general: 'linear-gradient(135deg,#1a1a2e,#6C8FFF)',
+  };
+  grid.innerHTML = filtered.map(s => {
+    const cat   = s.libraryCategory || 'general';
+    const emoji = catEmoji[cat] || '📌';
+    const bg    = s.color ? `background:${s.color}` : `background:${CAT_COLORS[cat] || CAT_COLORS.general}`;
+    const evc   = s.events?.length || 0;
+    const subs  = s.subscriberCount || 0;
+    const wsOpts = ES_USER ? ES_WORKSPACES.map(w =>
+      `<option value="${w._id}">${esc(w.icon||'')} ${esc(w.name)}</option>`).join('') : '';
+    return `
+    <div class="strand-card" style="cursor:default;">
+      <div class="strand-card-img" style="${bg};"><span style="font-size:28px;position:relative;z-index:1;">${emoji}</span></div>
+      <div class="strand-card-body">
+        <div class="strand-card-name">${esc(s.title)}</div>
+        <div class="strand-card-desc">${esc(s.description || '')}</div>
+      </div>
+      <div class="strand-card-footer">
+        <span class="strand-card-meta">${evc} event${evc === 1 ? '' : 's'} · ${subs} subscriber${subs === 1 ? '' : 's'}</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${ES_USER && wsOpts ? `<select id="lib-ws-${s._id}" style="background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text-dim);font-family:'Outfit',sans-serif;font-size:11px;padding:4px 6px;">${wsOpts}</select>` : ''}
+          <button class="strand-install-btn" onclick="esSubscribeToStrand('${s._id}',${ES_USER && wsOpts ? `document.getElementById('lib-ws-${s._id}')?.value` : 'undefined'})">+ Install</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── OCCURRENCE ENGINE (past dates viewer) ─────────────────────
+// Expands a strand event's schedule into concrete date occurrences
+// within a given [fromMs, toMs] window. Used to compute the past
+// dates shown on the public strand page.
+
+const _OCC_MONTHS3 = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+const _OCC_DAYS_LC = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+const _OCC_EPOCH_MON = new Date(2024, 0, 1).getTime(); // 2024-01-01 is a Monday
+
+function _occToStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function _occParseDate(s) {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function _occNthWeekday(year, month, dayOfWeek, n) {
+  // n: 0=first … 3=fourth, 4=last
+  if (n === 4) {
+    const d = new Date(year, month + 1, 0);
+    while (d.getDay() !== dayOfWeek) d.setDate(d.getDate() - 1);
+    return new Date(d);
+  }
+  const d = new Date(year, month, 1);
+  while (d.getDay() !== dayOfWeek) d.setDate(d.getDate() + 1);
+  d.setDate(d.getDate() + n * 7);
+  return d.getMonth() === month ? new Date(d) : null;
+}
+
+function _expandRule(rule, fromMs, toMs) {
+  const results = [];
+  const every = rule.every || 1;
+
+  const ssIdx = rule.season_start ? _OCC_MONTHS3.indexOf(rule.season_start) : -1;
+  const seIdx = rule.season_end   ? _OCC_MONTHS3.indexOf(rule.season_end)   : -1;
+
+  function inSeason(d) {
+    if (ssIdx < 0 && seIdx < 0) return true;
+    const mo = d.getMonth();
+    const s = ssIdx >= 0 ? ssIdx : 0;
+    const e = seIdx >= 0 ? seIdx : 11;
+    return s <= e ? mo >= s && mo <= e : mo >= s || mo <= e;
+  }
+
+  function inRuleRange(d) {
+    if (rule.start_date && d < _occParseDate(rule.start_date)) return false;
+    if (rule.end_date   && d > _occParseDate(rule.end_date))   return false;
+    return true;
+  }
+
+  function push(d) {
+    const ms = d.getTime();
+    if (ms >= fromMs && ms <= toMs && inSeason(d) && inRuleRange(d)) {
+      results.push({ date: _occToStr(d), time_start: rule.time_start, time_end: rule.time_end });
+    }
+  }
+
+  if (rule.pattern === 'daily') {
+    const cur = new Date(fromMs);
+    while (cur.getTime() <= toMs) { push(new Date(cur)); cur.setDate(cur.getDate() + every); }
+  }
+
+  else if (rule.pattern === 'weekly' || rule.pattern === 'weekdays') {
+    const dayMap3 = { mon:1, tue:2, wed:3, thu:4, fri:5, sat:6, sun:0 };
+    let targets;
+    if (rule.pattern === 'weekdays') {
+      targets = [1,2,3,4,5];
+    } else {
+      targets = [...new Set((rule.days || []).flatMap(raw => {
+        const d = raw.toLowerCase();
+        if (d === 'weekend') return [0, 6];
+        if (d === 'weekday') return [1,2,3,4,5];
+        if (dayMap3[d] !== undefined) return [dayMap3[d]];
+        const i = _OCC_DAYS_LC.indexOf(d);
+        return i >= 0 ? [i] : [];
+      }))];
+    }
+    const cur = new Date(fromMs);
+    while (cur.getTime() <= toMs) {
+      if (targets.includes(cur.getDay())) {
+        const wk = Math.floor((cur.getTime() - _OCC_EPOCH_MON) / (7 * 86400000));
+        if (((wk % every) + every) % every === 0) push(new Date(cur));
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+  }
+
+  else if (rule.pattern === 'monthly_week') {
+    const weekNames = ['first','second','third','fourth','last'];
+    const wn  = weekNames.indexOf(rule.month_week || 'first');
+    const raw = ((rule.days || [])[0] || 'monday').toLowerCase();
+    const dayMap3 = { mon:1, tue:2, wed:3, thu:4, fri:5, sat:6, sun:0 };
+    const di  = _OCC_DAYS_LC.indexOf(raw) >= 0 ? _OCC_DAYS_LC.indexOf(raw) : (dayMap3[raw] ?? 1);
+    const cur = new Date(new Date(fromMs).getFullYear(), new Date(fromMs).getMonth(), 1);
+    while (cur.getTime() <= toMs) {
+      const occ = _occNthWeekday(cur.getFullYear(), cur.getMonth(), di, wn);
+      if (occ) push(occ);
+      cur.setMonth(cur.getMonth() + every);
+    }
+  }
+
+  else if (rule.pattern === 'monthly_date') {
+    const md  = rule.month_date || 1;
+    const cur = new Date(new Date(fromMs).getFullYear(), new Date(fromMs).getMonth(), 1);
+    while (cur.getTime() <= toMs) {
+      const maxDay = new Date(cur.getFullYear(), cur.getMonth() + 1, 0).getDate();
+      if (md <= maxDay) push(new Date(cur.getFullYear(), cur.getMonth(), md));
+      cur.setMonth(cur.getMonth() + every);
+    }
+  }
+
+  else if (rule.pattern === 'annual') {
+    const md = rule.month_date || 1;
+    const mo = ssIdx >= 0 ? ssIdx : (seIdx >= 0 ? seIdx : 0);
+    for (let y = new Date(fromMs).getFullYear(); y <= new Date(toMs).getFullYear(); y++) {
+      push(new Date(y, mo, md));
+    }
+  }
+
+  return results;
+}
+
+function computePastOccurrences(event) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const yearAgo = new Date(today); yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1); yesterday.setHours(23,59,59,999);
+  const fromMs = yearAgo.getTime();
+  const toMs   = yesterday.getTime();
+
+  // One-off
+  if ((event.event_type === 'oneoff' || event.date) && !event.recurrence?.length && !event.date_list?.length) {
+    if (!event.date) return [];
+    const d = _occParseDate(event.date);
+    if (d.getTime() >= fromMs && d.getTime() <= toMs)
+      return [{ date: event.date, time_start: event.time_start, time_end: event.time_end }];
+    return [];
+  }
+
+  // Date list
+  if (event.event_type === 'datelist' || event.date_list?.length) {
+    return (event.date_list || [])
+      .filter(entry => {
+        const ds = typeof entry === 'string' ? entry : entry.date;
+        const t = _occParseDate(ds).getTime();
+        return t >= fromMs && t <= toMs;
+      })
+      .map(entry => {
+        const ds = typeof entry === 'string' ? entry : entry.date;
+        return { date: ds, time_start: entry.time_start || event.time_start, time_end: entry.time_end || event.time_end, note: entry.note };
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  // Recurring — expand all rules then merge
+  let raw = [];
+  for (const rule of (event.recurrence || [])) {
+    for (const r of _expandRule(rule, fromMs, toMs)) {
+      if (!raw.find(x => x.date === r.date)) raw.push(r);
+    }
+  }
+
+  // Apply exceptions
+  raw = raw.map(occ => {
+    for (const ex of (event.exceptions || [])) {
+      if (ex.type === 'skip' && ex.date === occ.date) return null;
+      if (ex.type === 'cancelled_range' && occ.date >= ex.date && occ.date <= (ex.date_end || ex.date))
+        return { ...occ, cancelled: true, exNote: ex.note || 'Cancelled' };
+      if (ex.type === 'modified' && ex.date === occ.date)
+        return { ...occ, time_start: ex.time_start || occ.time_start, modified: true, exNote: ex.note };
+    }
+    return occ;
+  }).filter(Boolean);
+
+  return raw.sort((a, b) => a.date.localeCompare(b.date));
+}
+
 // ── PUBLIC STRAND VIEW ────────────────────────────────────────
 async function esLoadPublicStrand(handle, strandId, src) {
   esGoto('strand');
@@ -1805,6 +2057,43 @@ function esRenderStrandView(strand) {
       <div class="pub-event-time">${ev.date||'Recurring'}${ev.time_start?' · '+ev.time_start:''}</div>
       ${ev.vibes?.length ? `<div class="pub-event-vibes">${ev.vibes.map(v=>`<span class="pub-vibe-tag">${esc(v)}</span>`).join('')}</div>` : ''}
     </div>`).join('') || '<div style="color:var(--text-faint);padding:20px;text-align:center;">No upcoming events listed</div>';
+
+  // Past dates section — compute occurrences for all events, merge, sort descending
+  const pastEl = document.getElementById('pub-strand-past');
+  if (pastEl) {
+    const pastItems = [];
+    for (const ev of (strand.events || [])) {
+      for (const occ of computePastOccurrences(ev)) {
+        pastItems.push({ ...occ, eventTitle: ev.title || ev.name || 'Event' });
+      }
+    }
+    pastItems.sort((a, b) => b.date.localeCompare(a.date)); // most recent first
+    const pastSlice = pastItems.slice(0, 30);
+
+    if (pastSlice.length > 0) {
+      const toggleLabel = `Past dates ▸ (${pastSlice.length}${pastItems.length > 30 ? '+' : ''})`;
+      pastEl.innerHTML = `
+        <div class="pub-past-section">
+          <button class="pub-past-toggle" id="pub-past-btn" onclick="
+            const pl = document.getElementById('pub-past-inner');
+            const open = pl.style.display !== 'none';
+            pl.style.display = open ? 'none' : 'block';
+            this.textContent = open ? '${toggleLabel}' : '${toggleLabel.replace('▸','▾')}';
+          ">${toggleLabel}</button>
+          <div id="pub-past-inner" class="pub-past-list" style="display:none;">
+            ${pastSlice.map(item => `
+              <div class="pub-event-row${item.cancelled ? ' pub-event-cancelled' : ''}">
+                <div class="pub-event-name">${esc(item.eventTitle)}${item.cancelled ? '<span class="cancelled-badge" style="margin-left:8px;">Cancelled</span>' : ''}${item.modified ? '<span style="margin-left:8px;font-size:11px;color:var(--text-faint);">modified</span>' : ''}</div>
+                <div class="pub-event-time">${item.date}${item.time_start ? ' · ' + item.time_start : ''}</div>
+                ${item.exNote ? `<div class="pub-event-note">${esc(item.exNote)}</div>` : ''}
+                ${item.note ? `<div class="pub-event-note">${esc(item.note)}</div>` : ''}
+              </div>`).join('')}
+          </div>
+        </div>`;
+    } else {
+      pastEl.innerHTML = '';
+    }
+  }
 
   if (banner) banner.style.display = ES_USER ? 'none' : 'flex';
 }
