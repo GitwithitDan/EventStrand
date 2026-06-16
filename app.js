@@ -80,11 +80,13 @@ function mkRule() {
 }
 
 // ── TOAST ─────────────────────────────────────────────────────
-function showToast(msg) {
+function showToast(msg, type) {
   const t = document.getElementById('toast');
   const m = document.getElementById('toast-msg');
+  const ic = document.getElementById('toast-icon');
   if (!t || !m) return;
   m.textContent = msg;
+  if (ic) ic.textContent = type === 'error' ? '⚠️' : type === 'info' ? 'ℹ️' : '✅';
   t.classList.add('show');
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.remove('show'), 3000);
@@ -700,7 +702,7 @@ function copyRcalJson() {
 
 function copyStrandLink() {
   if (!_builderStrandId) {
-    showToast('Save your strand first to get a shareable link');
+    showToast('Save your strand first to get a shareable link', 'error');
     return;
   }
   const handle = ES_USER?.handle || 'yourhandle';
@@ -752,7 +754,7 @@ async function esAuthWithGoogle(googleUser) {
       body: JSON.stringify({ credential: googleUser.credential })
     });
     const data = await res.json();
-    if (!res.ok) { showToast('Sign in failed — ' + (data.error||'try again')); return; }
+    if (!res.ok) { showToast('Sign in failed — ' + (data.error||'try again'), 'error'); return; }
     esSetJwt(data.token);
     ES_USER = data.user;
     esSetStoredUser(data.user);
@@ -762,7 +764,7 @@ async function esAuthWithGoogle(googleUser) {
       esOnSignedIn();
     }
   } catch(e) {
-    showToast('Connection error — check your internet and try again');
+    showToast('Connection error — check your internet and try again', 'error');
   }
 }
 
@@ -1029,7 +1031,7 @@ async function esSubmitForgotPassword() {
 // ── RESET PASSWORD (full-page view at #/reset-password?token=…) ─
 let _esResetToken = '';
 function esShowResetPassword(token) {
-  if (!token) { showToast('Reset link is missing or invalid'); window.location.hash = '/'; return; }
+  if (!token) { showToast('Reset link is missing or invalid', 'error'); window.location.hash = '/'; return; }
   _esResetToken = token;
   esHideAllPublicViews();
   const v = document.getElementById('es-reset-view');
@@ -1137,11 +1139,11 @@ async function esResendVerification(btn) {
     else {
       btn.textContent = 'Resend email'; btn.disabled = false;
       const d = await res.json().catch(() => ({}));
-      showToast(d.error || 'Could not resend — try again later');
+      showToast(d.error || 'Could not resend — try again later', 'error');
     }
   } catch (e) {
     btn.textContent = 'Resend email'; btn.disabled = false;
-    showToast('Connection error');
+    showToast('Connection error', 'error');
   }
 }
 
@@ -1254,7 +1256,7 @@ function esCheckHandle(val) {
 
 async function esConfirmHandle() {
   const val = document.getElementById('handle-input').value.trim();
-  if (!val || !/^[a-zA-Z0-9_-]{3,30}$/.test(val)) { showToast('Enter a valid handle first'); return; }
+  if (!val || !/^[a-zA-Z0-9_-]{3,30}$/.test(val)) { showToast('Enter a valid handle first', 'error'); return; }
   try {
     const res = await fetch(`${BACKEND_URL}/api/auth/set-handle`, {
       method: 'POST',
@@ -1262,12 +1264,12 @@ async function esConfirmHandle() {
       body: JSON.stringify({ handle: val })
     });
     const d = await res.json();
-    if (!res.ok) { showToast(d.error || 'Could not set handle'); return; }
+    if (!res.ok) { showToast(d.error || 'Could not set handle', 'error'); return; }
     ES_USER.handle = val;
     esSetStoredUser(ES_USER);
     document.getElementById('es-handle-modal').classList.remove('open');
     esOnSignedIn();
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 // ── API KEY MANAGEMENT ────────────────────────────────────────
@@ -1313,19 +1315,19 @@ async function esLoadApiKeys() {
 
 async function esCreateApiKey() {
   const label = document.getElementById('apikey-label').value.trim();
-  if (!label) { showToast('Enter a label for this key'); return; }
+  if (!label) { showToast('Enter a label for this key', 'error'); return; }
   const scopes = [...document.querySelectorAll('#apikey-scopes input[type=checkbox]:checked')].map(cb => cb.value);
-  if (!scopes.length) { showToast('Select at least one scope'); return; }
+  if (!scopes.length) { showToast('Select at least one scope', 'error'); return; }
   try {
     const res = await esFetch('/api/apikeys', { method: 'POST', body: JSON.stringify({ label, scopes }) });
     const data = await res.json();
-    if (!res.ok) { showToast(data.error || 'Could not create key'); return; }
+    if (!res.ok) { showToast(data.error || 'Could not create key', 'error'); return; }
     esHideApiKeyForm();
     esLoadApiKeys();
     _revealedKey = data.key;
     document.getElementById('apikey-reveal-value').textContent = data.key;
     document.getElementById('apikey-reveal-modal').style.display = 'flex';
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 async function esRevokeApiKey(id) {
@@ -1333,8 +1335,8 @@ async function esRevokeApiKey(id) {
   try {
     const res = await esFetch(`/api/apikeys/${id}`, { method: 'DELETE' });
     if (res.ok) { showToast('Key revoked'); esLoadApiKeys(); }
-    else showToast('Could not revoke key');
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+    else showToast('Could not revoke key', 'error');
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 function esCopyApiKey() {
@@ -1706,8 +1708,8 @@ async function esSubscribeToStrand(strandId, workspaceId) {
       body: JSON.stringify({ strandId, workspaceId: workspaceId || (ES_WORKSPACES[0]?._id) })
     });
     if (res.ok) showToast('✓ Subscribed — this strand is now in your dashboard');
-    else { const d = await res.json(); showToast(d.error||'Could not subscribe'); }
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+    else { const d = await res.json(); showToast(d.error||'Could not subscribe', 'error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 async function esUnsubscribeStrand(strandId, e) {
@@ -1731,8 +1733,8 @@ async function esSubscribeToBraid(braidId, workspaceId) {
       body: JSON.stringify({ braidId, workspaceId: workspaceId || (ES_WORKSPACES[0]?._id) })
     });
     if (res.ok) showToast('✓ Braid subscribed — all strands added to your dashboard');
-    else { const d = await res.json(); showToast(d.error||'Could not subscribe'); }
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+    else { const d = await res.json(); showToast(d.error||'Could not subscribe', 'error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 async function esUnsubscribeBraid(braidId, e) {
@@ -2014,11 +2016,11 @@ async function esSubmitPasscode() {
   const code = document.getElementById('passcode-input').value;
   try {
     const res = await fetch(`${BACKEND_URL}/api/public/strand/${gate.dataset.handle}/${gate.dataset.strandId}?passcode=${encodeURIComponent(code)}`);
-    if (res.status === 403) { showToast('Incorrect passcode'); return; }
+    if (res.status === 403) { showToast('Incorrect passcode', 'error'); return; }
     const data = await res.json();
     gate.style.display = 'none';
     esRenderStrandView(data.strand);
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 function esRenderStrandView(strand) {
@@ -2243,7 +2245,7 @@ async function esOpenBraidAnalytics(braidId) {
 async function esEditStrand(strandId) {
   try {
     const res = await esFetch(`/api/strands/${strandId}`);
-    if (!res.ok) { showToast('Could not load strand for editing'); return; }
+    if (!res.ok) { showToast('Could not load strand for editing', 'error'); return; }
     const d = await res.json();
     const s = d.strand;
 
@@ -2331,7 +2333,7 @@ async function esEditStrand(strandId) {
       }, 300);
     }
   } catch(e) {
-    showToast('Could not load strand for editing');
+    showToast('Could not load strand for editing', 'error');
   }
 }
 
@@ -2342,11 +2344,11 @@ async function esPublishExistingStrand(strandId, btn) {
     btn.textContent = 'Publishing…';
     const res = await esFetch(`/api/strands/${strandId}/publish`, { method: 'POST' });
     const d = await res.json();
-    if (!res.ok) { showToast(d.error || 'Could not publish'); btn.disabled = false; btn.textContent = 'Publish →'; return; }
+    if (!res.ok) { showToast(d.error || 'Could not publish', 'error'); btn.disabled = false; btn.textContent = 'Publish →'; return; }
     showToast('🟢 Strand is live!');
     esRenderMyStrands(); // refresh the list
   } catch(e) {
-    showToast('Connection error');
+    showToast('Connection error', 'error');
     btn.disabled = false; btn.textContent = 'Publish →';
   }
 }
@@ -2473,8 +2475,8 @@ async function esPublishBraid() {
   const name = document.getElementById('braid-name').value.trim();
   const desc = document.getElementById('braid-desc').value.trim();
   const passcode = document.getElementById('braid-passcode').value.trim();
-  if (!name) { showToast('Add a braid name first'); return; }
-  if (!_braidSelectedStrands.size) { showToast('Select at least one strand'); return; }
+  if (!name) { showToast('Add a braid name first', 'error'); return; }
+  if (!_braidSelectedStrands.size) { showToast('Select at least one strand', 'error'); return; }
   try {
     const res = await esFetch('/api/braids', {
       method: 'POST',
@@ -2486,7 +2488,7 @@ async function esPublishBraid() {
       })
     });
     const d = await res.json();
-    if (!res.ok) { showToast(d.error||'Could not create braid'); return; }
+    if (!res.ok) { showToast(d.error||'Could not create braid', 'error'); return; }
     showToast('🪢 Braid published!');
     const panel = document.getElementById('braid-qr-panel');
     const url = `https://eventstrand.com/b/${ES_USER.handle}/${d.braid._id}`;
@@ -2497,7 +2499,7 @@ async function esPublishBraid() {
         <button class="btn btn-ghost" onclick="navigator.clipboard?.writeText('${url}');showToast('📋 Copied')">Copy Link</button>
         <button class="btn btn-ghost" onclick="esGoto('dashboard')" title="View in dashboard">View in Dashboard</button>
       </div>`;
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 // ── WORKSPACES ────────────────────────────────────────────────
@@ -2553,17 +2555,17 @@ function esShowNewWorkspace() {
 
 async function esCreateWorkspace() {
   const name = document.getElementById('ws-new-name').value.trim();
-  if (!name) { showToast('Enter a workspace name'); return; }
+  if (!name) { showToast('Enter a workspace name', 'error'); return; }
   try {
     const res = await esFetch('/api/user/workspaces', {method:'POST', body:JSON.stringify({name, icon:_wsNewIcon})});
     const d = await res.json();
-    if (!res.ok) { showToast(d.error||'Could not create workspace'); return; }
+    if (!res.ok) { showToast(d.error||'Could not create workspace', 'error'); return; }
     ES_WORKSPACES.push(d.workspace);
     document.getElementById('new-workspace-form').style.display = 'none';
     document.getElementById('ws-new-name').value = '';
     esRenderWorkspaces();
     showToast('✓ Workspace created');
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 async function esSetActiveWorkspaceDb(id) {
@@ -2573,16 +2575,16 @@ async function esSetActiveWorkspaceDb(id) {
     _activeWorkspaceId = id;
     esRenderWorkspaces();
     esRenderWorkspaceBar();
-  } catch(e) { showToast('Could not set active workspace'); }
+  } catch(e) { showToast('Could not set active workspace', 'error'); }
 }
 
 async function esDeleteWorkspace(id) {
-  if (ES_WORKSPACES.length <= 1) { showToast('You must have at least one workspace'); return; }
+  if (ES_WORKSPACES.length <= 1) { showToast('You must have at least one workspace', 'error'); return; }
   try {
     await esFetch(`/api/user/workspaces/${id}`, {method:'DELETE'});
     ES_WORKSPACES = ES_WORKSPACES.filter(w => w._id !== id);
     esRenderWorkspaces();
-  } catch(e) { showToast('Could not delete workspace'); }
+  } catch(e) { showToast('Could not delete workspace', 'error'); }
 }
 
 
@@ -2676,7 +2678,7 @@ function esStartDirectoryPoll(strandId) {
 
 async function esSubmitToDirectory() {
   if (!_builderStrandId) {
-    showToast('Publish your strand first before submitting to the directory');
+    showToast('Publish your strand first before submitting to the directory', 'error');
     return;
   }
   const urlEl  = document.getElementById('builder-dir-url');
@@ -2685,12 +2687,12 @@ async function esSubmitToDirectory() {
   const url    = urlEl?.value?.trim();
 
   if (!url) {
-    showToast('Enter the URL where you\'ve posted your strand link or QR code');
+    showToast('Enter the URL where you'''ve posted your strand link or QR code', 'error');
     urlEl?.focus();
     return;
   }
   try { new URL(url); } catch(e) {
-    showToast('Enter a full URL including https://');
+    showToast('Enter a full URL including https://', 'error');
     return;
   }
 
@@ -2719,7 +2721,7 @@ async function esSubmitToDirectory() {
     esStartDirectoryPoll(_builderStrandId);
 
   } catch(e) {
-    if (e.message !== '401') showToast('Connection error');
+    if (e.message !== '401') showToast('Connection error', 'error');
     if (btn) btn.disabled = false;
   }
 }
@@ -2730,20 +2732,20 @@ async function esDeleteStrand(strandId, title) {
   if (!confirm(`Delete "${title}"? This cannot be undone and will remove it from all subscriber workspaces.`)) return;
   try {
     const res = await esFetch(`/api/strands/${strandId}`, {method:'DELETE'});
-    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not delete'); return; }
+    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not delete', 'error'); return; }
     showToast('Strand deleted');
     esRenderMyStrands();
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 async function esDeleteBraid(braidId, title) {
   if (!confirm(`Delete braid "${title}"? This cannot be undone.`)) return;
   try {
     const res = await esFetch(`/api/braids/${braidId}`, {method:'DELETE'});
-    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not delete'); return; }
+    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not delete', 'error'); return; }
     showToast('Braid deleted');
     esRenderMyBraids();
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 async function esEditBraid(braidId) {
@@ -2751,7 +2753,7 @@ async function esEditBraid(braidId) {
     const mineRes = await esFetch('/api/braids/mine');
     const d = await mineRes.json();
     const braid = d.braids?.find(b => b._id === braidId);
-    if (!braid) { showToast('Could not load braid'); return; }
+    if (!braid) { showToast('Could not load braid', 'error'); return; }
     const newTitle = prompt('Braid title:', braid.title);
     if (newTitle === null) return;
     const newDesc  = prompt('Description (optional):', braid.description || '');
@@ -2759,10 +2761,10 @@ async function esEditBraid(braidId) {
     const body = { title: newTitle.trim() || braid.title };
     if (newDesc.trim() !== (braid.description || '')) body.description = newDesc.trim();
     const saveRes = await esFetch(`/api/braids/${braidId}`, { method: 'PUT', body: JSON.stringify(body) });
-    if (!saveRes.ok) { const e = await saveRes.json(); showToast(e.error||'Could not update braid'); return; }
+    if (!saveRes.ok) { const e = await saveRes.json(); showToast(e.error||'Could not update braid', 'error'); return; }
     showToast('✓ Braid updated');
     esRenderMyBraids();
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 async function esRenameWorkspace(wsId, currentName) {
@@ -2773,13 +2775,13 @@ async function esRenameWorkspace(wsId, currentName) {
       method: 'PATCH',
       body: JSON.stringify({ name: newName.trim() }),
     });
-    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not rename'); return; }
+    if (!res.ok) { const d = await res.json(); showToast(d.error||'Could not rename', 'error'); return; }
     const ws = ES_WORKSPACES.find(w => w._id === wsId);
     if (ws) ws.name = newName.trim();
     esRenderWorkspaces();
     esRenderWorkspaceBar();
     showToast('✓ Workspace renamed');
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 // ── ACCOUNT SETTINGS ──────────────────────────────────────────
@@ -2804,17 +2806,17 @@ function esRenderAccount() {
 async function esEditHandle() {
   const newHandle = prompt('New handle (letters, numbers, - and _ only):', ES_USER.handle||'');
   if (!newHandle || newHandle === ES_USER.handle) return;
-  if (!/^[a-zA-Z0-9_-]{3,30}$/.test(newHandle)) { showToast('Invalid handle — letters, numbers, - and _ only (3-30 chars)'); return; }
+  if (!/^[a-zA-Z0-9_-]{3,30}$/.test(newHandle)) { showToast('Invalid handle — letters, numbers, - and _ only (3-30 chars)', 'error'); return; }
   try {
     const res = await esFetch('/api/auth/set-handle', {method:'POST', body:JSON.stringify({handle:newHandle})});
     const d = await res.json();
-    if (!res.ok) { showToast(d.error||'Could not update handle'); return; }
+    if (!res.ok) { showToast(d.error||'Could not update handle', 'error'); return; }
     ES_USER.handle = newHandle;
     esSetStoredUser(ES_USER);
     esRenderAccount();
     esRenderMarketingAuth();
     showToast('✓ Handle updated — old URLs redirect automatically');
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 async function esEditDisplayName() {
@@ -2822,21 +2824,21 @@ async function esEditDisplayName() {
   if (!newName || newName === ES_USER.displayName) return;
   try {
     const res = await esFetch('/api/auth/profile', {method:'PATCH', body:JSON.stringify({displayName:newName})});
-    if (!res.ok) { showToast('Could not update name'); return; }
+    if (!res.ok) { showToast('Could not update name', 'error'); return; }
     ES_USER.displayName = newName;
     esSetStoredUser(ES_USER);
     esRenderAccount();
     esRenderMarketingAuth();
     esRenderNavAuth();
     showToast('✓ Name updated');
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 async function esExportAll() {
   try {
     const res = await esFetch('/api/strands/mine');
     const d = await res.json();
-    if (!d.strands?.length) { showToast('No strands to export'); return; }
+    if (!d.strands?.length) { showToast('No strands to export', 'error'); return; }
     d.strands.forEach(s => {
       const cleanEvents = (s.events||[]).map(ev => {
         const e = {};
@@ -2891,7 +2893,7 @@ async function esExportAll() {
       a.click(); URL.revokeObjectURL(url);
     });
     showToast(`⬇ ${d.strands.length} .rcal files downloaded`);
-  } catch(e) { showToast('Export failed — try again'); }
+  } catch(e) { showToast('Export failed — try again', 'error'); }
 }
 
 // ── NOTIFICATIONS ─────────────────────────────────────────────
@@ -2988,11 +2990,11 @@ async function esSaveStrand() {
   try {
     const res = await esFetch(endpoint, {method, body: JSON.stringify(obj)});
     const d = await res.json();
-    if (!res.ok) { showToast(d.error||'Could not save'); return; }
+    if (!res.ok) { showToast(d.error||'Could not save', 'error'); return; }
     _builderStrandId = d.strand._id;
     showToast(wasNew ? '✓ Strand saved as draft' : '✓ Strand updated — subscribers will see changes');
     esShowBuilderQR(d.strand);
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 async function esPublishStrand() {
@@ -3002,10 +3004,10 @@ async function esPublishStrand() {
   try {
     const res = await esFetch(`/api/strands/${_builderStrandId}/publish`, {method:'POST'});
     const d = await res.json();
-    if (!res.ok) { showToast(d.error||'Could not publish'); return; }
+    if (!res.ok) { showToast(d.error||'Could not publish', 'error'); return; }
     showToast('🟢 Strand is live!');
     esShowBuilderQR(d.strand);
-  } catch(e) { if (e.message !== '401') showToast('Connection error'); }
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
 function esShowBuilderQR(strand) {
