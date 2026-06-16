@@ -2697,7 +2697,7 @@ async function esSubmitToDirectory() {
   const url    = urlEl?.value?.trim();
 
   if (!url) {
-    showToast('Enter the URL where you'''ve posted your strand link or QR code', 'error');
+    showToast('Enter the URL where you\'ve posted your strand link or QR code', 'error');
     urlEl?.focus();
     return;
   }
