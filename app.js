@@ -836,18 +836,14 @@ function esShowAuth(reason) {
   const r = document.getElementById('auth-modal-reason');
   if (r && reason) r.textContent = reason;
   modal.classList.add('open');
-  // Render the Google button after the modal is visible.
-  // - requestAnimationFrame ensures the display:flex has painted before GIS measures the container.
-  // - cancel() clears any prior render state so re-renders work correctly.
-  // - No hardcoded width — GIS sizes to the container naturally.
+  // Always clear and re-render the Google button when the modal opens.
+  // GIS can't render correctly into display:none containers — the iframe ends up with
+  // zero dimensions and stays invisible. Clearing innerHTML and re-rendering each time
+  // the modal becomes visible guarantees a properly sized, visible button.
   const modEl = document.getElementById('g_signin_modal');
-  if (modEl) {
-    requestAnimationFrame(() => {
-      if (!window.google?.accounts?.id) return;
-      try { google.accounts.id.cancel(); } catch(e) {}
-      modEl.innerHTML = '';
-      google.accounts.id.renderButton(modEl, { theme:'filled_black', size:'large' });
-    });
+  if (modEl && window.google?.accounts?.id) {
+    modEl.innerHTML = '';
+    google.accounts.id.renderButton(modEl, { theme:'filled_black', size:'large', width:280 });
   }
 }
 
@@ -1367,6 +1363,7 @@ function esNavHome() {
   if (document.getElementById('es-app').style.display !== 'none') {
     esCloseApp();
   }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ── HASH ROUTER ───────────────────────────────────────────────
@@ -3090,7 +3087,7 @@ function esInitGIS() {
   // which causes GIS to render a zero-dimension iframe that stays invisible even after
   // the modal opens. The modal slot is populated lazily in esShowAuth() instead.
   const mEl = document.getElementById('g_signin_marketing');
-  if (mEl) { try { google.accounts.id.cancel(); } catch(e) {} google.accounts.id.renderButton(mEl, { theme:'filled_black', size:'large' }); }
+  if (mEl) google.accounts.id.renderButton(mEl, { theme:'filled_black', size:'large', width:280 });
 }
 
 // Close notif/analytics drawers on outside click
