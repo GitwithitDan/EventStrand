@@ -841,9 +841,19 @@ function esShowAuth(reason) {
   // zero dimensions and stays invisible. Clearing innerHTML and re-rendering each time
   // the modal becomes visible guarantees a properly sized, visible button.
   const modEl = document.getElementById('g_signin_modal');
-  if (modEl && window.google?.accounts?.id) {
+  function renderGoogleBtn() {
+    if (!modEl || !window.google?.accounts?.id) return;
     modEl.innerHTML = '';
     google.accounts.id.renderButton(modEl, { theme:'filled_black', size:'large', width:280 });
+  }
+  if (window.google?.accounts?.id) {
+    renderGoogleBtn();
+  } else {
+    // GIS not yet loaded — poll until it's ready (esInitGIS will also backfill if modal is open)
+    const gisWait = setInterval(() => {
+      if (window.google?.accounts?.id) { clearInterval(gisWait); renderGoogleBtn(); }
+    }, 200);
+    setTimeout(() => clearInterval(gisWait), 10000); // give up after 10s
   }
 }
 
@@ -3080,12 +3090,15 @@ function esInitGIS() {
     callback: esAuthWithGoogle,
     auto_select: false,
   });
-  // Render in marketing section only.
-  // Do NOT render into the auth modal here — the modal is display:none at page load,
-  // which causes GIS to render a zero-dimension iframe that stays invisible even after
-  // the modal opens. The modal slot is populated lazily in esShowAuth() instead.
   const mEl = document.getElementById('g_signin_marketing');
   if (mEl) google.accounts.id.renderButton(mEl, { theme:'filled_black', size:'large', width:280 });
+  // If the auth modal is already open when GIS loads (slow script), render the button now.
+  const modEl = document.getElementById('g_signin_modal');
+  const modal = document.getElementById('es-auth-modal');
+  if (modEl && modal?.classList.contains('open')) {
+    modEl.innerHTML = '';
+    google.accounts.id.renderButton(modEl, { theme:'filled_black', size:'large', width:280 });
+  }
 }
 
 // Close notif/analytics drawers on outside click
