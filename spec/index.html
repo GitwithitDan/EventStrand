@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>.rcal Specification v0.1 — EventStrand</title>
+<title>.rcal Specification v0.2 — EventStrand</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -566,7 +566,7 @@ h3:hover .anchor-link { opacity: 1; }
     EventStrand
   </a>
   <div class="topbar-sep"></div>
-  <span class="topbar-title">.rcal Specification<span class="topbar-badge">v0.1</span></span>
+  <span class="topbar-title">.rcal Specification<span class="topbar-badge">v0.2</span></span>
   <div class="topbar-actions">
     <a href="https://eventstrand.com/#builder" class="topbar-link primary">Strand Builder →</a>
   </div>
@@ -628,6 +628,7 @@ h3:hover .anchor-link { opacity: 1; }
       <a class="sidebar-link" href="#ex-venue"><span class="sidebar-link-dot"></span>Full venue strand</a>
       <a class="sidebar-link" href="#ex-personal"><span class="sidebar-link-dot"></span>Personal strand</a>
       <a class="sidebar-link" href="#ex-oneoff"><span class="sidebar-link-dot"></span>With one-off event</a>
+      <a class="sidebar-link" href="#ex-seasonal"><span class="sidebar-link-dot"></span>Seasonal span</a>
     </div>
   </div>
 
@@ -676,7 +677,7 @@ h3:hover .anchor-link { opacity: 1; }
   <h1>.rcal<br>Format Specification</h1>
 
   <div class="intro-meta">
-    <span class="meta-chip mc-version">v0.1</span>
+    <span class="meta-chip mc-version">v0.2</span>
     <span class="meta-chip mc-license">Open — No License Required</span>
     <span class="meta-chip mc-date">March 2026</span>
   </div>
@@ -1108,6 +1109,30 @@ h3:hover .anchor-link { opacity: 1; }
         <td class="td-type">string</td>
         <td class="td-req req-no">No</td>
         <td class="td-desc">Month this rule stops being active (inclusive). Same format as <code>season_start</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">season_start_day</td>
+        <td class="td-type">number</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Day of month (1–31) within <code>season_start</code> that the rule becomes active. Pairs with <code>season_start</code> to give day-level precision. E.g. <code>season_start: "jun", season_start_day: 21</code> for the summer solstice. If omitted, the rule activates on the first day of <code>season_start</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">season_end_day</td>
+        <td class="td-type">number</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">Day of month (1–31) within <code>season_end</code> that the rule stops being active (inclusive). If omitted, the rule is active through the last day of <code>season_end</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">fuzzy_start</td>
+        <td class="td-type">boolean</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">If <code>true</code>, the start of this rule's active window is approximate — the exact day may shift year to year (e.g. astronomical solstices and equinoxes). Apps should render a <code>~</code> indicator at the start edge rather than a hard boundary. Defaults to <code>false</code>.</td>
+      </tr>
+      <tr>
+        <td class="td-field">fuzzy_end</td>
+        <td class="td-type">boolean</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">If <code>true</code>, the end of this rule's active window is approximate. Same rendering guidance as <code>fuzzy_start</code>. Defaults to <code>false</code>.</td>
       </tr>
       <tr>
         <td class="td-field">start_date</td>
@@ -1805,10 +1830,69 @@ h3:hover .anchor-link { opacity: 1; }
   </div>
 </div>
 
+<!-- ══ SEASONAL EXAMPLE ══ -->
+<div class="spec-section" id="ex-seasonal">
+  <h2>Seasonal span <a href="#ex-seasonal" class="anchor-link">#</a></h2>
+  <p>A span-style event describing astronomical summer in the northern hemisphere. No specific days or times — the event is the season itself. Apps that render span-style strands (such as ManaCal) display these as solid blocks from start to end date rather than discrete occurrences.</p>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">💡</span>
+    <div class="callout-text">
+      <strong>Span detection.</strong> An event is treated as a span (rather than a schedule of occurrences) when it uses <code>annual</code> pattern with <code>season_start</code> + <code>season_end</code> but no <code>days</code> or <code>time_start</code>. Span-aware apps render these as a continuous block; occurrence-based apps may render only the start date.
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-topbar"><span class="code-filename">summer.rcal</span><span class="code-lang">JSON</span></div>
+    <pre>{
+  <span class="ck">"rcal"</span>: <span class="cs">"0.2"</span>,
+  <span class="ck">"meta"</span>: {
+    <span class="ck">"title"</span>: <span class="cs">"Summer"</span>,
+    <span class="ck">"type"</span>: <span class="cs">"personal"</span>,
+    <span class="ck">"timezone"</span>: <span class="cs">"America/New_York"</span>
+  },
+  <span class="ck">"events"</span>: [
+    {
+      <span class="ck">"id"</span>: <span class="cs">"summer"</span>,
+      <span class="ck">"name"</span>: <span class="cs">"Summer"</span>,
+      <span class="ck">"category"</span>: <span class="cs">"general"</span>,
+      <span class="ck">"vibe_tags"</span>: [<span class="cs">"outdoor"</span>, <span class="cs">"active"</span>, <span class="cs">"social"</span>],
+      <span class="ck">"recurrence"</span>: [
+        {
+          <span class="ck">"pattern"</span>: <span class="cs">"annual"</span>,
+          <span class="ck">"season_start"</span>: <span class="cs">"jun"</span>,
+          <span class="ck">"season_start_day"</span>: <span class="cn">21</span>,
+          <span class="ck">"season_end"</span>: <span class="cs">"sep"</span>,
+          <span class="ck">"season_end_day"</span>: <span class="cn">22</span>,
+          <span class="ck">"fuzzy_start"</span>: <span class="cb">true</span>,
+          <span class="ck">"fuzzy_end"</span>: <span class="cb">true</span>
+        }
+      ]
+    }
+  ]
+}</pre>
+  </div>
+
+  <p>Both boundaries are marked <code>fuzzy</code> because the exact solstice and equinox dates shift by 1–2 days each year. Span-aware apps should recalculate the precise dates for the viewed year using the Meeus algorithm or equivalent, and render a <code>~</code> symbol at each fuzzy edge.</p>
+</div>
+
 <!-- ══ CHANGELOG ══ -->
 <div class="spec-section" id="changelog">
   <div class="spec-section-label">Meta</div>
   <h2>Changelog <a href="#changelog" class="anchor-link">#</a></h2>
+
+  <div class="changelog-entry">
+    <span class="changelog-version">v0.2</span>
+    <span class="changelog-date">2026-06-16</span>
+    <div class="changelog-notes">
+      Adds day-level precision to seasonal windows and fuzzy boundary signaling for recurrence rules.
+      <ul>
+        <li>New recurrence rule fields: <code>season_start_day</code> and <code>season_end_day</code> (integer, 1–31) — pair with <code>season_start</code>/<code>season_end</code> to specify an exact day within the active month rather than snapping to first/last day of month.</li>
+        <li>New recurrence rule fields: <code>fuzzy_start</code> and <code>fuzzy_end</code> (boolean) — signal that the boundary date shifts year to year (e.g. astronomical seasons). Apps should render a <code>~</code> indicator at fuzzy edges and may recalculate the exact date per year using known algorithms.</li>
+        <li>Motivating use case: seasonal span events (summer, winter, tax season, sports seasons) for consumers such as ManaCal-style dashboards that render date ranges as continuous blocks rather than discrete occurrences.</li>
+      </ul>
+    </div>
+  </div>
 
   <div class="changelog-entry">
     <span class="changelog-version">v0.1</span>
