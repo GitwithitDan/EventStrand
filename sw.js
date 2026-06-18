@@ -1,4 +1,4 @@
-const CACHE = 'es-v5';
+const CACHE = 'es-v6';
 const STATIC = [
   '/',
   '/manifest.json',
