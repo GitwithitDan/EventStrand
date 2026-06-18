@@ -1537,9 +1537,9 @@ async function esLoadUpcoming() {
         <div class="event-feed-item">
           <div class="efi-date"><div class="efi-date-day">${d.getDate()}</div><div class="efi-date-mon">${d.toLocaleString('en-US',{month:'short'})}</div></div>
           <div class="efi-body">
-            <div class="efi-name">${ev.title||ev.name||'Event'}</div>
-            <div class="efi-meta">${ev.venue||''}${ev.time?' · '+ev.time:''}</div>
-            <div class="efi-strand">→ ${ev.strandTitle||''}</div>
+            <div class="efi-name">${esc(ev.title||ev.name||'Event')}</div>
+            <div class="efi-meta">${esc(ev.venue||'')}${ev.time?' · '+esc(ev.time):''}</div>
+            <div class="efi-strand">→ ${esc(ev.strandTitle||'')}</div>
             <div class="efi-actions">
               <button class="efi-btn-star${esIsInterested(ev.id||ev._id,ev.date)?' active':''}" onclick="esToggleInterested(this,${JSON.stringify(ev).replace(/'/g,'&#39;')})" title="Star this event">${esIsInterested(ev.id||ev._id,ev.date)?'★':'☆'}</button>
             </div>
