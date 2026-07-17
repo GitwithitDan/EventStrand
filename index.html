@@ -867,7 +867,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
   <div class="section-inner">
     <div class="section-label">How It Works</div>
     <h2 class="section-title">One platform, three roles</h2>
-    <p class="section-sub">Whether you're looking for something to do tonight, a venue trying to reach your regulars, or a developer who hates iCal.</p>
+    <p class="section-sub">Whether you're looking for something to do tonight, a venue trying to reach your regulars, or a developer building on the open format.</p>
 
     <div class="tabs">
       <button class="tab active" onclick="switchTab(this,'user')">For Users</button>
@@ -1065,7 +1065,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     <span class="c-key">"timezone"</span>: <span class="c-str">"America/Chicago"</span>,
     <span class="c-key">"live"</span>: <span class="c-bool">true</span>
   },
-  <span class="c-key">"strands"</span>: [
+  <span class="c-key">"events"</span>: [
     {
       <span class="c-key">"id"</span>: <span class="c-str">"friday-jazz"</span>,
       <span class="c-key">"name"</span>: <span class="c-str">"Friday Jazz Night"</span>,
@@ -1164,7 +1164,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     <span class="c-key">"live"</span>: <span class="c-bool">true</span>,
     <span class="c-key">"color"</span>: <span class="c-str">"#C0392B"</span>
   },
-  <span class="c-key">"strands"</span>: [
+  <span class="c-key">"events"</span>: [
     {
       <span class="c-key">"id"</span>: <span class="c-str">"happy-hour"</span>,
       <span class="c-key">"name"</span>: <span class="c-str">"Happy Hour"</span>,
@@ -1206,13 +1206,13 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
       <span class="c-key">"recurrence"</span>: [
         {
           <span class="c-comment">// Second Thursday + Last Saturday</span>
-          <span class="c-key">"pattern"</span>: <span class="c-str">"monthly"</span>,
+          <span class="c-key">"pattern"</span>: <span class="c-str">"monthly_week"</span>,
           <span class="c-key">"month_week"</span>: <span class="c-str">"second"</span>,
           <span class="c-key">"days"</span>: [<span class="c-str">"thursday"</span>],
           <span class="c-key">"time_start"</span>: <span class="c-str">"20:00"</span>
         },
         {
-          <span class="c-key">"pattern"</span>: <span class="c-str">"monthly"</span>,
+          <span class="c-key">"pattern"</span>: <span class="c-str">"monthly_week"</span>,
           <span class="c-key">"month_week"</span>: <span class="c-str">"last"</span>,
           <span class="c-key">"days"</span>: [<span class="c-str">"saturday"</span>],
           <span class="c-key">"time_start"</span>: <span class="c-str">"21:00"</span>
