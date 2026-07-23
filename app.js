@@ -63,8 +63,9 @@ function mkEvent() {
     rules: [mkRule()], nextRid: 1,
     exceptions: [], nextXid: 0,
     collapsed: false,
-    date: '', oneTimeStart: '', oneTimeEnd: '',
-    dateList: [], nextDid: 0
+    date: '', oneTimeStart: '', oneTimeEnd: '', allDay: false,
+    dateList: [], nextDid: 0,
+    recDates: [], allDayDefault: false
   };
 }
 
@@ -72,8 +73,10 @@ function mkRule() {
   return {
     rid: 0,
     pattern: 'weekly', every: 1,
-    days: ['friday'],
-    timeStart: '21:00', timeEnd: '23:30',
+    days: ['fri'],
+    timeStart: '21:00', timeEnd: '',
+    allDay: false,
+    date: '', note: '',
     monthWeek: 'first', monthDate: 1,
     seasonStart: '', seasonEnd: ''
   };
@@ -185,14 +188,18 @@ function buildCardInner(ev) {
   const schedHtml = ev.eventType === 'recurring'
     ? `<div id="rules-stack-${ev.uid}">${rulesHtml}</div>
        <button class="add-rule-btn" onclick="addEvRule(${ev.uid})" style="margin-top:8px;width:100%">+ Add another time rule</button>
-       <div class="upcoming-preview" style="margin-top:12px"><div class="upcoming-label">Preview — next occurrences</div><div id="upcoming-${ev.uid}"></div></div>`
+       <div class="upcoming-preview" style="margin-top:12px"><div class="upcoming-label">Preview — next occurrences</div><div id="upcoming-${ev.uid}"></div></div>
+       <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">${buildDatelistSection(ev.uid, ev, 'recDates')}</div>`
     : ev.eventType === 'datelist'
-    ? buildDatelistSection(ev.uid, ev)
+    ? buildDatelistSection(ev.uid, ev, 'dateList')
     : `<div class="oneoff-row">
        <div class="field-group"><label class="field-label">Date</label><input class="field-input" type="date" value="${ev.date}" onchange="setEvDirect(${ev.uid},'date',this.value)"></div>
-       <div class="field-group"><label class="field-label">Start time</label><input class="field-input" type="time" value="${ev.oneTimeStart}" onchange="setEvDirect(${ev.uid},'oneTimeStart',this.value)"></div>
-       <div class="field-group"><label class="field-label">End time</label><input class="field-input" type="time" value="${ev.oneTimeEnd}" onchange="setEvDirect(${ev.uid},'oneTimeEnd',this.value)"></div>
-       </div>`;
+       <div class="field-group"><label class="field-label">Start time</label><input class="field-input" type="time" value="${ev.oneTimeStart}" onchange="setEvDirect(${ev.uid},'oneTimeStart',this.value)" ${ev.allDay?'disabled':''}></div>
+       <div class="field-group"><label class="field-label">End time (optional)</label><input class="field-input" type="time" value="${ev.oneTimeEnd}" onchange="setEvDirect(${ev.uid},'oneTimeEnd',this.value)" ${ev.allDay?'disabled':''}></div>
+       </div>
+       <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:14px;color:var(--text-dim);font-weight:600;cursor:pointer;">
+       <input type="checkbox" ${ev.allDay?'checked':''} onchange="toggleEvAllDay(${ev.uid},this.checked)"> All day / no specific time
+       </label>`;
 
   const excHtml = ev.eventType === 'recurring'
     ? `<div class="ecard-section"><div class="ecard-section-label">Exceptions</div>
@@ -225,7 +232,7 @@ function buildCardInner(ev) {
     <div class="field-group" style="margin-bottom:0"><label class="field-label">Ticket / RSVP URL</label><input class="field-input" type="text" placeholder="https://..." value="${ev.ticketUrl||''}" oninput="setEvDirect(${ev.uid},'ticketUrl',this.value)"></div>
     <div class="field-group" style="margin-bottom:0"><label class="field-label">Surface how far ahead?</label>
     <select class="field-input" onchange="setEvDirect(${ev.uid},'leadTimeDays',+this.value)">
-    ${[0,1,3,7,14].map(d=>`<option value="${d}"${ev.leadTimeDays===d?' selected':''}>${d===0?'Day of only':d===1?'1 day':d===7?'1 week':d===14?'2 weeks':d+' days'}</option>`).join('')}
+    ${[0,1,3,7,14,30,60,90,180].map(d=>`<option value="${d}"${ev.leadTimeDays===d?' selected':''}>${d===0?'Day of only':d===1?'1 day':d===7?'1 week':d===14?'2 weeks':d===30?'1 month':d===60?'2 months':d===90?'3 months':d===180?'6 months':d+' days'}</option>`).join('')}
     </select></div></div>
     <div class="ecard-section"><div class="field-group" style="margin-bottom:0"><label class="field-label">Notes for attendees</label>
     <textarea class="field-input" placeholder="No reservation needed. Bar opens at 7pm…" rows="2" oninput="setEvDirect(${ev.uid},'notes',this.value)">${ev.notes||''}</textarea></div></div>
@@ -246,11 +253,14 @@ function buildRuleBlock(uid, r, ri, total) {
     <option value="monthly_date"${r.pattern==='monthly_date'?' selected':''}>Once a month (by date)</option>
     <option value="daily"${r.pattern==='daily'?' selected':''}>Every day</option>
     <option value="annual"${r.pattern==='annual'?' selected':''}>Once a year</option>
+    <option value="specific_date"${r.pattern==='specific_date'?' selected':''}>Specific date</option>
     </select>`;
 
   const showDays = ['weekly','weekdays','weekly_alt'].includes(r.pattern) || r.every===2;
   const showMonthWeek = r.pattern === 'monthly_week';
   const showMonthDate = r.pattern === 'monthly_date';
+  const showDate = r.pattern === 'specific_date';
+  const showSeason = r.pattern !== 'specific_date';
 
   return `<div class="rule-block" id="rblock-${uid}-${ri}">
     <div class="rule-block-header"><span>Rule ${ri+1}</span>
@@ -273,11 +283,21 @@ function buildRuleBlock(uid, r, ri, total) {
     <select class="rule-select" onchange="setRuleField(${uid},${ri},'monthDate',+this.value)">
     ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28].map(n=>`<option value="${n}"${r.monthDate===n?' selected':''}>${n}</option>`).join('')}
     </select><span class="rule-lbl">of each month</span></div>
+    <div class="rule-row2" id="rdate-${uid}-${ri}" style="display:${showDate?'flex':'none'}">
+    <span class="rule-lbl">On</span>
+    <input type="date" class="rule-select" value="${r.date||''}" onchange="setRuleField(${uid},${ri},'date',this.value);updateUpcomingPreview(${uid})"></div>
+    <div class="rule-row2" id="rnote-${uid}-${ri}" style="display:${showDate?'flex':'none'}">
+    <span class="rule-lbl">Note</span>
+    <input type="text" class="rule-select" placeholder="Optional note, e.g. Guest DJ" value="${r.note||''}" oninput="setRuleField(${uid},${ri},'note',this.value)" style="flex:1;min-width:120px"></div>
     <div class="rule-row2"><span class="rule-lbl">At</span>
-    <input type="time" class="rule-select" value="${r.timeStart}" onchange="setRuleField(${uid},${ri},'timeStart',this.value);updateUpcomingPreview(${uid})">
-    <span class="rule-lbl">until</span>
-    <input type="time" class="rule-select" value="${r.timeEnd}" onchange="setRuleField(${uid},${ri},'timeEnd',this.value)"></div>
-    <div class="rule-row2"><span class="rule-lbl">Season</span>
+    <input type="time" class="rule-select" value="${r.timeStart}" onchange="setRuleField(${uid},${ri},'timeStart',this.value);updateUpcomingPreview(${uid})" ${r.allDay?'disabled':''}>
+    <span class="rule-lbl">until (optional)</span>
+    <input type="time" class="rule-select" placeholder="optional" value="${r.timeEnd}" onchange="setRuleField(${uid},${ri},'timeEnd',this.value)" ${r.allDay?'disabled':''}></div>
+    <div class="rule-row2">
+    <label style="display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text-dim);font-weight:600;cursor:pointer;">
+    <input type="checkbox" ${r.allDay?'checked':''} onchange="toggleRuleAllDay(${uid},${ri},this.checked)"> All day / no specific time
+    </label></div>
+    <div class="rule-row2" id="rseason-${uid}-${ri}" style="display:${showSeason?'flex':'none'}"><span class="rule-lbl">Season</span>
     <select class="rule-select" onchange="setRuleField(${uid},${ri},'seasonStart',this.value)">
     <option value="">All year</option>
     ${['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].map(m=>`<option value="${m}"${r.seasonStart===m?' selected':''}>${m.charAt(0).toUpperCase()+m.slice(1)}</option>`).join('')}
@@ -333,7 +353,8 @@ function setEvType(uid, type) {
     const rulesHtml = ev.rules.map((r,ri) => buildRuleBlock(uid,r,ri,ev.rules.length)).join('');
     schedEl.innerHTML = `<div id="rules-stack-${uid}">${rulesHtml}</div>
       <button class="add-rule-btn" onclick="addEvRule(${uid})" style="margin-top:8px;width:100%">+ Add another time rule</button>
-      <div class="upcoming-preview" style="margin-top:12px"><div class="upcoming-label">Preview — next occurrences</div><div id="upcoming-${uid}"></div></div>`;
+      <div class="upcoming-preview" style="margin-top:12px"><div class="upcoming-label">Preview — next occurrences</div><div id="upcoming-${uid}"></div></div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">${buildDatelistSection(uid, ev, 'recDates')}</div>`;
     updateUpcomingPreview(uid);
     // Add exceptions section if missing
     if (!document.getElementById('exc-list-' + uid)) {
@@ -351,13 +372,16 @@ function setEvType(uid, type) {
       body.appendChild(excDiv);
     }
   } else if (type === 'datelist') {
-    schedEl.innerHTML = buildDatelistSection(uid, ev);
+    schedEl.innerHTML = buildDatelistSection(uid, ev, 'dateList');
   } else {
     schedEl.innerHTML = `<div class="oneoff-row">
       <div class="field-group"><label class="field-label">Date</label><input class="field-input" type="date" value="${ev.date}" onchange="setEvDirect(${uid},'date',this.value)"></div>
-      <div class="field-group"><label class="field-label">Start time</label><input class="field-input" type="time" value="${ev.oneTimeStart}" onchange="setEvDirect(${uid},'oneTimeStart',this.value)"></div>
-      <div class="field-group"><label class="field-label">End time</label><input class="field-input" type="time" value="${ev.oneTimeEnd}" onchange="setEvDirect(${uid},'oneTimeEnd',this.value)"></div>
-      </div>`;
+      <div class="field-group"><label class="field-label">Start time</label><input class="field-input" type="time" value="${ev.oneTimeStart}" onchange="setEvDirect(${uid},'oneTimeStart',this.value)" ${ev.allDay?'disabled':''}></div>
+      <div class="field-group"><label class="field-label">End time (optional)</label><input class="field-input" type="time" value="${ev.oneTimeEnd}" onchange="setEvDirect(${uid},'oneTimeEnd',this.value)" ${ev.allDay?'disabled':''}></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:14px;color:var(--text-dim);font-weight:600;cursor:pointer;">
+      <input type="checkbox" ${ev.allDay?'checked':''} onchange="toggleEvAllDay(${uid},this.checked)"> All day / no specific time
+      </label>`;
     const excSec = document.getElementById('exc-section-' + uid);
     if (excSec) excSec.remove();
   }
@@ -385,6 +409,21 @@ function setEvDirect(uid, field, val) {
   const ev = getEv(uid); if (!ev) return;
   ev[field] = val;
   if (field === 'date' || field === 'oneTimeStart') bRenderPreviewEvents();
+}
+
+function toggleEvAllDay(uid, checked) {
+  const ev = getEv(uid); if (!ev) return;
+  ev.allDay = checked;
+  const schedEl = document.getElementById('ecard-sched-' + uid);
+  if (schedEl) schedEl.querySelectorAll('.oneoff-row input[type=time]').forEach(i => i.disabled = checked);
+  bRenderPreviewEvents();
+}
+
+function toggleEvAllDayDefault(uid, listField, checked) {
+  const ev = getEv(uid); if (!ev) return;
+  ev.allDayDefault = checked;
+  const wrap = document.getElementById('datelist-times-' + listField + '-' + uid);
+  if (wrap) wrap.querySelectorAll('input[type=time]').forEach(i => i.disabled = checked);
 }
 
 function collapseCard(uid) {
@@ -429,12 +468,19 @@ function setRulePattern(uid, ri, val) {
   if (val === 'weekly_alt') { r.pattern = 'weekly'; r.every = 2; }
   else { r.pattern = val; r.every = 1; }
   const showDays = ['weekly','weekdays','weekly_alt'].includes(val);
+  const showDate = val === 'specific_date';
   const daysRow = document.getElementById(`rdays-${uid}-${ri}`);
   const mwRow  = document.getElementById(`rmw-${uid}-${ri}`);
   const mdRow  = document.getElementById(`rmd-${uid}-${ri}`);
+  const dateRow = document.getElementById(`rdate-${uid}-${ri}`);
+  const noteRow = document.getElementById(`rnote-${uid}-${ri}`);
+  const seasonRow = document.getElementById(`rseason-${uid}-${ri}`);
   if (daysRow) daysRow.style.display = showDays ? 'flex' : 'none';
   if (mwRow)  mwRow.style.display  = val === 'monthly_week' ? 'flex' : 'none';
   if (mdRow)  mdRow.style.display  = val === 'monthly_date' ? 'flex' : 'none';
+  if (dateRow) dateRow.style.display = showDate ? 'flex' : 'none';
+  if (noteRow) noteRow.style.display = showDate ? 'flex' : 'none';
+  if (seasonRow) seasonRow.style.display = showDate ? 'none' : 'flex';
   updateUpcomingPreview(uid);
 }
 
@@ -442,6 +488,15 @@ function setRuleField(uid, ri, field, val) {
   const ev = getEv(uid); if (!ev) return;
   const r = ev.rules[ri]; if (!r) return;
   r[field] = val;
+}
+
+function toggleRuleAllDay(uid, ri, checked) {
+  const ev = getEv(uid); if (!ev) return;
+  const r = ev.rules[ri]; if (!r) return;
+  r.allDay = checked;
+  const block = document.getElementById('rblock-' + uid + '-' + ri);
+  if (block) block.querySelectorAll('input[type=time]').forEach(i => i.disabled = checked);
+  updateUpcomingPreview(uid);
 }
 
 function toggleEvDay(uid, ri, day) {
@@ -497,12 +552,12 @@ function updateUpcomingPreview(uid) {
     const dow = d.getDay();
     const dayAbbr = DAYS_SHORT[(dow+6)%7];
     if (!r.days.length || r.days.includes(dayAbbr)) {
-      items.push({ date: DAYS[dow]+' '+MONTHS[d.getMonth()]+' '+d.getDate(), start: r.timeStart||'?', end: r.timeEnd||'?' });
+      items.push({ date: DAYS[dow]+' '+MONTHS[d.getMonth()]+' '+d.getDate(), allDay: !!r.allDay, start: r.timeStart||'', end: r.timeEnd||'' });
       count++;
     }
   }
   el.innerHTML = items.map(it =>
-    `<div class="upcoming-item"><span class="upcoming-date">${it.date}</span><span class="upcoming-time">${it.start} – ${it.end}</span></div>`
+    `<div class="upcoming-item"><span class="upcoming-date">${it.date}</span><span class="upcoming-time">${it.allDay ? 'All day' : (it.end ? it.start+' – '+it.end : it.start||'?')}</span></div>`
   ).join('');
 }
 
@@ -523,7 +578,7 @@ function bRenderPreviewEvents() {
           if (!upcoming.length) return 'Date list · no upcoming';
           return 'Next: '+new Date(upcoming[0].date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+(upcoming.length>1?' +'+( upcoming.length-1)+' more':'');
         })()
-      : ev.rules[0] ? (ev.rules[0].days.slice(0,2).map(d=>d.charAt(0).toUpperCase()+d.slice(1)).join('/') + ' · ' + (ev.rules[0].timeStart||'')) : 'Recurring';
+      : ev.rules[0] ? (ev.rules[0].days.slice(0,2).map(d=>d.charAt(0).toUpperCase()+d.slice(1)).join('/') + ' · ' + (ev.rules[0].allDay ? 'All day' : (ev.rules[0].timeStart||''))) : 'Recurring';
     const tags = ev.vibes.slice(0,2).map(v => `<span class="preview-event-tag">${esc(v)}</span>`).join('');
     return `<div class="preview-event">
       <div class="preview-event-name">${ev.name||'Unnamed Event'}</div>
@@ -534,67 +589,86 @@ function bRenderPreviewEvents() {
 }
 
 // ── BUILDER: date list helpers ────────────────────────────────
-function buildDatelistSection(uid, ev) {
-  const defaultTimeRow = `<div class="datelist-times" style="margin-bottom:12px;">
+function buildDatelistSection(uid, ev, listField) {
+  listField = listField || 'dateList';
+  const list = ev[listField] || [];
+  const defaultTimeRow = `<div class="datelist-times" id="datelist-times-${listField}-${uid}" style="margin-bottom:8px;">
     <span class="rule-lbl" style="flex-shrink:0">Default time</span>
-    <input type="time" class="rule-select" value="${ev.oneTimeStart||'21:00'}" onchange="setEvDirect(${uid},'oneTimeStart',this.value)" placeholder="start">
+    <input type="time" class="rule-select" value="${ev.oneTimeStart||'21:00'}" onchange="setEvDirect(${uid},'oneTimeStart',this.value)" placeholder="start" ${ev.allDayDefault?'disabled':''}>
     <span class="rule-lbl">–</span>
-    <input type="time" class="rule-select" value="${ev.oneTimeEnd||'23:30'}" onchange="setEvDirect(${uid},'oneTimeEnd',this.value)" placeholder="end">
-    </div>`;
-  const entries = (ev.dateList||[]).map((d,di) => buildDateEntry(uid, d, di)).join('');
-  return `<div class="ecard-section-label" style="margin-bottom:8px">Confirmed Dates</div>
-    ${defaultTimeRow}
-    <div class="datelist-stack" id="datelist-${uid}">${entries}</div>
-    <button class="add-rule-btn" onclick="addDateEntry(${uid})" style="margin-top:8px;width:100%">+ Add date</button>
-    <div style="font-size:12px;color:var(--text-faint);margin-top:8px;line-height:1.6">Dates inherit the default time unless overridden per entry. Subscribers get updates silently.</div>`;
-}
-
-function buildDateEntry(uid, d, di) {
-  const hasOverride = d.timeStart || d.timeEnd || d.note;
-  return `<div class="datelist-entry" id="dentry-${uid}-${di}">
-    <input type="date" class="field-input datelist-entry-date" value="${d.date||''}" onchange="setDateField(${uid},${di},'date',this.value)">
-    <span class="datelist-override-toggle" onclick="toggleDateOverride(${uid},${di})" id="dtoggle-${uid}-${di}">${hasOverride?'− times/note':'+ override'}</span>
-    <div id="doverride-${uid}-${di}" style="display:${hasOverride?'flex':'none'};gap:6px;align-items:center;flex-wrap:wrap;flex:1">
-    <input type="time" class="rule-select" value="${d.timeStart||''}" placeholder="start" onchange="setDateField(${uid},${di},'timeStart',this.value)">
-    <input type="time" class="rule-select" value="${d.timeEnd||''}" placeholder="end" onchange="setDateField(${uid},${di},'timeEnd',this.value)">
-    <input type="text" class="rule-select" value="${d.note||''}" placeholder="Note (e.g. Guest DJ)" style="flex:2;min-width:100px" oninput="setDateField(${uid},${di},'note',this.value)">
+    <input type="time" class="rule-select" value="${ev.oneTimeEnd||''}" onchange="setEvDirect(${uid},'oneTimeEnd',this.value)" placeholder="end (optional)" ${ev.allDayDefault?'disabled':''}>
     </div>
-    <button class="datelist-entry-remove" onclick="removeDateEntry(${uid},${di})" aria-label="Remove date entry">✕</button>
+    <label style="display:flex;align-items:center;gap:6px;margin-bottom:12px;font-size:14px;color:var(--text-dim);font-weight:600;cursor:pointer;">
+    <input type="checkbox" ${ev.allDayDefault?'checked':''} onchange="toggleEvAllDayDefault(${uid},'${listField}',this.checked)"> All day / no time (default for new dates)
+    </label>`;
+  const entries = list.map((d,di) => buildDateEntry(uid, d, di, listField)).join('');
+  const label = listField === 'recDates' ? 'Extra dates (optional)' : 'Confirmed Dates';
+  const helpText = listField === 'recDates'
+    ? 'Individual dates in addition to the recurrence pattern above — e.g. an extra one-off night. Inherit the default time unless overridden per entry.'
+    : 'Dates inherit the default time unless overridden per entry. Subscribers get updates silently.';
+  return `<div class="ecard-section-label" style="margin-bottom:8px">${label}</div>
+    ${defaultTimeRow}
+    <div class="datelist-stack" id="datelist-${listField}-${uid}">${entries}</div>
+    <button class="add-rule-btn" onclick="addDateEntry(${uid},'${listField}')" style="margin-top:8px;width:100%">+ Add date</button>
+    <div style="font-size:12px;color:var(--text-faint);margin-top:8px;line-height:1.6">${helpText}</div>`;
+}
+
+function buildDateEntry(uid, d, di, listField) {
+  listField = listField || 'dateList';
+  const hasOverride = d.timeStart || d.timeEnd || d.note || d.allDay;
+  return `<div class="datelist-entry" id="dentry-${listField}-${uid}-${di}">
+    <input type="date" class="field-input datelist-entry-date" value="${d.date||''}" onchange="setDateField(${uid},'${listField}',${di},'date',this.value)">
+    <span class="datelist-override-toggle" onclick="toggleDateOverride(${uid},'${listField}',${di})" id="dtoggle-${listField}-${uid}-${di}">${hasOverride?'− times/note':'+ override'}</span>
+    <div id="doverride-${listField}-${uid}-${di}" style="display:${hasOverride?'flex':'none'};gap:6px;align-items:center;flex-wrap:wrap;flex:1">
+    <input type="time" class="rule-select" value="${d.timeStart||''}" placeholder="start" onchange="setDateField(${uid},'${listField}',${di},'timeStart',this.value)" ${d.allDay?'disabled':''}>
+    <input type="time" class="rule-select" value="${d.timeEnd||''}" placeholder="end (optional)" onchange="setDateField(${uid},'${listField}',${di},'timeEnd',this.value)" ${d.allDay?'disabled':''}>
+    <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--text-dim);cursor:pointer;"><input type="checkbox" ${d.allDay?'checked':''} onchange="setDateField(${uid},'${listField}',${di},'allDay',this.checked)"> All day</label>
+    <input type="text" class="rule-select" value="${d.note||''}" placeholder="Note (e.g. Guest DJ)" style="flex:2;min-width:100px" oninput="setDateField(${uid},'${listField}',${di},'note',this.value)">
+    </div>
+    <button class="datelist-entry-remove" onclick="removeDateEntry(${uid},'${listField}',${di})" aria-label="Remove date entry">✕</button>
     </div>`;
 }
 
-function addDateEntry(uid) {
+function addDateEntry(uid, listField) {
+  listField = listField || 'dateList';
   const ev = getEv(uid); if (!ev) return;
-  ev.dateList = ev.dateList || [];
-  ev.dateList.push({ date: '', timeStart: '', timeEnd: '', note: '' });
-  const stack = document.getElementById('datelist-' + uid);
+  ev[listField] = ev[listField] || [];
+  ev[listField].push({ date: '', timeStart: '', timeEnd: '', note: '', allDay: !!ev.allDayDefault });
+  const stack = document.getElementById('datelist-' + listField + '-' + uid);
   if (stack) {
-    const di = ev.dateList.length - 1;
+    const di = ev[listField].length - 1;
     const frag = document.createElement('div');
-    frag.innerHTML = buildDateEntry(uid, ev.dateList[di], di);
+    frag.innerHTML = buildDateEntry(uid, ev[listField][di], di, listField);
     stack.appendChild(frag.firstElementChild);
   }
   bRenderPreviewEvents();
 }
 
-function removeDateEntry(uid, di) {
+function removeDateEntry(uid, listField, di) {
+  listField = listField || 'dateList';
   const ev = getEv(uid); if (!ev) return;
-  ev.dateList.splice(di, 1);
-  const stack = document.getElementById('datelist-' + uid);
-  if (stack) stack.innerHTML = (ev.dateList||[]).map((d,i) => buildDateEntry(uid,d,i)).join('');
+  ev[listField].splice(di, 1);
+  const stack = document.getElementById('datelist-' + listField + '-' + uid);
+  if (stack) stack.innerHTML = (ev[listField]||[]).map((d,i) => buildDateEntry(uid,d,i,listField)).join('');
   bRenderPreviewEvents();
 }
 
-function setDateField(uid, di, field, val) {
+function setDateField(uid, listField, di, field, val) {
+  listField = listField || 'dateList';
   const ev = getEv(uid); if (!ev) return;
-  if (!ev.dateList[di]) return;
-  ev.dateList[di][field] = val;
+  if (!ev[listField] || !ev[listField][di]) return;
+  ev[listField][di][field] = val;
+  if (field === 'allDay') {
+    const stack = document.getElementById('datelist-' + listField + '-' + uid);
+    if (stack) stack.innerHTML = (ev[listField]||[]).map((d,i) => buildDateEntry(uid,d,i,listField)).join('');
+  }
   if (field === 'date') bRenderPreviewEvents();
 }
 
-function toggleDateOverride(uid, di) {
-  const el = document.getElementById(`doverride-${uid}-${di}`);
-  const tog = document.getElementById(`dtoggle-${uid}-${di}`);
+function toggleDateOverride(uid, listField, di) {
+  listField = listField || 'dateList';
+  const el = document.getElementById(`doverride-${listField}-${uid}-${di}`);
+  const tog = document.getElementById(`dtoggle-${listField}-${uid}-${di}`);
   if (!el || !tog) return;
   const visible = el.style.display !== 'none';
   el.style.display = visible ? 'none' : 'flex';
@@ -626,25 +700,36 @@ function buildRcalObj() {
     if (ev.notes) s.notes = ev.notes;
     if (ev.eventType === 'oneoff') {
       if (ev.date) s.date = ev.date;
-      if (ev.oneTimeStart) s.time_start = ev.oneTimeStart;
-      if (ev.oneTimeEnd) s.time_end = ev.oneTimeEnd;
+      if (ev.allDay) { s.all_day = true; }
+      else {
+        if (ev.oneTimeStart) s.time_start = ev.oneTimeStart;
+        if (ev.oneTimeEnd) s.time_end = ev.oneTimeEnd;
+      }
     } else if (ev.eventType === 'datelist') {
       s.date_list = ev.dateList.filter(d=>d.date).map(d => {
         const entry = {date:d.date};
-        if (d.timeStart) entry.time_start = d.timeStart;
-        if (d.timeEnd) entry.time_end = d.timeEnd;
+        if (d.allDay) { entry.all_day = true; }
+        else {
+          if (d.timeStart) entry.time_start = d.timeStart;
+          if (d.timeEnd) entry.time_end = d.timeEnd;
+        }
         if (d.note) entry.note = d.note;
         return entry;
       });
     } else {
-      s.recurrence = ev.rules.map(r => {
+      const recRules = ev.rules.filter(r => r.pattern !== 'specific_date');
+      const specificDateRules = ev.rules.filter(r => r.pattern === 'specific_date' && r.date);
+      if (recRules.length) s.recurrence = recRules.map(r => {
         const rule = {pattern: r.pattern};
         if (r.every && r.every > 1) rule.every = r.every;
         if (['weekly','weekly_alt'].includes(r.pattern) && r.days.length) rule.days = r.days;
         if (r.pattern === 'monthly_week') { rule.month_week = r.monthWeek; rule.days = r.days; }
         if (r.pattern === 'monthly_date') rule.month_date = r.monthDate;
-        if (r.timeStart) rule.time_start = r.timeStart;
-        if (r.timeEnd) rule.time_end = r.timeEnd;
+        if (r.allDay) { rule.all_day = true; }
+        else {
+          if (r.timeStart) rule.time_start = r.timeStart;
+          if (r.timeEnd) rule.time_end = r.timeEnd;
+        }
         if (r.seasonStart) rule.season_start = r.seasonStart;
         if (r.seasonEnd) rule.season_end = r.seasonEnd;
         return rule;
@@ -659,6 +744,29 @@ function buildRcalObj() {
         });
         if (!s.exceptions.length) delete s.exceptions;
       }
+      const allDates = [
+        ...specificDateRules.map(r => {
+          const entry = {date:r.date};
+          if (r.allDay) { entry.all_day = true; }
+          else {
+            if (r.timeStart) entry.time_start = r.timeStart;
+            if (r.timeEnd) entry.time_end = r.timeEnd;
+          }
+          if (r.note) entry.note = r.note;
+          return entry;
+        }),
+        ...(ev.recDates||[]).filter(d=>d.date).map(d => {
+          const entry = {date:d.date};
+          if (d.allDay) { entry.all_day = true; }
+          else {
+            if (d.timeStart) entry.time_start = d.timeStart;
+            if (d.timeEnd) entry.time_end = d.timeEnd;
+          }
+          if (d.note) entry.note = d.note;
+          return entry;
+        })
+      ];
+      if (allDates.length) s.dates = allDates;
     }
     return s;
   });
@@ -1538,7 +1646,7 @@ async function esLoadUpcoming() {
           <div class="efi-date"><div class="efi-date-day">${d.getDate()}</div><div class="efi-date-mon">${d.toLocaleString('en-US',{month:'short'})}</div></div>
           <div class="efi-body">
             <div class="efi-name">${esc(ev.title||ev.name||'Event')}</div>
-            <div class="efi-meta">${esc(ev.venue||'')}${ev.time?' · '+esc(ev.time):''}</div>
+            <div class="efi-meta">${esc(ev.venue||'')}${ev.allDay?' · All day':(ev.time?' · '+esc(ev.time):'')}</div>
             <div class="efi-strand">→ ${esc(ev.strandTitle||'')}</div>
             <div class="efi-actions">
               <button class="efi-btn-star${esIsInterested(ev.id||ev._id,ev.date)?' active':''}" onclick="esToggleInterested(this,${JSON.stringify(ev).replace(/'/g,'&#39;')})" title="Star this event">${esIsInterested(ev.id||ev._id,ev.date)?'★':'☆'}</button>
@@ -1979,6 +2087,15 @@ function computePastOccurrences(event) {
       if (!raw.find(x => x.date === r.date)) raw.push(r);
     }
   }
+  // Curated dates[] coexist with recurrence on the same event
+  for (const entry of (event.dates || [])) {
+    const ds = typeof entry === 'string' ? entry : entry.date;
+    if (!ds) continue;
+    const t = _occParseDate(ds).getTime();
+    if (t < fromMs || t > toMs) continue;
+    if (raw.find(x => x.date === ds)) continue;
+    raw.push({ date: ds, time_start: entry.time_start, time_end: entry.time_end, note: entry.note });
+  }
 
   // Apply exceptions
   raw = raw.map(occ => {
@@ -2283,15 +2400,21 @@ async function esEditStrand(strandId) {
       e.date         = ev.date         || '';
       e.oneTimeStart = ev.time_start   || '';
       e.oneTimeEnd   = ev.time_end     || '';
+      e.allDay       = !!ev.all_day;
       // datelist
       e.dateList     = (ev.date_list || []).map((d, i) => ({
-        did: i, date: d.date||'', timeStart: d.time_start||'', timeEnd: d.time_end||'', note: d.note||''
+        did: i, date: d.date||'', timeStart: d.time_start||'', timeEnd: d.time_end||'', note: d.note||'', allDay: !!d.all_day
       }));
       e.nextDid      = e.dateList.length;
+      // extra dates coexisting with recurrence
+      e.recDates     = (ev.dates || []).map((d, i) => ({
+        did: i, date: d.date||'', timeStart: d.time_start||'', timeEnd: d.time_end||'', note: d.note||'', allDay: !!d.all_day
+      }));
       // recurring
       e.rules        = (ev.recurrence && ev.recurrence.length ? ev.recurrence : [mkRule()]).map((r, i) => ({
         rid: i, pattern: r.pattern||'weekly', every: r.every||1,
-        days: r.days||['friday'], timeStart: r.time_start||'21:00', timeEnd: r.time_end||'23:30',
+        days: r.days||['fri'], timeStart: r.time_start||'', timeEnd: r.time_end||'',
+        allDay: !!r.all_day,
         monthWeek: r.month_week||'first', monthDate: r.month_date||1,
         seasonStart: r.season_start||'', seasonEnd: r.season_end||''
       }));
@@ -2854,13 +2977,19 @@ async function esExportAll() {
         if (ev.notes)         e.notes         = ev.notes;
         if (ev.event_type === 'oneoff') {
           if (ev.date)       e.date       = ev.date;
-          if (ev.time_start) e.time_start = ev.time_start;
-          if (ev.time_end)   e.time_end   = ev.time_end;
+          if (ev.all_day)    { e.all_day = true; }
+          else {
+            if (ev.time_start) e.time_start = ev.time_start;
+            if (ev.time_end)   e.time_end   = ev.time_end;
+          }
         } else if (ev.event_type === 'datelist') {
           e.date_list = (ev.date_list||[]).map(d => {
             const de = {date:d.date};
-            if (d.time_start) de.time_start = d.time_start;
-            if (d.time_end)   de.time_end   = d.time_end;
+            if (d.all_day) { de.all_day = true; }
+            else {
+              if (d.time_start) de.time_start = d.time_start;
+              if (d.time_end)   de.time_end   = d.time_end;
+            }
             if (d.note)       de.note       = d.note;
             return de;
           });
@@ -2871,11 +3000,24 @@ async function esExportAll() {
             if (r.days?.length) rule.days = r.days;
             if (r.month_week) rule.month_week = r.month_week;
             if (r.month_date) rule.month_date = r.month_date;
-            if (r.time_start) rule.time_start = r.time_start;
-            if (r.time_end)   rule.time_end   = r.time_end;
+            if (r.all_day) { rule.all_day = true; }
+            else {
+              if (r.time_start) rule.time_start = r.time_start;
+              if (r.time_end)   rule.time_end   = r.time_end;
+            }
             if (r.season_start) rule.season_start = r.season_start;
             if (r.season_end)   rule.season_end   = r.season_end;
             return rule;
+          });
+          if (ev.dates?.length) e.dates = ev.dates.map(d => {
+            const de = {date:d.date};
+            if (d.all_day) { de.all_day = true; }
+            else {
+              if (d.time_start) de.time_start = d.time_start;
+              if (d.time_end)   de.time_end   = d.time_end;
+            }
+            if (d.note) de.note = d.note;
+            return de;
           });
           if (ev.exceptions?.length) e.exceptions = ev.exceptions.map(x => {
             const ex = {type:x.type, date:x.date};
