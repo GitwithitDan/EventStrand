@@ -2000,7 +2000,6 @@ upcoming.forEach(event => {
     </div>
     <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
       <button class="btn btn-primary" style="flex:1;min-width:200px;padding:14px 20px;font-size:15px;justify-content:center;font-weight:600;" onclick="esGotoBuild()">+ Create a strand (.rcal file)</button>
-      <button class="btn btn-ghost" style="flex:1;min-width:200px;padding:14px 20px;font-size:15px;justify-content:center;font-weight:600;" onclick="document.querySelector('.dash-tab[onclick*=&quot;my-strands&quot;]').click()">📋 Manage your strands</button>
     </div>
 
     <!-- Workspace selector -->
@@ -2255,11 +2254,12 @@ upcoming.forEach(event => {
 
   <!-- ── WORKSPACES ── -->
   <div id="view-workspaces" class="app-view">
+    <button class="btn btn-ghost" style="font-size:13px;margin-bottom:16px;" onclick="esGoto('dashboard')">← Back to dashboard</button>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
       <h2 style="font-family:'Fraunces',serif;font-size:26px;font-weight:400;">Workspaces</h2>
       <button class="btn btn-primary" onclick="esShowNewWorkspace()">+ New</button>
     </div>
-    <p style="color:var(--text-dim);font-size:14px;margin-bottom:28px;">Each workspace holds its own set of strand and braid subscriptions. Switch to see a different slice of your world.</p>
+    <p style="color:var(--text-dim);font-size:14px;margin-bottom:28px;">Each workspace holds its own set of strand and braid subscriptions. Click a workspace to switch to it. Use Rename or Delete to manage it.</p>
     <div id="workspaces-list"></div>
     <div id="new-workspace-form" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-top:16px;">
       <div class="field-group"><label class="field-label">Name</label><input class="field-input" id="ws-new-name" placeholder="Weekend, Work, Kids…"></div>
