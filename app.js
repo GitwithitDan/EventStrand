@@ -2654,19 +2654,30 @@ async function esRenderWorkspaces() {
   const list = document.getElementById('workspaces-list');
   if (!list) return;
   list.innerHTML = ES_WORKSPACES.map(ws => `
-    <div class="ws-card">
+    <div class="ws-card" onclick="esOpenWorkspace('${ws._id}')" title="Open this workspace">
       <div class="ws-icon">${ws.icon||'📁'}</div>
       <div style="flex:1;">
         <div class="ws-name">${esc(ws.name)}</div>
         <div class="ws-meta">${ws.strandCount||0} strands · ${ws.braidCount||0} braids</div>
       </div>
       ${ws.isActive?'<span class="ws-active-badge">Active</span>':''}
-      <div class="ws-actions">
+      <div class="ws-actions" onclick="event.stopPropagation()">
         ${!ws.isActive?`<button class="sc-btn" onclick="esSetActiveWorkspaceDb('${ws._id}')">Set active</button>`:''}
         <button class="sc-btn" onclick="esRenameWorkspace('${ws._id}','${escAttr(ws.name)}')">Rename</button>
         <button class="sc-btn" onclick="esDeleteWorkspace('${ws._id}')" style="color:var(--red);">Delete</button>
       </div>
     </div>`).join('') || '<div style="color:var(--text-faint);padding:20px;">No workspaces yet</div>';
+}
+
+async function esOpenWorkspace(id) {
+  if (_activeWorkspaceId !== id) {
+    try {
+      await esFetch(`/api/user/workspaces/${id}/activate`, {method:'POST'});
+      ES_WORKSPACES.forEach(w => w.isActive = w._id === id);
+    } catch(e) { showToast('Could not switch workspace', 'error'); return; }
+  }
+  _activeWorkspaceId = id;
+  esGoto('dashboard');
 }
 
 function esSetWsIcon(el, icon) {
