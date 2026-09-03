@@ -939,6 +939,16 @@ function esRenderMarketingAuth() {
   }
 }
 
+// B-QA4: password fields had no way to verify what was typed.
+function esTogglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.textContent = showing ? '👁' : '🙈';
+  btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+}
+
 function esShowAuth(reason) {
   const modal = document.getElementById('es-auth-modal');
   const r = document.getElementById('auth-modal-reason');
@@ -979,15 +989,18 @@ function esInstallCuratedDemo() {
 // click into the Personal Strands tab and hit + New.
 function esGotoBuildPersonal() {
   if (!ES_USER) { esShowAuth('Sign in to create a personal strand'); return; }
-  esGoto('home');
+  // B-QA11: esGoto('home') was not a recognized view — _showView() only
+  // handles dashboard/workspaces/account/braid-build/build, so the app
+  // overlay was left open with nothing active inside it (blank page until
+  // a manual refresh reset the overlay state). esCloseApp() + scroll is
+  // the same pattern esGotoBuild() already uses correctly.
+  esCloseApp();
+  const builderSection = document.getElementById('builder');
+  if (builderSection) builderSection.scrollIntoView({ behavior: 'smooth' });
   setTimeout(() => {
-    const el = document.getElementById('builder');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-    setTimeout(() => {
-      const btn = document.querySelector('.type-btn[onclick*="\'personal\'"]');
-      if (btn) btn.click();
-    }, 350);
-  }, 100);
+    const btn = document.querySelector('.type-btn[onclick*="\'personal\'"]');
+    if (btn) btn.click();
+  }, 350);
 }
 
 // Renders the Personal Strands tab. Pulls user strands and filters to
@@ -1078,7 +1091,7 @@ function esReleaseFocus(modalId) {
 
 // ── FORGOT PASSWORD (sub-view inside auth modal) ──────────────
 function esShowForgotPassword() {
-  ['auth-email','auth-password','auth-name','auth-error','auth-submit-btn','auth-forgot-link','auth-tab-signin','auth-tab-register','auth-account-type','g_signin_modal','auth-modal-reason'].forEach(id => {
+  ['auth-email','auth-password','auth-name-wrap','auth-error','auth-submit-btn','auth-forgot-link','auth-tab-signin','auth-tab-register','auth-account-type','g_signin_modal','auth-modal-reason'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -1100,7 +1113,7 @@ function esHideForgotPassword() {
     const el = document.getElementById(id);
     if (el) el.style.display = '';
   });
-  const nameEl = document.getElementById('auth-name');
+  const nameEl = document.getElementById('auth-name-wrap');
   if (nameEl) nameEl.style.display = (typeof _esAuthMode !== 'undefined' && _esAuthMode === 'register') ? 'block' : 'none';
   const acctEl = document.getElementById('auth-account-type');
   if (acctEl) acctEl.style.display = (typeof _esAuthMode !== 'undefined' && _esAuthMode === 'register') ? 'block' : 'none';
@@ -1268,7 +1281,7 @@ function esAuthTab(mode) {
   document.getElementById('auth-tab-signin').style.color                = isRegister ? 'var(--text-dim)' : 'var(--text)';
   document.getElementById('auth-tab-register').style.borderBottomColor  = isRegister ? 'var(--primary)' : 'transparent';
   document.getElementById('auth-tab-register').style.color              = isRegister ? 'var(--text)' : 'var(--text-dim)';
-  document.getElementById('auth-name').style.display                    = isRegister ? 'block' : 'none';
+  document.getElementById('auth-name-wrap').style.display               = isRegister ? 'block' : 'none';
   document.getElementById('auth-account-type').style.display            = isRegister ? 'block' : 'none';
   document.getElementById('auth-submit-btn').textContent                = isRegister ? 'Create Account' : 'Sign In';
   document.getElementById('auth-error').textContent = '';
@@ -1458,6 +1471,8 @@ function esCloseApiKeyReveal() {
 }
 
 async function esSignOut() {
+  // B-QA2: sign-out fired immediately with no confirmation.
+  if (!confirm('Sign out of EventStrand?')) return;
   ES_USER = null;
   ES_WORKSPACES = [];
   esClearJwt();
@@ -1817,7 +1832,16 @@ async function esSubscribeToStrand(strandId, workspaceId) {
       method:'POST',
       body: JSON.stringify({ strandId, workspaceId: workspaceId || (ES_WORKSPACES[0]?._id) })
     });
-    if (res.ok) showToast('✓ Subscribed — this strand is now in your dashboard');
+    if (res.ok) {
+      showToast('✓ Subscribed — this strand is now in your dashboard');
+      // B-QA9: reflect the new state immediately on the strand page itself,
+      // not just in the toast — reloading used to be the only way to see it.
+      const row = document.getElementById('pub-subscribe-row');
+      if (row && row.dataset.strandId === strandId) {
+        row.innerHTML = `<button class="btn btn-ghost" disabled style="opacity:0.75;cursor:default;">✓ Subscribed</button>
+          <button class="btn btn-ghost" onclick="navigator.clipboard?.writeText(window.location.href);showToast('📋 Link copied')">Share</button>`;
+      }
+    }
     else { const d = await res.json(); showToast(d.error||'Could not subscribe', 'error'); }
   } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
@@ -2114,6 +2138,16 @@ function computePastOccurrences(event) {
 }
 
 // ── PUBLIC STRAND VIEW ────────────────────────────────────────
+// B-QA9: public strand fetches are anonymous by default (no cookie sent
+// cross-origin without credentials, no Authorization header attached), so
+// the backend had no way to know a signed-in viewer already subscribes —
+// the Subscribe button always rendered as "Subscribe", even on reload.
+// Attach the stored JWT when present; the endpoint stays public either way.
+function esPublicAuthHeaders() {
+  const jwt = esGetJwt();
+  return jwt ? { 'Authorization': 'Bearer ' + jwt } : {};
+}
+
 async function esLoadPublicStrand(handle, strandId, src) {
   esGoto('strand');
   const inner = document.getElementById('pub-strand-inner');
@@ -2122,9 +2156,10 @@ async function esLoadPublicStrand(handle, strandId, src) {
   gate.style.display = 'none';
   try {
     const srcParam = src ? `?src=${encodeURIComponent(src)}` : '';
-    const res = await fetch(`${BACKEND_URL}/api/public/strand/${handle}/${strandId}${srcParam}`);
+    const res = await fetch(`${BACKEND_URL}/api/public/strand/${handle}/${strandId}${srcParam}`, { headers: esPublicAuthHeaders() });
     if (res.status === 403) { gate.style.display = 'block'; gate.dataset.handle=handle; gate.dataset.strandId=strandId; return; }
     const data = await res.json();
+    data.strand.subscribed = !!data.subscribed;
     esRenderStrandView(data.strand);
   } catch(e) {
     document.getElementById('pub-strand-content').innerHTML = '<div style="text-align:center;padding:60px;color:var(--text-dim);">Could not load strand</div>';
@@ -2135,12 +2170,27 @@ async function esSubmitPasscode() {
   const gate = document.getElementById('pub-passcode-gate');
   const code = document.getElementById('passcode-input').value;
   try {
-    const res = await fetch(`${BACKEND_URL}/api/public/strand/${gate.dataset.handle}/${gate.dataset.strandId}?passcode=${encodeURIComponent(code)}`);
+    const res = await fetch(`${BACKEND_URL}/api/public/strand/${gate.dataset.handle}/${gate.dataset.strandId}?passcode=${encodeURIComponent(code)}`, { headers: esPublicAuthHeaders() });
     if (res.status === 403) { showToast('Incorrect passcode', 'error'); return; }
     const data = await res.json();
+    data.strand.subscribed = !!data.subscribed;
     gate.style.display = 'none';
     esRenderStrandView(data.strand);
   } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
+}
+
+// Renders the subscribe control for a public strand page. Shows a disabled
+// "Subscribed" state instead of an always-active "Subscribe" button when the
+// backend has told us the signed-in viewer already has this strand.
+function esSubscribeButtonHtml(strand) {
+  if (strand.subscribed) {
+    return `<button class="btn btn-ghost" disabled style="opacity:0.75;cursor:default;">✓ Subscribed</button>`;
+  }
+  const wsOptions = ES_USER ? ES_WORKSPACES.map(w => `<option value="${w._id}">${esc(w.icon||'')} ${esc(w.name)}</option>`).join('') : '';
+  return ES_USER
+    ? `${wsOptions?`<select id="sub-ws-sel">${wsOptions}</select>`:''}
+       <button class="btn btn-primary" onclick="esSubscribeToStrand('${strand._id}', document.getElementById('sub-ws-sel')?.value)">Subscribe</button>`
+    : `<button class="btn btn-primary" onclick="esSubscribeToStrand('${strand._id}')">Subscribe</button>`;
 }
 
 function esRenderStrandView(strand) {
@@ -2150,7 +2200,6 @@ function esRenderStrandView(strand) {
   const banner = document.getElementById('pub-signup-banner');
   inner.style.display = 'block';
 
-  const wsOptions = ES_USER ? ES_WORKSPACES.map(w => `<option value="${w._id}">${esc(w.icon||'')} ${esc(w.name)}</option>`).join('') : '';
   header.innerHTML = `
     <div class="pub-strand-type-badge">🧵 Strand</div>
     <div class="pub-strand-title">${esc(strand.title)}</div>
@@ -2159,11 +2208,8 @@ function esRenderStrandView(strand) {
       ${strand.publisherHandle?`<span>@${esc(strand.publisherHandle)}</span>`:''}
       <span class="view-count-badge">👁 ${strand.viewCount||0} views</span>
     </div>
-    <div class="pub-subscribe-row">
-      ${ES_USER
-        ? `${wsOptions?`<select id="sub-ws-sel">${wsOptions}</select>`:''}
-           <button class="btn btn-primary" onclick="esSubscribeToStrand('${strand._id}', document.getElementById('sub-ws-sel')?.value)">Subscribe</button>`
-        : `<button class="btn btn-primary" onclick="esSubscribeToStrand('${strand._id}')">Subscribe</button>`}
+    <div class="pub-subscribe-row" id="pub-subscribe-row" data-strand-id="${strand._id}">
+      ${esSubscribeButtonHtml(strand)}
       <button class="btn btn-ghost" onclick="navigator.clipboard?.writeText(window.location.href);showToast('📋 Link copied')">Share</button>
     </div>`;
 
@@ -3156,6 +3202,11 @@ async function esSaveStrand() {
 
 async function esPublishStrand() {
   if (!ES_USER) { esShowAuth('Sign in to publish your strand'); return; }
+  // B-QA10/13: mirrors the server-side checks in POST /:id/publish — catches
+  // it before the round-trip instead of only after the backend rejects it.
+  if (!pub.name || !pub.name.trim()) { showToast('Add a strand name before publishing', 'error'); return; }
+  if (!events.length) { showToast('Add at least one event before publishing', 'error'); return; }
+  if (pub.visibility === 'protected' && !pub.accessCode) { showToast('Set a passcode before publishing a protected strand', 'error'); return; }
   if (!_builderStrandId) await esSaveStrand();
   if (!_builderStrandId) return;
   try {
@@ -3485,6 +3536,14 @@ esRestoreNotes();
 // ── MARKETING INLINE AUTH FORM ────────────────────────────────────────────────
 let _esMktMode = 'signin';
 
+// B-QA17: the inline marketing sign-in form had no forgot-password path at
+// all — only the modal form (opened via the nav "Sign In" button) did.
+// Route into that existing, working flow instead of duplicating it a third time.
+function esMktForgotPassword() {
+  esShowAuth('');
+  esShowForgotPassword();
+}
+
 function esMktTab(mode) {
   _esMktMode = mode;
   const isReg = mode === 'register';
@@ -3492,9 +3551,11 @@ function esMktTab(mode) {
   document.getElementById('mkt-tab-signin').style.color              = isReg ? 'var(--text-dim)' : 'var(--text)';
   document.getElementById('mkt-tab-register').style.borderBottomColor = isReg ? 'var(--primary)' : 'transparent';
   document.getElementById('mkt-tab-register').style.color            = isReg ? 'var(--text)' : 'var(--text-dim)';
-  document.getElementById('mkt-name').style.display                  = isReg ? 'block' : 'none';
+  document.getElementById('mkt-name-wrap').style.display             = isReg ? 'block' : 'none';
   document.getElementById('mkt-account-type').style.display          = isReg ? 'block' : 'none';
   document.getElementById('mkt-submit-btn').textContent              = isReg ? 'Create Account' : 'Sign In';
+  const fl = document.getElementById('mkt-forgot-link');
+  if (fl) fl.style.display = isReg ? 'none' : 'block';
   document.getElementById('mkt-error').textContent = '';
 }
 
