@@ -67,6 +67,21 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .btn-lg { padding: 14px 28px; font-size: 16px; border-radius: 12px; }
 .btn-xl { padding: 18px 36px; font-size: 17px; border-radius: 14px; }
 
+/* B-QA14: no element anywhere had a press/active state, and most buttons on
+   this site are styled inline rather than via .btn, so a hover-only fix on
+   .btn wouldn't reach them (inline style attributes can't declare :hover or
+   :active at all). This is a plain element selector, so it still applies to
+   every button through the cascade regardless of its inline styles. */
+button, .btn, a.btn { transition: transform 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease; }
+button:active, .btn:active, a.btn:active { transform: scale(0.96); opacity: 0.85; }
+
+/* B-QA4: password show/hide toggle */
+.pw-toggle-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 16px; line-height: 1; padding: 8px; cursor: pointer; color: var(--text-faint); }
+.pw-toggle-btn:hover { color: var(--text-dim); }
+
+/* B-QA15: required-field marker */
+.required-mark { color: var(--red, #ff6b6b); }
+
 section { padding: 100px 40px; max-width: 1200px; margin: 0 auto; }
 .section-full { max-width: 100%; padding: 100px 0; }
 .section-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
@@ -667,15 +682,29 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 
           <!-- Fields -->
           <div style="display:flex;flex-direction:column;gap:10px;">
-            <input id="mkt-email" type="email" placeholder="Email address" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
-            <input id="mkt-password" type="password" placeholder="Password (min 8 characters)" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
-            <input id="mkt-name" type="text" placeholder="Display name (optional)" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;display:none;" />
+            <div>
+              <label for="mkt-email" class="field-label">Email address</label>
+              <input id="mkt-email" type="email" placeholder="Email address" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
+            </div>
+            <div>
+              <label for="mkt-password" class="field-label">Password</label>
+              <div style="position:relative;">
+                <input id="mkt-password" type="password" placeholder="Password (min 8 characters)" style="width:100%;padding:12px 42px 12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
+                <button type="button" class="pw-toggle-btn" aria-label="Show password" onclick="esTogglePasswordVisibility('mkt-password', this)">👁</button>
+              </div>
+            </div>
+            <div id="mkt-name-wrap" style="display:none;">
+              <label for="mkt-name" class="field-label">Display name (optional)</label>
+              <input id="mkt-name" type="text" placeholder="Display name (optional)" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
+            </div>
             <div id="mkt-error" style="font-size:13px;color:#ff6b6b;min-height:16px;text-align:center;"></div>
             <button id="mkt-submit-btn" onclick="esMktSubmit()" class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px;">Sign In</button>
+            <button id="mkt-forgot-link" onclick="esMktForgotPassword()" style="background:none;border:none;color:var(--primary);font-size:13px;cursor:pointer;text-align:center;padding:6px 0 0;font-family:'Outfit',sans-serif;">Forgot your password?</button>
           </div>
 
           <p style="font-size:12px;color:var(--text-faint);text-align:center;margin-top:16px;line-height:1.6;">By continuing you agree to our <a href="/terms-of-service.html" style="color:var(--primary)">Terms</a> and <a href="/privacy-policy.html" style="color:var(--primary)">Privacy Policy</a>.</p>
         </div>
+
         <!-- Signed-in state -->
         <div id="auth-signedin" style="display:none;">
           <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
@@ -1939,9 +1968,21 @@ upcoming.forEach(event => {
 
     <!-- Email/password form -->
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <input id="auth-email" type="email" placeholder="Email address" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
-      <input id="auth-password" type="password" placeholder="Password (min 8 characters)" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
-      <input id="auth-name" type="text" placeholder="Display name (optional)" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;display:none;" />
+      <div>
+        <label for="auth-email" class="field-label">Email address</label>
+        <input id="auth-email" type="email" placeholder="Email address" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
+      </div>
+      <div>
+        <label for="auth-password" class="field-label">Password</label>
+        <div style="position:relative;">
+          <input id="auth-password" type="password" placeholder="Password (min 8 characters)" style="width:100%;padding:12px 42px 12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
+          <button type="button" class="pw-toggle-btn" aria-label="Show password" onclick="esTogglePasswordVisibility('auth-password', this)">👁</button>
+        </div>
+      </div>
+      <div id="auth-name-wrap" style="display:none;">
+        <label for="auth-name" class="field-label">Display name (optional)</label>
+        <input id="auth-name" type="text" placeholder="Display name (optional)" style="width:100%;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;" />
+      </div>
       <div id="auth-error" style="font-size:13px;color:#ff6b6b;min-height:16px;text-align:center;"></div>
       <button id="auth-submit-btn" onclick="esAuthSubmit()" class="btn btn-primary" style="width:100%;justify-content:center;">Sign In</button>
       <button id="auth-forgot-link" onclick="esShowForgotPassword()" style="background:none;border:none;color:var(--primary);font-size:13px;cursor:pointer;text-align:center;padding:6px 0 0;font-family:'Outfit',sans-serif;">Forgot your password?</button>
@@ -2218,7 +2259,7 @@ upcoming.forEach(event => {
   <div id="view-braid-build" class="app-view">
     <h2 style="font-family:'Fraunces',serif;font-size:26px;font-weight:400;margin-bottom:24px;">Create a braid</h2>
     <div class="field-group">
-      <label class="field-label">Braid name</label>
+      <label class="field-label">Braid name <span class="required-mark">*</span></label>
       <input class="field-input" id="braid-name" type="text" placeholder="Friday Night Circuit, Sunday Brunch Guide…">
     </div>
     <div class="field-group">
@@ -2235,7 +2276,7 @@ upcoming.forEach(event => {
       <input class="field-input" id="braid-passcode" type="text" placeholder="Passcode" style="display:none;margin-top:8px;">
     </div>
     <div class="field-group">
-      <label class="field-label">Strands in this braid</label>
+      <label class="field-label">Strands in this braid <span class="required-mark">*</span></label>
       <div class="strand-picker-grid" id="braid-strand-picker">
         <div style="color:var(--text-faint);font-size:13px;padding:12px;">Loading your strands…</div>
       </div>
