@@ -2999,7 +2999,7 @@ async function esEditHandle() {
     esSetStoredUser(ES_USER);
     esRenderAccount();
     esRenderMarketingAuth();
-    showToast('✓ Handle updated — old URLs redirect automatically');
+    showToast('✓ Handle updated — old links redirect automatically (up to 10 renames back)');
   } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
