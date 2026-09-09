@@ -483,6 +483,11 @@ const data = await res.json();
         <tr><td>handleOrId</td><td>string</td><td class="param-req">required</td><td>Publisher handle (e.g. <code>rusty-nail</code>) or strand ID.</td></tr>
         <tr><td>passcode</td><td>string</td><td class="param-opt">optional</td><td>Required for protected strands.</td></tr>
       </table>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <span>Handles can change. A renamed handle keeps redirecting for its 10 most recent previous handles — beyond that, a cached <code>handleOrId</code> will 404. Prefer looking up and storing the strand ID for anything you keep long-term.</span>
+      </div>
     </div>
 
     <div class="doc-section" id="endpoint-keys-create">
