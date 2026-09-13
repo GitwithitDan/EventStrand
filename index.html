@@ -536,8 +536,23 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 .app-topbar { position: sticky; top: 0; z-index: 201; display: flex; align-items: center; padding: 0 40px; height: 64px; background: rgba(4,6,26,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; }
 
 /* ── AUTH + HANDLE MODALS ── */
-#es-auth-modal, #es-handle-modal { display: none; position: fixed; inset: 0; z-index: 300; align-items: center; justify-content: center; padding: 20px; background: rgba(4,6,26,0.82); backdrop-filter: blur(12px); }
-#es-auth-modal.open, #es-handle-modal.open { display: flex; }
+#es-auth-modal, #es-handle-modal, #es-report-modal { display: none; position: fixed; inset: 0; z-index: 300; align-items: center; justify-content: center; padding: 20px; background: rgba(4,6,26,0.82); backdrop-filter: blur(12px); }
+#es-auth-modal.open, #es-handle-modal.open, #es-report-modal.open { display: flex; }
+
+/* ── REPORT MODAL ── */
+.report-reason-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1.5px solid var(--border2); border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+.report-reason-row:has(input:checked) { border-color: var(--primary); background: rgba(108,143,255,0.08); }
+.report-reason-row input { margin-top: 3px; }
+.report-reason-label { font-size: 14px; color: var(--text); font-weight: 500; }
+
+/* ── ADMIN QUEUE ── */
+.admin-report-card { background: var(--surface); border: 1.5px solid var(--border2); border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; }
+.admin-report-reason { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--primary); background: rgba(108,143,255,0.12); padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; }
+.admin-report-strand-title { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.admin-report-meta { font-size: 13px; color: var(--text-faint); margin-bottom: 10px; }
+.admin-report-details { font-size: 14px; color: var(--text-dim); background: var(--surface2); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+.admin-report-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.admin-report-actions .btn { font-size: 13px; padding: 8px 14px; }
 .auth-modal-box { background: var(--surface); border: 1.5px solid var(--border2); border-radius: 20px; padding: 32px; width: 100%; box-shadow: 0 32px 80px rgba(0,0,0,0.5); }
 .auth-modal-title { font-family: 'Fraunces', serif; font-size: 22px; color: var(--text); margin-bottom: 8px; }
 .auth-modal-sub { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
@@ -2023,6 +2038,31 @@ upcoming.forEach(event => {
   </div>
 </div>
 
+<!-- ══ REPORT MODAL ══ -->
+<div id="es-report-modal" role="dialog" aria-modal="true" aria-labelledby="es-report-modal-title">
+  <div class="auth-modal-box" style="max-width:460px;text-align:left;">
+    <div class="auth-modal-title" id="es-report-modal-title">Report this strand</div>
+    <div class="auth-modal-sub">Let us know what's wrong — we'll take a look.</div>
+    <form id="report-reason-form">
+      <div class="report-reason-row"><label style="display:flex;gap:10px;width:100%;cursor:pointer;"><input type="radio" name="report-reason" value="impersonation"><span class="report-reason-label">Impersonation — claims to be a venue/business it isn't</span></label></div>
+      <div class="report-reason-row"><label style="display:flex;gap:10px;width:100%;cursor:pointer;"><input type="radio" name="report-reason" value="nonexistent"><span class="report-reason-label">Doesn't exist — this venue or event isn't real</span></label></div>
+      <div class="report-reason-row"><label style="display:flex;gap:10px;width:100%;cursor:pointer;"><input type="radio" name="report-reason" value="inaccurate"><span class="report-reason-label">Inaccurate — times, dates, or location are wrong</span></label></div>
+      <div class="report-reason-row"><label style="display:flex;gap:10px;width:100%;cursor:pointer;"><input type="radio" name="report-reason" value="spam"><span class="report-reason-label">Spam — unrelated content or links</span></label></div>
+      <div class="report-reason-row"><label style="display:flex;gap:10px;width:100%;cursor:pointer;"><input type="radio" name="report-reason" value="inappropriate"><span class="report-reason-label">Inappropriate content</span></label></div>
+      <div class="report-reason-row"><label style="display:flex;gap:10px;width:100%;cursor:pointer;"><input type="radio" name="report-reason" value="other"><span class="report-reason-label">Other</span></label></div>
+    </form>
+    <div class="field-group" style="text-align:left;margin:12px 0 4px;">
+      <label class="field-label">Anything else? (optional)</label>
+      <textarea class="field-input" id="report-details-input" rows="3" maxlength="1000" style="resize:vertical;" placeholder="Add detail if it helps — e.g. what's wrong, or where you saw this."></textarea>
+    </div>
+    <div id="report-modal-error" style="color:#ff6b6b;font-size:13px;min-height:16px;margin-bottom:6px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center;" onclick="esCloseReportModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="esSubmitReport()">Submit report</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ APP OVERLAY ══ -->
 <div id="es-app">
   <!-- App topbar (inside overlay) -->
@@ -2035,6 +2075,7 @@ upcoming.forEach(event => {
     <button class="nav-notif-btn" onclick="esToggleNotif()" title="Notifications" id="app-bell">
       🔔<span class="nav-notif-dot" id="app-notif-dot" style="display:none"></span>
     </button>
+    <button class="btn btn-ghost" style="font-size:13px;display:none;" id="admin-nav-btn" onclick="esGoto('admin')">🛡 Admin</button>
     <div class="nav-avatar" id="app-avatar" onclick="esGoto('account')" title="Account"></div>
   </nav>
 
@@ -2397,6 +2438,17 @@ upcoming.forEach(event => {
         </div>
       </div>
       <button class="btn btn-outline-primary" style="font-size:13px;" onclick="esShowApiKeyForm()">+ Generate New Key</button>
+    </div>
+  </div>
+
+  <!-- ── ADMIN QUEUE ── -->
+  <div id="view-admin" class="app-view">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <h2 style="font-family:'Fraunces',serif;font-size:26px;font-weight:400;margin:0;">Moderation queue</h2>
+      <button class="btn btn-ghost" onclick="esGoto('dashboard')">← Back to dashboard</button>
+    </div>
+    <div id="admin-reports-list">
+      <div style="color:var(--text-faint);padding:40px;text-align:center;">Loading…</div>
     </div>
   </div>
 
