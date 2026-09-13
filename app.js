@@ -937,6 +937,8 @@ function esRenderMarketingAuth() {
     out.style.display = 'block';
     inn.style.display = 'none';
   }
+  const adminBtn = document.getElementById('admin-nav-btn');
+  if (adminBtn) adminBtn.style.display = (ES_USER && ES_USER.isAdmin) ? 'inline-flex' : 'none';
 }
 
 // B-QA4: password fields had no way to verify what was typed.
@@ -1522,6 +1524,7 @@ function _showView(view, params) {
   else if (view === 'account') esRenderAccount();
   else if (view === 'braid-build') esRenderBraidBuilder();
   else if (view === 'build') esGotoBuild();
+  else if (view === 'admin') esRenderAdmin();
 }
 
 function esHandleHash() {
@@ -2211,6 +2214,7 @@ function esRenderStrandView(strand) {
     <div class="pub-subscribe-row" id="pub-subscribe-row" data-strand-id="${strand._id}">
       ${esSubscribeButtonHtml(strand)}
       <button class="btn btn-ghost" onclick="navigator.clipboard?.writeText(window.location.href);showToast('📋 Link copied')">Share</button>
+      <button class="btn btn-ghost" style="font-size:13px;" onclick="esOpenReportModal('${strand._id}')" title="Report an issue with this strand">⚑ Report</button>
     </div>`;
 
   const now = new Date();
@@ -2264,6 +2268,47 @@ function esRenderStrandView(strand) {
   }
 
   if (banner) banner.style.display = ES_USER ? 'none' : 'flex';
+}
+
+// ── REPORT MODAL ─────────────────────────────────────────────
+let _reportStrandId = null;
+
+function esOpenReportModal(strandId) {
+  if (!ES_USER) { esShowAuth('Sign in to report a strand'); return; }
+  _reportStrandId = strandId;
+  const form = document.getElementById('report-reason-form');
+  if (form) form.reset();
+  const details = document.getElementById('report-details-input');
+  if (details) details.value = '';
+  const err = document.getElementById('report-modal-error');
+  if (err) err.textContent = '';
+  document.getElementById('es-report-modal').classList.add('open');
+}
+
+function esCloseReportModal() {
+  document.getElementById('es-report-modal').classList.remove('open');
+  _reportStrandId = null;
+}
+
+async function esSubmitReport() {
+  const err = document.getElementById('report-modal-error');
+  const selected = document.querySelector('input[name="report-reason"]:checked');
+  if (!selected) { if (err) err.textContent = 'Choose a reason.'; return; }
+  if (!_reportStrandId) { esCloseReportModal(); return; }
+
+  const details = (document.getElementById('report-details-input')?.value || '').trim();
+  try {
+    const res = await esFetch(`/api/strands/${_reportStrandId}/report`, {
+      method: 'POST',
+      body: JSON.stringify({ reason: selected.value, details }),
+    });
+    const d = await res.json();
+    if (!res.ok) { if (err) err.textContent = d.error || 'Could not submit report'; return; }
+    esCloseReportModal();
+    showToast('✓ Report submitted — thanks for flagging it');
+  } catch (e) {
+    if (e.message !== '401' && err) err.textContent = 'Connection error';
+  }
 }
 
 // ── PUBLIC BRAID VIEW ─────────────────────────────────────────
@@ -3016,6 +3061,98 @@ async function esEditDisplayName() {
     esRenderNavAuth();
     showToast('✓ Name updated');
   } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
+}
+
+// ── ADMIN QUEUE ───────────────────────────────────────────────
+const REPORT_REASON_LABELS = {
+  impersonation: 'Impersonation',
+  nonexistent:   "Doesn't exist",
+  inaccurate:    'Inaccurate',
+  spam:          'Spam',
+  inappropriate: 'Inappropriate',
+  other:         'Other',
+};
+
+async function esRenderAdmin() {
+  const list = document.getElementById('admin-reports-list');
+  if (!list) return;
+  if (!ES_USER || !ES_USER.isAdmin) { esGoto('dashboard'); return; }
+
+  list.innerHTML = '<div style="color:var(--text-faint);padding:40px;text-align:center;">Loading…</div>';
+  try {
+    const res = await esFetch('/api/admin/reports');
+    if (!res.ok) { list.innerHTML = '<div style="color:var(--text-faint);padding:40px;text-align:center;">Could not load reports.</div>'; return; }
+    const data = await res.json();
+    const reports = data.reports || [];
+    if (!reports.length) {
+      list.innerHTML = '<div style="color:var(--text-faint);padding:40px;text-align:center;">No open reports. 🎉</div>';
+      return;
+    }
+    list.innerHTML = reports.map(r => `
+      <div class="admin-report-card" id="admin-report-${r.id}">
+        <div class="admin-report-reason">${esc(REPORT_REASON_LABELS[r.reason] || r.reason)}</div>
+        <div class="admin-report-strand-title">${esc(r.strand?.title || '(strand deleted)')}</div>
+        <div class="admin-report-meta">
+          ${r.strand?.handle ? `@${esc(r.strand.handle)} · ` : ''}
+          ${r.strand ? (r.strand.published ? 'published' : 'unpublished') + ' · ' : ''}
+          reported by ${r.reporterHandle ? '@'+esc(r.reporterHandle) : 'a user'} · ${new Date(r.createdAt).toLocaleDateString()}
+        </div>
+        ${r.details ? `<div class="admin-report-details">${esc(r.details)}</div>` : ''}
+        <div class="admin-report-actions">
+          ${r.strand ? `<button class="btn btn-ghost" onclick="window.open('/#/s/${esc(r.strand.handle||'')}/${esc(r.strand.id)}','_blank')">View strand</button>` : ''}
+          ${r.publisherEmail ? `<button class="btn btn-ghost" onclick="esAdminContact('${esc(r.publisherEmail)}','${esc(r.strand?.title||'')}')">✉ Contact publisher</button>` : ''}
+          ${r.strand?.published ? `<button class="btn btn-ghost" onclick="esAdminUnpublish('${r.strand.id}','${r.id}')">Unpublish</button>` : ''}
+          ${r.strand ? `<button class="btn btn-ghost" style="color:#ff6b6b;" onclick="esAdminDelete('${r.strand.id}','${r.id}')">Delete strand</button>` : ''}
+          <button class="btn btn-primary" onclick="esAdminDismiss('${r.id}')">Dismiss</button>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    if (e.message !== '401') list.innerHTML = '<div style="color:var(--text-faint);padding:40px;text-align:center;">Connection error.</div>';
+  }
+}
+
+function esAdminRemoveCard(reportId) {
+  const el = document.getElementById(`admin-report-${reportId}`);
+  if (el) el.remove();
+  const list = document.getElementById('admin-reports-list');
+  if (list && !list.querySelector('.admin-report-card')) {
+    list.innerHTML = '<div style="color:var(--text-faint);padding:40px;text-align:center;">No open reports. 🎉</div>';
+  }
+}
+
+async function esAdminDismiss(reportId) {
+  try {
+    const res = await esFetch(`/api/admin/reports/${reportId}/dismiss`, { method: 'POST' });
+    if (!res.ok) { showToast('Could not dismiss report', 'error'); return; }
+    esAdminRemoveCard(reportId);
+    showToast('✓ Dismissed');
+  } catch (e) { if (e.message !== '401') showToast('Connection error', 'error'); }
+}
+
+async function esAdminUnpublish(strandId, reportId) {
+  if (!confirm('Unpublish this strand? It will stop resolving publicly — reversible from the publisher\'s dashboard.')) return;
+  try {
+    const res = await esFetch(`/api/admin/strands/${strandId}/unpublish`, { method: 'POST' });
+    if (!res.ok) { showToast('Could not unpublish', 'error'); return; }
+    showToast('✓ Unpublished');
+    esRenderAdmin();
+  } catch (e) { if (e.message !== '401') showToast('Connection error', 'error'); }
+}
+
+async function esAdminDelete(strandId, reportId) {
+  if (!confirm('Permanently delete this strand? This cannot be undone.')) return;
+  try {
+    const res = await esFetch(`/api/admin/strands/${strandId}`, { method: 'DELETE' });
+    if (!res.ok) { showToast('Could not delete', 'error'); return; }
+    esAdminRemoveCard(reportId);
+    showToast('✓ Strand deleted');
+  } catch (e) { if (e.message !== '401') showToast('Connection error', 'error'); }
+}
+
+function esAdminContact(email, strandTitle) {
+  const subject = encodeURIComponent(`About your EventStrand listing${strandTitle ? ': ' + strandTitle : ''}`);
+  const body = encodeURIComponent(`Hi,\n\nWe received a report about your strand${strandTitle ? ' "' + strandTitle + '"' : ''} on EventStrand and wanted to reach out.\n\n`);
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
 }
 
 async function esExportAll() {
