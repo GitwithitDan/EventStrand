@@ -473,20 +473,39 @@ const data = await res.json();
       <div class="endpoint">
         <div class="method">
           <span class="badge badge-get">GET</span>
-          <span class="endpoint-path">/api/public/strand/:handleOrId</span>
+          <span class="endpoint-path">/api/public/strand/:handle/:strandId</span>
         </div>
-        <div class="endpoint-desc">Returns public strand data by publisher handle or strand ID. No authentication required. Returns 403 for protected strands — pass a <code>passcode</code> query param if you have one.</div>
+        <div class="endpoint-desc">Returns public strand data by publisher handle and strand ID. No authentication required. Returns 403 for protected strands — pass a <code>passcode</code> query param if you have one. If <code>:handle</code> is an old handle the publisher has since changed, this returns <code>{"redirect": "newhandle"}</code> instead of strand data — re-request with the returned handle.</div>
       </div>
 
       <table class="param-table">
         <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
-        <tr><td>handleOrId</td><td>string</td><td class="param-req">required</td><td>Publisher handle (e.g. <code>rusty-nail</code>) or strand ID.</td></tr>
+        <tr><td>handle</td><td>string</td><td class="param-req">required</td><td>Publisher handle (e.g. <code>rusty-nail</code>).</td></tr>
+        <tr><td>strandId</td><td>string</td><td class="param-req">required</td><td>The strand's ID.</td></tr>
         <tr><td>passcode</td><td>string</td><td class="param-opt">optional</td><td>Required for protected strands.</td></tr>
       </table>
 
+      <div class="pre-header">
+        <span class="pre-lang">Response 200</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>{
+  <span class="k">"strand"</span>:          { <span class="s">"..."</span> },
+  <span class="k">"publisherHandle"</span>: <span class="s">"rusty-nail"</span>,
+  <span class="k">"subscribed"</span>:      <span class="s">false</span>
+}</code></pre>
+
+      <div class="pre-header" style="margin-top:20px;">
+        <span class="pre-lang">Response 200 — old handle</span>
+        <button class="pre-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>{
+  <span class="k">"redirect"</span>: <span class="s">"new-handle"</span>
+}</code></pre>
+
       <div class="callout callout-warn">
         <span class="callout-icon">⚠️</span>
-        <span>Handles can change. A renamed handle keeps redirecting for its 10 most recent previous handles — beyond that, a cached <code>handleOrId</code> will 404. Prefer looking up and storing the strand ID for anything you keep long-term.</span>
+        <span>Handles can change. Requests using one of a publisher's 10 most recent previous handles get the <code>redirect</code> response above instead of a 404 — your client needs to follow it and retry with the new handle. Beyond those 10, an old handle 404s as <code>Publisher not found</code>. Prefer looking up and storing the strand ID for anything you keep long-term; handles still need to be current to resolve it.</span>
       </div>
     </div>
 
