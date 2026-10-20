@@ -1370,7 +1370,8 @@ function esCheckHandle(val) {
   status.textContent = 'Checking…'; status.style.color = 'var(--text-faint)';
   _handleTimer = setTimeout(async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/check-handle?handle=${val}`);
+      const jwt = esGetJwt();
+      const res = await fetch(`${BACKEND_URL}/api/auth/check-handle?handle=${encodeURIComponent(val)}`, { headers: jwt ? {'Authorization':'Bearer '+jwt} : {} });
       const d = await res.json();
       if (d.available) { status.textContent = '✓ ' + val + ' is available'; status.style.color = 'var(--green)'; }
       else { status.textContent = '✗ That handle is taken'; status.style.color = 'var(--red)'; }
@@ -1389,7 +1390,8 @@ async function esConfirmHandle() {
     });
     const d = await res.json();
     if (!res.ok) { showToast(d.error || 'Could not set handle', 'error'); return; }
-    ES_USER.handle = val;
+    ES_USER.handle = d.handle || val.toLowerCase();
+    ES_USER.handleChangeableAt = d.handleChangeableAt || null;
     esSetStoredUser(ES_USER);
     document.getElementById('es-handle-modal').classList.remove('open');
     esOnSignedIn();
@@ -2162,6 +2164,7 @@ async function esLoadPublicStrand(handle, strandId, src) {
     const res = await fetch(`${BACKEND_URL}/api/public/strand/${handle}/${strandId}${srcParam}`, { headers: esPublicAuthHeaders() });
     if (res.status === 403) { gate.style.display = 'block'; gate.dataset.handle=handle; gate.dataset.strandId=strandId; return; }
     const data = await res.json();
+    if (data.redirect) { history.replaceState(null, '', '#/s/' + data.redirect + '/' + strandId); return esLoadPublicStrand(data.redirect, strandId, src); }
     data.strand.subscribed = !!data.subscribed;
     esRenderStrandView(data.strand);
   } catch(e) {
@@ -2320,6 +2323,7 @@ async function esLoadPublicBraid(handle, braidId, src) {
     const srcParam = src ? `?src=${encodeURIComponent(src)}` : '';
     const res = await fetch(`${BACKEND_URL}/api/public/braid/${handle}/${braidId}${srcParam}`);
     const data = await res.json();
+    if (data.redirect) { history.replaceState(null, '', '#/b/' + data.redirect + '/' + braidId); return esLoadPublicBraid(data.redirect, braidId, src); }
     const b = data.braid;
     const wsOptions = ES_USER ? ES_WORKSPACES.map(w => `<option value="${w._id}">${esc(w.icon||'')} ${esc(w.name)}</option>`).join('') : '';
     content.innerHTML = `
@@ -2357,10 +2361,11 @@ async function esLoadPublicProfile(handle) {
   try {
     const res = await fetch(`${BACKEND_URL}/api/public/profile/${handle}`);
     const data = await res.json();
+    if (data.redirect) { history.replaceState(null, '', '#/p/' + data.redirect); return esLoadPublicProfile(data.redirect); }
     const p = data.profile;
     content.innerHTML = `
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:32px;">
-        <div class="profile-pic">${(p.displayName||handle)[0].toUpperCase()}</div>
+        <div class="profile-pic">${p.picture ? `<img src="${esc(p.picture)}" alt="">` : esc((p.displayName||handle)[0].toUpperCase())}</div>
         <div>
           <div style="font-family:'Fraunces',serif;font-size:24px;color:var(--text);">${esc(p.displayName||handle)}</div>
           <div style="color:var(--text-dim);font-size:14px;">@${handle}</div>
@@ -3029,22 +3034,118 @@ function esRenderAccount() {
   if (nameRow) nameRow.textContent = ES_USER.displayName||'—';
   if (email) email.textContent = ES_USER.email||'—';
   if (handle) handle.textContent = '@' + (ES_USER.handle||'—');
+  const removeBtn = document.getElementById('avatar-remove-btn');
+  if (removeBtn) removeBtn.style.display = ES_USER.pictureSource === 'upload' ? '' : 'none';
+  const hint = document.getElementById('settings-handle-hint');
+  if (hint) {
+    const days  = ES_USER.handleCooldownDays ?? 30;
+    const until = ES_USER.handleChangeableAt ? new Date(ES_USER.handleChangeableAt) : null;
+    hint.textContent = (until && until > new Date())
+      ? 'You can change your handle again on ' + until.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'}) + '. Old links keep working.'
+      : '3–30 letters, numbers, - or _. Old links keep working after a change' + (days ? ', and you can change it once every ' + days + ' days.' : '.');
+  }
   esLoadApiKeys();
 }
 
 async function esEditHandle() {
-  const newHandle = prompt('New handle (letters, numbers, - and _ only):', ES_USER.handle||'');
-  if (!newHandle || newHandle === ES_USER.handle) return;
+  const until = ES_USER.handleChangeableAt ? new Date(ES_USER.handleChangeableAt) : null;
+  if (until && until > new Date()) {
+    showToast('You can change your handle again on ' + until.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'}), 'error');
+    return;
+  }
+  const days = ES_USER.handleCooldownDays ?? 30;
+  const input = prompt(
+    'New handle\n3–30 characters: letters, numbers, - and _ only.\n' +
+    'Your old handle keeps redirecting' + (days ? ', and you can change your handle once every ' + days + ' days.' : '.'),
+    ES_USER.handle||''
+  );
+  if (input === null) return;
+  const newHandle = input.trim();
+  if (!newHandle || newHandle.toLowerCase() === (ES_USER.handle||'').toLowerCase()) return;
   if (!/^[a-zA-Z0-9_-]{3,30}$/.test(newHandle)) { showToast('Invalid handle — letters, numbers, - and _ only (3-30 chars)', 'error'); return; }
   try {
     const res = await esFetch('/api/auth/set-handle', {method:'POST', body:JSON.stringify({handle:newHandle})});
-    const d = await res.json();
-    if (!res.ok) { showToast(d.error||'Could not update handle', 'error'); return; }
-    ES_USER.handle = newHandle;
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (d.handleChangeableAt) { ES_USER.handleChangeableAt = d.handleChangeableAt; esSetStoredUser(ES_USER); esRenderAccount(); }
+      showToast(d.error||'Could not update handle', 'error');
+      return;
+    }
+    ES_USER.handle = d.handle;
+    ES_USER.handleChangeableAt = d.handleChangeableAt || null;
     esSetStoredUser(ES_USER);
     esRenderAccount();
     esRenderMarketingAuth();
-    showToast('✓ Handle updated — old links redirect automatically (up to 10 renames back)');
+    showToast('✓ Handle updated — your old links keep redirecting to the new one');
+  } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
+}
+
+// ── PROFILE PHOTO (personal + venue accounts) ─────────────────
+// The browser center-crops and resizes to 256x256 JPEG before upload so the
+// server only ever stores a small image (server cap: 150 KB).
+function esResizeAvatar(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const size = 256;
+        const side = Math.min(img.naturalWidth, img.naturalHeight);
+        const sx = (img.naturalWidth - side) / 2, sy = (img.naturalHeight - side) / 2;
+        const c = document.createElement('canvas');
+        c.width = c.height = size;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+        let q = 0.85, out = c.toDataURL('image/jpeg', q);
+        while (out.length > 190000 && q > 0.4) { q -= 0.15; out = c.toDataURL('image/jpeg', q); }
+        resolve(out);
+      } catch (e) { reject(e); }
+      finally { URL.revokeObjectURL(url); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')); };
+    img.src = url;
+  });
+}
+
+async function esAvatarSelected(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { showToast('Choose a JPEG, PNG, or WebP image', 'error'); return; }
+  if (file.size > 15 * 1024 * 1024) { showToast('That image is too large — choose one under 15 MB', 'error'); return; }
+  const btn = document.getElementById('avatar-change-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
+  try {
+    const dataUrl = await esResizeAvatar(file);
+    const res = await esFetch('/api/avatar', {method:'POST', body:JSON.stringify({image:dataUrl})});
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) { showToast(d.error||'Could not update photo', 'error'); return; }
+    ES_USER.picture = d.picture;
+    ES_USER.pictureSource = d.pictureSource;
+    esSetStoredUser(ES_USER);
+    esRenderAccount();
+    esRenderNavAuth();
+    esRenderMarketingAuth();
+    showToast('✓ Photo updated');
+  } catch(e) { if (e.message !== '401') showToast('Could not read that image — try another', 'error'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'Change photo'; } }
+}
+
+async function esRemoveAvatar() {
+  if (!confirm('Remove your photo?')) return;
+  try {
+    const res = await esFetch('/api/avatar', {method:'DELETE'});
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) { showToast(d.error||'Could not remove photo', 'error'); return; }
+    ES_USER.picture = '';
+    ES_USER.pictureSource = '';
+    esSetStoredUser(ES_USER);
+    esRenderAccount();
+    esRenderNavAuth();
+    esRenderMarketingAuth();
+    showToast('✓ Photo removed');
   } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 

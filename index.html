@@ -2377,15 +2377,21 @@ upcoming.forEach(event => {
       <div class="settings-section-title">Profile</div>
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:20px;">
         <div class="profile-pic" id="settings-profile-pic"></div>
-        <div>
+        <div style="min-width:0;">
           <div style="font-size:18px;font-weight:600;color:var(--text);" id="settings-display-name">—</div>
           <div style="font-size:13px;color:var(--text-dim);" id="settings-email-display">—</div>
+          <div class="avatar-actions">
+            <button class="settings-edit-btn" id="avatar-change-btn" onclick="document.getElementById('avatar-file').click()">Change photo</button>
+            <button class="settings-edit-btn" id="avatar-remove-btn" onclick="esRemoveAvatar()" style="display:none;">Remove</button>
+            <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" hidden onchange="esAvatarSelected(this)">
+          </div>
         </div>
       </div>
       <div class="settings-row">
         <div class="settings-row-label">Handle</div>
         <div class="settings-row-value"><code id="settings-handle">—</code></div>
         <button class="settings-edit-btn" onclick="esEditHandle()">Edit</button>
+        <div class="settings-hint" id="settings-handle-hint"></div>
       </div>
       <div class="settings-row">
         <div class="settings-row-label">Display name</div>
