@@ -65,7 +65,8 @@ function mkEvent() {
     collapsed: false,
     date: '', oneTimeStart: '', oneTimeEnd: '', allDay: false,
     dateList: [], nextDid: 0,
-    recDates: [], allDayDefault: false
+    recDates: [], allDayDefault: false,
+    specId: '', extra: {}
   };
 }
 
@@ -234,6 +235,8 @@ function buildCardInner(ev) {
     <select class="field-input" onchange="setEvDirect(${ev.uid},'leadTimeDays',+this.value)">
     ${[0,1,3,7,14,30,60,90,180].map(d=>`<option value="${d}"${ev.leadTimeDays===d?' selected':''}>${d===0?'Day of only':d===1?'1 day':d===7?'1 week':d===14?'2 weeks':d===30?'1 month':d===60?'2 months':d===90?'3 months':d===180?'6 months':d+' days'}</option>`).join('')}
     </select></div></div>
+    <div class="ecard-section"><div class="field-group" style="margin-bottom:0"><label class="field-label">.rcal event id (stays the same when you rename)</label>
+    <input class="field-input" type="text" maxlength="80" placeholder="auto-created from the name when first saved or exported" value="${(ev.specId||'').replace(/"/g,'&quot;')}" oninput="setEvSpecId(${ev.uid},this)"></div></div>
     <div class="ecard-section"><div class="field-group" style="margin-bottom:0"><label class="field-label">Notes for attendees</label>
     <textarea class="field-input" placeholder="No reservation needed. Bar opens at 7pm…" rows="2" oninput="setEvDirect(${ev.uid},'notes',this.value)">${ev.notes||''}</textarea></div></div>
     ${excHtml}
@@ -409,6 +412,13 @@ function setEvDirect(uid, field, val) {
   const ev = getEv(uid); if (!ev) return;
   ev[field] = val;
   if (field === 'date' || field === 'oneTimeStart') bRenderPreviewEvents();
+}
+
+function setEvSpecId(uid, input) {
+  const ev = getEv(uid); if (!ev) return;
+  const clean = input.value.replace(/[^A-Za-z0-9._~-]/g, '-');
+  if (clean !== input.value) input.value = clean;
+  ev.specId = clean;
 }
 
 function toggleEvAllDay(uid, checked) {
@@ -676,7 +686,16 @@ function toggleDateOverride(uid, listField, di) {
 }
 
 // ── BUILDER: .rcal export ─────────────────────────────────────
+function ensureSpecIds() {
+  const used = new Set(events.filter(e => e.specId).map(e => e.specId));
+  events.forEach((ev, i) => {
+    if (ev.specId || !(ev.name || '').trim()) return;
+    ev.specId = rcalSpecId(ev.name, used, i);
+  });
+}
+
 function buildRcalObj() {
+  ensureSpecIds();
   const meta = {};
   if (pub.name) meta.title = pub.name;
   if (pub.description) meta.description = pub.description;
@@ -690,7 +709,9 @@ function buildRcalObj() {
 
   const strands = events.map(ev => {
     const s = {};
+    if (ev.specId) s.spec_id = ev.specId;
     if (ev.name) s.title = ev.name;
+    if (ev.extra) Object.keys(ev.extra).forEach(k => { if (ev.extra[k] !== '' && ev.extra[k] != null) s[k] = ev.extra[k]; });
     if (ev.category) s.category = ev.category;
     if (ev.vibes.length) s.vibes = ev.vibes;
     if (ev.price !== 'free') s.price = ev.price;
@@ -714,6 +735,7 @@ function buildRcalObj() {
           if (d.timeEnd) entry.time_end = d.timeEnd;
         }
         if (d.note) entry.note = d.note;
+        if (d.x) Object.assign(entry, d.x);
         return entry;
       });
     } else {
@@ -732,6 +754,7 @@ function buildRcalObj() {
         }
         if (r.seasonStart) rule.season_start = r.seasonStart;
         if (r.seasonEnd) rule.season_end = r.seasonEnd;
+        if (r.x) Object.assign(rule, r.x);
         return rule;
       });
       if (ev.exceptions.length) {
@@ -740,6 +763,7 @@ function buildRcalObj() {
           if (x.date_end) ex.date_end = x.date_end;
           if (x.note) ex.note = x.note;
           if (x.time_start) ex.time_start = x.time_start;
+          if (x.x) Object.assign(ex, x.x);
           return ex;
         });
         if (!s.exceptions.length) delete s.exceptions;
@@ -763,6 +787,7 @@ function buildRcalObj() {
             if (d.timeEnd) entry.time_end = d.timeEnd;
           }
           if (d.note) entry.note = d.note;
+          if (d.x) Object.assign(entry, d.x);
           return entry;
         })
       ];
@@ -788,12 +813,32 @@ function rcalSpecId(base, used, n) {
   return u;
 }
 function rcalToSpecEvent(e, n, used, isFree) {
-  const out = { id: rcalSpecId(e.title, used, n), name: e.title || 'Untitled event' };
-  Object.keys(e).forEach(k => { if (k !== 'title' && k !== 'vibes') out[k] = e[k]; });
+  // e.spec_id is the frozen id from the builder; buildRcalObj() always sets it for named events
+  const id = e.spec_id || rcalSpecId(e.title, used, n);
+  const out = { id: id, name: e.title };
+  Object.keys(e).forEach(k => { if (k !== 'title' && k !== 'vibes' && k !== 'spec_id') out[k] = e[k]; });
   if (e.vibes && e.vibes.length) out.vibe_tags = e.vibes;
   if (isFree && !out.price) out.price = 'free';
   return out;
 }
+
+// Returns a list of plain-language problems that stop a valid .rcal being produced.
+function rcalExportProblems() {
+  const probs = [];
+  if (!events.length) probs.push('Add at least one event.');
+  events.forEach((ev, i) => {
+    const label = (ev.name || '').trim() ? '"' + ev.name.trim() + '"' : 'Event ' + (i + 1);
+    if (!(ev.name || '').trim()) probs.push('Event ' + (i + 1) + ' has no name.');
+    if (ev.eventType === 'oneoff' && !ev.date) probs.push(label + ' has no date.');
+    if (ev.eventType === 'datelist' && !ev.dateList.some(d => d.date)) probs.push(label + ' has no dates.');
+    if (ev.eventType === 'recurring' && !ev.rules.some(r => r.pattern !== 'specific_date' || r.date) && !(ev.recDates || []).some(d => d.date))
+      probs.push(label + ' has no schedule.');
+  });
+  const ids = {};
+  events.forEach(ev => { if (ev.specId) { if (ids[ev.specId]) probs.push('Two events share the id "' + ev.specId + '".'); ids[ev.specId] = 1; } });
+  return probs;
+}
+
 function rcalSpecLocation(loc) {
   if (!loc) return undefined;
   if (typeof loc === 'object') return Object.keys(loc).length ? loc : undefined;
@@ -802,7 +847,7 @@ function rcalSpecLocation(loc) {
 }
 function buildRcalSpecObj() {
   const obj = buildRcalObj();
-  const used = new Set();
+  const used = new Set(obj.events.map(e => e.spec_id).filter(Boolean));
   const meta = { ...obj.meta };
   const loc = {};
   if (pub.address) loc.address = pub.address;
@@ -834,10 +879,13 @@ function buildJsonPreview() {
   const oo = events.filter(e=>e.eventType==='oneoff').length;
   document.getElementById('export-summary').textContent =
     (pub.name||'Untitled strand') + ' — ' + n + ' event' + (n!==1?'s':'')
-    + (rec&&oo?' ('+rec+' recurring, '+oo+' one-off)':rec?' ('+rec+' recurring)':oo?' ('+oo+' one-off)':'')+'. Ready to download.';
+    + (rec&&oo?' ('+rec+' recurring, '+oo+' one-off)':rec?' ('+rec+' recurring)':oo?' ('+oo+' one-off)':'')
+    + (rcalExportProblems().length ? '. Not ready: ' + rcalExportProblems().join(' ') : '. Ready to download.');
 }
 
 function downloadRcal() {
+  const probs = rcalExportProblems();
+  if (probs.length) { showToast('Fix before downloading: ' + probs[0] + (probs.length > 1 ? ' (+' + (probs.length - 1) + ' more)' : ''), 'error'); return; }
   const obj = buildRcalSpecObj();
   const name = (pub.name||'my-strand').toLowerCase().replace(/[^a-z0-9]+/g,'-');
   const blob = new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
@@ -848,6 +896,8 @@ function downloadRcal() {
 }
 
 function copyRcalJson() {
+  const probs = rcalExportProblems();
+  if (probs.length) { showToast('Fix before copying: ' + probs[0] + (probs.length > 1 ? ' (+' + (probs.length - 1) + ' more)' : ''), 'error'); return; }
   navigator.clipboard?.writeText(JSON.stringify(buildRcalSpecObj(),null,2));
   showToast('📋 JSON copied to clipboard');
 }
@@ -2529,6 +2579,9 @@ async function esEditStrand(strandId) {
       const e = mkEvent();
       e.uid          = uid;
       e.name         = ev.title        || '';
+      e.specId       = ev.spec_id      || '';
+      e.extra        = {};
+      ['description','location','timezone'].forEach(k => { if (ev[k]) e.extra[k] = ev[k]; });
       e.category     = ev.category     || '';
       e.vibes        = ev.vibes        || [];
       e.price        = ev.price        || 'free';
@@ -2545,12 +2598,14 @@ async function esEditStrand(strandId) {
       // datelist (standalone) — reads the same dates[] field as recDates below,
       // routed by event_type since a "Date List" event has no recurrence[]
       e.dateList     = (ev.event_type === 'datelist' ? (ev.dates || []) : []).map((d, i) => ({
-        did: i, date: d.date||'', timeStart: d.time_start||'', timeEnd: d.time_end||'', note: d.note||'', allDay: !!d.all_day
+        did: i, date: d.date||'', timeStart: d.time_start||'', timeEnd: d.time_end||'', note: d.note||'', allDay: !!d.all_day,
+        x: d.location ? { location: d.location } : undefined
       }));
       e.nextDid      = e.dateList.length;
       // extra dates coexisting with recurrence
       e.recDates     = (ev.event_type !== 'datelist' ? (ev.dates || []) : []).map((d, i) => ({
-        did: i, date: d.date||'', timeStart: d.time_start||'', timeEnd: d.time_end||'', note: d.note||'', allDay: !!d.all_day
+        did: i, date: d.date||'', timeStart: d.time_start||'', timeEnd: d.time_end||'', note: d.note||'', allDay: !!d.all_day,
+        x: d.location ? { location: d.location } : undefined
       }));
       // recurring
       e.rules        = (ev.recurrence && ev.recurrence.length ? ev.recurrence : [mkRule()]).map((r, i) => ({
@@ -2558,11 +2613,14 @@ async function esEditStrand(strandId) {
         days: r.days||['fri'], timeStart: r.time_start||'', timeEnd: r.time_end||'',
         allDay: !!r.all_day,
         monthWeek: r.month_week||'first', monthDate: r.month_date||1,
-        seasonStart: r.season_start||'', seasonEnd: r.season_end||''
+        seasonStart: r.season_start||'', seasonEnd: r.season_end||'',
+        x: (() => { const o = {}; ['start_date','end_date','season_start_day','season_end_day','fuzzy_start','fuzzy_end'].forEach(k => { if (r[k] !== undefined && r[k] !== null && r[k] !== '') o[k] = r[k]; }); return Object.keys(o).length ? o : undefined; })()
       }));
       e.nextRid      = e.rules.length;
       e.exceptions   = (ev.exceptions || []).map((x, i) => ({
-        xid: i, type: x.type||'skip', date: x.date||'', date_end: x.date_end||'', note: x.note||''
+        xid: i, type: x.type||'skip', date: x.date||'', date_end: x.date_end||'', note: x.note||'',
+        time_start: x.time_start||'',
+        x: (() => { const o = {}; ['time_end','location'].forEach(k => { if (x[k]) o[k] = x[k]; }); return Object.keys(o).length ? o : undefined; })()
       }));
       e.nextXid      = e.exceptions.length;
       return e;
@@ -3305,11 +3363,22 @@ async function esExportAll() {
     const res = await esFetch('/api/strands/mine');
     const d = await res.json();
     if (!d.strands?.length) { showToast('No strands to export', 'error'); return; }
+    const skipped = [];
     d.strands.forEach(s => {
-      const specUsed = new Set();
+      const evs = s.events || [];
+      const bad = evs.some(ev => !(ev.title || '').trim()
+        || (ev.event_type === 'oneoff' && !ev.date)
+        || (ev.event_type === 'datelist' && !(ev.dates || []).some(x => x.date))
+        || (!ev.event_type || ev.event_type === 'recurring') && !(ev.recurrence || []).length && !(ev.dates || []).length);
+      if (bad) { skipped.push(s.title || 'Untitled strand'); return; }
+      const specUsed = new Set(evs.map(ev => ev.spec_id).filter(Boolean));
       const cleanEvents = (s.events||[]).map((ev, evIdx) => {
         const e = {};
+        if (ev.spec_id)  e.spec_id  = ev.spec_id;
         if (ev.title)    e.title    = ev.title;
+        if (ev.description) e.description = ev.description;
+        if (ev.location)    e.location    = ev.location;
+        if (ev.timezone)    e.timezone    = ev.timezone;
         if (ev.category) e.category = ev.category;
         if (ev.vibes?.length) e.vibes = ev.vibes;
         if (ev.price && ev.price !== 'free') e.price = ev.price;
@@ -3333,6 +3402,7 @@ async function esExportAll() {
               if (d.time_end)   de.time_end   = d.time_end;
             }
             if (d.note)       de.note       = d.note;
+            if (d.location)   de.location   = d.location;
             return de;
           });
         } else {
@@ -3349,6 +3419,9 @@ async function esExportAll() {
             }
             if (r.season_start) rule.season_start = r.season_start;
             if (r.season_end)   rule.season_end   = r.season_end;
+            ['start_date','end_date','season_start_day','season_end_day','fuzzy_start','fuzzy_end'].forEach(k => {
+              if (r[k] !== undefined && r[k] !== null && r[k] !== '') rule[k] = r[k];
+            });
             return rule;
           });
           if (ev.dates?.length) e.dates = ev.dates.map(d => {
@@ -3359,6 +3432,7 @@ async function esExportAll() {
               if (d.time_end)   de.time_end   = d.time_end;
             }
             if (d.note) de.note = d.note;
+            if (d.location) de.location = d.location;
             return de;
           });
           if (ev.exceptions?.length) e.exceptions = ev.exceptions.map(x => {
@@ -3366,6 +3440,8 @@ async function esExportAll() {
             if (x.date_end)   ex.date_end   = x.date_end;
             if (x.note)       ex.note       = x.note;
             if (x.time_start) ex.time_start = x.time_start;
+            if (x.time_end)   ex.time_end   = x.time_end;
+            if (x.location)   ex.location   = x.location;
             return ex;
           });
         }
@@ -3378,7 +3454,9 @@ async function esExportAll() {
       a.href=url; a.download=(s.title||'strand').toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.rcal';
       a.click(); URL.revokeObjectURL(url);
     });
-    showToast(`⬇ ${d.strands.length} .rcal files downloaded`);
+    const done = d.strands.length - skipped.length;
+    if (skipped.length) showToast(`⬇ ${done} downloaded. Skipped (an event has no name or schedule): ${skipped.join(', ')}`, 'error');
+    else showToast(`⬇ ${done} .rcal files downloaded`);
   } catch(e) { showToast('Export failed — try again', 'error'); }
 }
 
@@ -3618,10 +3696,15 @@ function _esRcalToBackend(raw, fallbackTitle) {
   Object.keys(meta).forEach(k => meta[k] === undefined && delete meta[k]);
   const events = rawEvents.map(ev => {
     const out = { ...ev };
+    out.spec_id = ev.id ? String(ev.id) : undefined;
     out.title = ev.title || ev.name;
     out.vibes = ev.vibes || ev.vibe_tags || [];
     out.notes = ev.notes || ev.description;
-    ['id','name','vibe_tags','location','timezone','description'].forEach(k => delete out[k]);
+    const flat = l => (l && typeof l === 'object') ? [l.name, l.address, l.city, l.state, l.country].filter(Boolean).join(', ') : l;
+    out.location = flat(ev.location);
+    (out.dates || []).forEach(dd => { if (dd && dd.location) dd.location = flat(dd.location); });
+    (out.exceptions || []).forEach(xx => { if (xx && xx.location) xx.location = flat(xx.location); });
+    ['id','name','vibe_tags'].forEach(k => delete out[k]);
     Object.keys(out).forEach(k => out[k] === undefined && delete out[k]);
     return out;
   });
