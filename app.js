@@ -773,8 +773,52 @@ function buildRcalObj() {
   return { rcal: '0.1', meta, events: strands };
 }
 
-function buildJsonPreview() {
+// ── .rcal SPEC v0.2 EXPORT ────────────────────────────────────
+// buildRcalObj() returns the INTERNAL shape (title / vibes) that the backend save
+// endpoints (POST/PUT /api/strands) expect, so it must stay as-is for esSaveStrand().
+// Anything a person downloads, copies or previews goes through the converters below,
+// which emit the published spec shape: events[].id (required, unique), events[].name,
+// events[].vibe_tags, an explicit "free" price (spec default is "unknown"), and a
+// meta.location object.
+function rcalSpecId(base, used, n) {
+  const id = String(base || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || ('event-' + (n + 1));
+  let u = id, k = 2;
+  while (used.has(u)) u = id + '-' + (k++);
+  used.add(u);
+  return u;
+}
+function rcalToSpecEvent(e, n, used, isFree) {
+  const out = { id: rcalSpecId(e.title, used, n), name: e.title || 'Untitled event' };
+  Object.keys(e).forEach(k => { if (k !== 'title' && k !== 'vibes') out[k] = e[k]; });
+  if (e.vibes && e.vibes.length) out.vibe_tags = e.vibes;
+  if (isFree && !out.price) out.price = 'free';
+  return out;
+}
+function rcalSpecLocation(loc) {
+  if (!loc) return undefined;
+  if (typeof loc === 'object') return Object.keys(loc).length ? loc : undefined;
+  const t = String(loc).trim();
+  return t ? { address: t } : undefined;
+}
+function buildRcalSpecObj() {
   const obj = buildRcalObj();
+  const used = new Set();
+  const meta = { ...obj.meta };
+  const loc = {};
+  if (pub.address) loc.address = pub.address;
+  if (pub.city) loc.city = pub.city;
+  if (pub.state) loc.state = pub.state;
+  if (pub.country) loc.country = pub.country;
+  if (Object.keys(loc).length) meta.location = loc; else delete meta.location;
+  return {
+    rcal: obj.rcal,
+    meta,
+    events: obj.events.map((e, i) => rcalToSpecEvent(e, i, used, events[i] && events[i].price === 'free'))
+  };
+}
+
+function buildJsonPreview() {
+  const obj = buildRcalSpecObj();
   const name = (pub.name||'my-strand').toLowerCase().replace(/[^a-z0-9]+/g,'-');
   document.getElementById('json-filename').textContent = name + '.rcal';
   const json = JSON.stringify(obj, null, 2);
@@ -794,7 +838,7 @@ function buildJsonPreview() {
 }
 
 function downloadRcal() {
-  const obj = buildRcalObj();
+  const obj = buildRcalSpecObj();
   const name = (pub.name||'my-strand').toLowerCase().replace(/[^a-z0-9]+/g,'-');
   const blob = new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -804,7 +848,7 @@ function downloadRcal() {
 }
 
 function copyRcalJson() {
-  navigator.clipboard?.writeText(JSON.stringify(buildRcalObj(),null,2));
+  navigator.clipboard?.writeText(JSON.stringify(buildRcalSpecObj(),null,2));
   showToast('📋 JSON copied to clipboard');
 }
 
@@ -3262,7 +3306,8 @@ async function esExportAll() {
     const d = await res.json();
     if (!d.strands?.length) { showToast('No strands to export', 'error'); return; }
     d.strands.forEach(s => {
-      const cleanEvents = (s.events||[]).map(ev => {
+      const specUsed = new Set();
+      const cleanEvents = (s.events||[]).map((ev, evIdx) => {
         const e = {};
         if (ev.title)    e.title    = ev.title;
         if (ev.category) e.category = ev.category;
@@ -3324,9 +3369,9 @@ async function esExportAll() {
             return ex;
           });
         }
-        return e;
+        return rcalToSpecEvent(e, evIdx, specUsed, !ev.price || ev.price === 'free');
       });
-      const obj = { rcal: '0.1', meta: {title:s.title, location:s.venue||s.address, timezone:s.timezone}, events: cleanEvents };
+      const obj = { rcal: '0.1', meta: {title:s.title, location:rcalSpecLocation(s.venue||s.address), timezone:s.timezone}, events: cleanEvents };
       const blob = new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
