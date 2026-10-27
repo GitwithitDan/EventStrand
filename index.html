@@ -184,6 +184,10 @@ pre { padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px
 .c-amber { color: var(--primary); }
 
 #builder { background: var(--bg2); }
+.spec-copy-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 11px 20px; border-radius: 10px; background: var(--primary); color: #fff; border: none; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 18px rgba(108,143,255,0.30); }
+.spec-copy-btn:hover { background: #8aaeff; transform: translateY(-1px); box-shadow: 0 6px 22px rgba(108,143,255,0.40); }
+.spec-copy-btn.copied { background: var(--green); box-shadow: 0 4px 18px var(--green-glow); }
+.spec-copy-icon { font-size: 16px; line-height: 1; }
 .builder-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; flex-wrap: wrap; }
 .builder-head-text { flex: 1 1 520px; min-width: 0; }
 .builder-head-actions { flex: 0 1 300px; display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding-bottom: 6px; }
@@ -1289,7 +1293,10 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
         <p class="section-sub">Build your strand — give it a name, add recurring nights, one-off shows, or manually-maintained date lists. Download the <code>.rcal</code> file or host it live on EventStrand.</p>
       </div>
       <div class="builder-head-actions">
-        <button type="button" id="rcal-copy-btn" class="btn btn-primary" onclick="esCopyRcalInstructions(this)">📋 Copy format instructions</button>
+        <button type="button" id="rcal-copy-btn" class="spec-copy-btn" onclick="esCopyRcalInstructions(this)">
+          <span class="spec-copy-icon">📋</span>
+          <span class="spec-copy-label">Copy Full Spec</span>
+        </button>
         <span class="builder-head-hint">Paste into ChatGPT or Claude, describe your schedule, get back a ready-to-use .rcal.</span>
         <button type="button" class="builder-load-link" onclick="esLoadRcalClick()">Already have an .rcal? Load to your dashboard →</button>
         <input type="file" id="rcal-load-input" accept=".rcal,.json,application/json" style="display:none" onchange="esLoadRcalFile(this)">

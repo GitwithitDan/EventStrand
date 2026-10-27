@@ -3508,8 +3508,14 @@ async function _esFetchSpecText() {
 }
 
 async function esCopyRcalInstructions(btn) {
-  const orig = btn.textContent;
-  const flash = (msg) => { btn.textContent = msg; setTimeout(() => { btn.textContent = orig; }, 2400); };
+  const label = btn.querySelector('.spec-copy-label');
+  const icon = btn.querySelector('.spec-copy-icon');
+  const oldLabel = label.textContent, oldIcon = icon.textContent;
+  const flash = (msg, ico, good) => {
+    label.textContent = msg; icon.textContent = ico;
+    if (good) btn.classList.add('copied');
+    setTimeout(() => { label.textContent = oldLabel; icon.textContent = oldIcon; btn.classList.remove('copied'); }, good ? 2200 : 3000);
+  };
   try {
     if (window.ClipboardItem && navigator.clipboard?.write) {
       // Promise-based blob keeps the user-gesture valid across the async fetch (Safari).
@@ -3518,8 +3524,9 @@ async function esCopyRcalInstructions(btn) {
     } else {
       await navigator.clipboard.writeText(await _esFetchSpecText());
     }
-    flash('✓ Copied — paste into your AI');
+    flash('Copied!', '✓', true);
   } catch (e) {
+    flash('Copy failed', '⚠', false);
     showToast('Could not copy — opening the spec so you can copy it there', 'error');
     window.open('/spec/', '_blank', 'noopener');
   }
