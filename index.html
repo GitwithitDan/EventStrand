@@ -184,6 +184,14 @@ pre { padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px
 .c-amber { color: var(--primary); }
 
 #builder { background: var(--bg2); }
+.builder-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; flex-wrap: wrap; }
+.builder-head-text { flex: 1 1 520px; min-width: 0; }
+.builder-head-actions { flex: 0 1 300px; display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding-bottom: 6px; }
+.builder-head-actions .btn { justify-content: center; }
+.builder-head-hint { font-size: 12.5px; color: var(--text-dim); line-height: 1.5; }
+.builder-load-link { background: none; border: none; padding: 0; text-align: left; font: inherit; font-size: 14px; font-weight: 600; color: var(--primary); cursor: pointer; }
+.builder-load-link:hover { text-decoration: underline; }
+@media (max-width: 760px) { .builder-head-actions { flex-basis: 100%; } }
 .builder-wrap { display: grid; grid-template-columns: 1fr 380px; gap: 40px; margin-top: 60px; align-items: start; }
 .builder-form { background: var(--bg3); border-radius: 20px; border: 1px solid var(--border2); overflow: hidden; }
 .builder-steps-nav { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; }
@@ -1274,9 +1282,19 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 <!-- ══ BUILDER ══ -->
 <div id="builder" class="section-full">
   <div class="section-inner">
-    <div class="section-label">Strand Builder</div>
-    <h2 class="section-title">Create your .rcal file</h2>
-    <p class="section-sub">Build your strand — give it a name, add recurring nights, one-off shows, or manually-maintained date lists. Download the <code>.rcal</code> file or host it live on EventStrand.</p>
+    <div class="builder-head">
+      <div class="builder-head-text">
+        <div class="section-label">Strand Builder</div>
+        <h2 class="section-title">Create your .rcal file</h2>
+        <p class="section-sub">Build your strand — give it a name, add recurring nights, one-off shows, or manually-maintained date lists. Download the <code>.rcal</code> file or host it live on EventStrand.</p>
+      </div>
+      <div class="builder-head-actions">
+        <button type="button" id="rcal-copy-btn" class="btn btn-primary" onclick="esCopyRcalInstructions(this)">📋 Copy format instructions</button>
+        <span class="builder-head-hint">Paste into ChatGPT or Claude, describe your schedule, get back a ready-to-use .rcal.</span>
+        <button type="button" class="builder-load-link" onclick="esLoadRcalClick()">Already have an .rcal? Load to your dashboard →</button>
+        <input type="file" id="rcal-load-input" accept=".rcal,.json,application/json" style="display:none" onchange="esLoadRcalFile(this)">
+      </div>
+    </div>
 
     <div class="builder-wrap">
       <div class="builder-form">

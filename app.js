@@ -3482,6 +3482,211 @@ function esDownloadBuilderQR() {
   const a = document.createElement('a'); a.download='eventstrand-qr.png'; a.href=canvas.toDataURL(); a.click();
 }
 
+// ── BUILDER: COPY FORMAT INSTRUCTIONS + LOAD EXISTING .rcal ──
+const RCAL_AI_PREAMBLE = `You are helping me create a .rcal file (open event-schedule format, spec below).
+I will describe my schedule in plain language. Reply with ONE JSON code block containing the complete .rcal file and nothing else. Follow the spec exactly: valid JSON, "rcal" and "events" keys required, every event needs a stable lowercase-hyphenated "id" and a "name". Ask me for anything essential that is missing before you write the file.
+
+===== .rcal SPECIFICATION =====
+`;
+
+async function _esFetchSpecText() {
+  const res = await fetch('/spec/', { cache: 'no-cache' });
+  if (!res.ok) throw new Error('spec fetch failed');
+  const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+  const main = doc.querySelector('main.main');
+  if (!main) throw new Error('spec main not found');
+  const clone = main.cloneNode(true);
+  clone.querySelectorAll('#ai-quickstart, script, style').forEach(n => n.remove());
+  // innerText needs a rendered node; park it off-screen (not display:none / visibility:hidden).
+  const host = document.createElement('div');
+  host.style.cssText = 'position:fixed;left:-99999px;top:0;width:900px;';
+  host.appendChild(clone);
+  document.body.appendChild(host);
+  const text = clone.innerText.replace(/\n{3,}/g, '\n\n').trim();
+  host.remove();
+  return RCAL_AI_PREAMBLE + text;
+}
+
+async function esCopyRcalInstructions(btn) {
+  const orig = btn.textContent;
+  const flash = (msg) => { btn.textContent = msg; setTimeout(() => { btn.textContent = orig; }, 2400); };
+  try {
+    if (window.ClipboardItem && navigator.clipboard?.write) {
+      // Promise-based blob keeps the user-gesture valid across the async fetch (Safari).
+      const blob = _esFetchSpecText().then(t => new Blob([t], { type: 'text/plain' }));
+      await navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })]);
+    } else {
+      await navigator.clipboard.writeText(await _esFetchSpecText());
+    }
+    flash('✓ Copied — paste into your AI');
+  } catch (e) {
+    showToast('Could not copy — opening the spec so you can copy it there', 'error');
+    window.open('/spec/', '_blank', 'noopener');
+  }
+}
+
+function esLoadRcalClick() {
+  if (!ES_USER) { esShowAuth('Sign in to load an .rcal file to your dashboard'); return; }
+  document.getElementById('rcal-load-input')?.click();
+}
+
+function _esRcalToBackend(raw, fallbackTitle) {
+  const errors = [], warnings = [];
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { errors: ['The file is valid JSON but not a .rcal object (expected { "rcal", "meta", "events" }).'], warnings, body: null };
+  }
+  if (!raw.rcal) errors.push('Missing required "rcal" version key (e.g. "rcal": "0.1").');
+  if (!Array.isArray(raw.events)) errors.push('Missing required "events" array.');
+  const rawEvents = Array.isArray(raw.events) ? raw.events : [];
+  const ids = new Set();
+  rawEvents.forEach((ev, i) => {
+    const label = ev && (ev.name || ev.id) ? `"${ev.name || ev.id}"` : `#${i + 1}`;
+    if (!ev || typeof ev !== 'object') { errors.push(`Event ${label} is not an object.`); return; }
+    if (!ev.id) errors.push(`Event ${label} is missing "id".`);
+    else if (ids.has(ev.id)) errors.push(`Duplicate event id "${ev.id}".`);
+    else ids.add(ev.id);
+    if (!ev.name && !ev.title) errors.push(`Event ${label} is missing "name".`);
+    if (ev.date && (ev.recurrence || ev.dates)) errors.push(`Event ${label} mixes "date" with "recurrence"/"dates" — a one-off can't also repeat.`);
+    if (!ev.date && !ev.recurrence && !ev.dates) warnings.push(`Event ${label} has no schedule (no date, recurrence or dates).`);
+    (ev.recurrence || []).forEach(r => { if (!r || !r.pattern) errors.push(`Event ${label} has a recurrence rule without "pattern".`); });
+  });
+  const m = raw.meta || {};
+  if (!m.title) warnings.push(`No meta.title — will be named "${fallbackTitle || 'Imported strand'}".`);
+  if (!m.timezone) warnings.push('No meta.timezone — times will have no timezone attached.');
+  if (!rawEvents.length && Array.isArray(raw.events)) warnings.push('The events array is empty.');
+  if (errors.length) return { errors, warnings, body: null };
+
+  let loc = m.location;
+  if (loc && typeof loc === 'object') loc = [loc.name, loc.address, loc.city, loc.state, loc.country].filter(Boolean).join(', ');
+  const meta = {
+    title: m.title || fallbackTitle || 'Imported strand',
+    description: m.description, type: m.type, location: loc || undefined,
+    timezone: m.timezone, color: m.color, website: m.website,
+  };
+  Object.keys(meta).forEach(k => meta[k] === undefined && delete meta[k]);
+  const events = rawEvents.map(ev => {
+    const out = { ...ev };
+    out.title = ev.title || ev.name;
+    out.vibes = ev.vibes || ev.vibe_tags || [];
+    out.notes = ev.notes || ev.description;
+    ['id','name','vibe_tags','location','timezone','description'].forEach(k => delete out[k]);
+    Object.keys(out).forEach(k => out[k] === undefined && delete out[k]);
+    return out;
+  });
+  return { errors, warnings, body: { rcal: String(raw.rcal), meta, events, visibility: 'public' } };
+}
+
+function _esRcalScheduleSummary(ev) {
+  if (ev.date) return `One-off · ${ev.date}${ev.time_start ? ' · ' + ev.time_start + (ev.time_end ? '–' + ev.time_end : '') : ''}`;
+  const parts = [];
+  (ev.recurrence || []).forEach(r => {
+    let p = r.pattern.replace(/_/g, ' ');
+    if (r.days?.length) p += ' ' + r.days.join('/');
+    if (r.month_week) p = r.month_week + ' ' + p;
+    if (r.time_start) p += ' · ' + r.time_start + (r.time_end ? '–' + r.time_end : '');
+    parts.push(p);
+  });
+  if (ev.dates?.length) parts.push(`${ev.dates.length} listed date${ev.dates.length === 1 ? '' : 's'}`);
+  return parts.join(' + ') || 'No schedule';
+}
+
+let _esPendingRcal = null;
+
+function esCloseRcalPreview() {
+  document.getElementById('es-rcal-preview')?.remove();
+  _esPendingRcal = null;
+}
+
+function esShowRcalPreview(fileName, result) {
+  esCloseRcalPreview();
+  const ok = !result.errors.length;
+  const b = result.body;
+  const li = (arr, color) => arr.map(x => `<li style="margin:4px 0;color:${color};">${esc(x)}</li>`).join('');
+  let inner;
+  if (!ok) {
+    inner = `
+      <h3 style="margin:0 0 6px;font-size:20px;">Can't load this file</h3>
+      <div style="color:var(--text-dim);font-size:13.5px;margin-bottom:14px;">${esc(fileName)} has ${result.errors.length} problem${result.errors.length === 1 ? '' : 's'} that must be fixed first:</div>
+      <ul style="margin:0 0 14px 18px;padding:0;font-size:14px;line-height:1.5;">${li(result.errors, 'var(--red,#ff6b6b)')}</ul>
+      ${result.warnings.length ? `<ul style="margin:0 0 14px 18px;padding:0;font-size:13px;">${li(result.warnings, 'var(--text-dim)')}</ul>` : ''}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="esCloseRcalPreview();esLoadRcalClick()">Choose another file</button>
+        <button class="btn btn-ghost" onclick="esCloseRcalPreview()">Close</button>
+      </div>`;
+  } else {
+    _esPendingRcal = b;
+    const rows = b.events.map(ev => `
+      <div style="padding:10px 0;border-top:1px solid var(--border,rgba(255,255,255,.08));">
+        <div style="font-weight:600;font-size:14.5px;">${esc(ev.title)}</div>
+        <div style="font-size:12.5px;color:var(--text-dim);margin-top:2px;">${esc(_esRcalScheduleSummary(ev))}${ev.category ? ' · ' + esc(ev.category) : ''}${ev.price ? ' · ' + esc(ev.price) : ''}</div>
+      </div>`).join('');
+    inner = `
+      <h3 style="margin:0 0 4px;font-size:20px;">Review before loading</h3>
+      <div style="color:var(--text-dim);font-size:13.5px;margin-bottom:14px;">${esc(fileName)} is a valid .rcal file. Nothing is saved until you confirm.</div>
+      <div style="padding:12px 14px;border-radius:10px;background:rgba(108,143,255,.08);margin-bottom:12px;">
+        <div style="font-weight:700;font-size:16px;">${esc(b.meta.title)}</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-top:4px;line-height:1.6;">
+          ${[b.meta.type, b.meta.location, b.meta.timezone].filter(Boolean).map(esc).join(' · ') || 'No publisher details'}
+          ${b.meta.description ? '<br>' + esc(b.meta.description) : ''}
+        </div>
+      </div>
+      ${result.warnings.length ? `<ul style="margin:0 0 12px 18px;padding:0;font-size:13px;">${li(result.warnings, 'var(--yellow,#f5c542)')}</ul>` : ''}
+      <div style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--primary);margin-bottom:2px;">${b.events.length} event${b.events.length === 1 ? '' : 's'}</div>
+      <div style="max-height:260px;overflow:auto;margin-bottom:16px;">${rows || '<div style="padding:10px 0;color:var(--text-dim);font-size:13px;">No events.</div>'}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-green" id="rcal-confirm-publish" onclick="esConfirmRcalLoad(true)" ${b.events.length ? '' : 'disabled'}>Publish now</button>
+        <button class="btn btn-primary" onclick="esConfirmRcalLoad(false)">Save as draft</button>
+        <button class="btn btn-ghost" onclick="esCloseRcalPreview()">Cancel</button>
+      </div>`;
+  }
+  const wrap = document.createElement('div');
+  wrap.id = 'es-rcal-preview';
+  wrap.setAttribute('role', 'dialog');
+  wrap.setAttribute('aria-modal', 'true');
+  wrap.style.cssText = 'position:fixed;inset:0;z-index:310;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(4,6,26,0.82);backdrop-filter:blur(12px);';
+  wrap.innerHTML = `<div style="width:100%;max-width:560px;max-height:90vh;overflow:auto;background:var(--surface,#0b0e2a);border:1px solid var(--border2,rgba(255,255,255,.14));border-radius:16px;padding:26px;color:var(--text);">${inner}</div>`;
+  wrap.addEventListener('click', e => { if (e.target === wrap) esCloseRcalPreview(); });
+  document.body.appendChild(wrap);
+}
+
+async function esConfirmRcalLoad(publish) {
+  const body = _esPendingRcal;
+  if (!body) return;
+  if (!ES_USER) { esCloseRcalPreview(); esShowAuth('Sign in to load an .rcal file to your dashboard'); return; }
+  document.querySelectorAll('#es-rcal-preview button').forEach(x => x.disabled = true);
+  try {
+    const res = await esFetch('/api/strands', { method: 'POST', body: JSON.stringify(body) });
+    const d = await res.json();
+    if (!res.ok) { showToast(d.error || 'Could not load file', 'error'); document.querySelectorAll('#es-rcal-preview button').forEach(x => x.disabled = false); return; }
+    let msg = '✓ Loaded to your dashboard as a draft';
+    if (publish) {
+      const pr = await esFetch(`/api/strands/${d.strand._id}/publish`, { method: 'POST' });
+      const pd = await pr.json();
+      msg = pr.ok ? '🟢 Strand is live!' : '✓ Saved as a draft — ' + (pd.error || 'could not publish');
+    }
+    esCloseRcalPreview();
+    showToast(msg);
+    esGoto('dashboard');
+  } catch (e) {
+    if (e.message !== '401') showToast('Connection error', 'error');
+    document.querySelectorAll('#es-rcal-preview button').forEach(x => x.disabled = false);
+  }
+}
+
+async function esLoadRcalFile(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (!ES_USER) { esShowAuth('Sign in to load an .rcal file to your dashboard'); return; }
+  let raw;
+  try { raw = JSON.parse(await file.text()); }
+  catch (e) {
+    esShowRcalPreview(file.name, { errors: ['The file is not valid JSON: ' + e.message], warnings: [], body: null });
+    return;
+  }
+  esShowRcalPreview(file.name, _esRcalToBackend(raw, file.name.replace(/\.[^.]+$/, '')));
+}
+
 // ── BUILDER: VISIBILITY ───────────────────────────────────────
 function esSetBuilderVis(vis, btn) {
   pub.visibility = vis;
