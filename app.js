@@ -1070,15 +1070,6 @@ function esCloseAuth() {
   esHideForgotPassword();
 }
 
-// ── CURATED LIBRARY DEMO ──────────────────────────────────────
-function esInstallCuratedDemo() {
-  if (ES_USER) {
-    showToast('Curated strands launching soon — we\'ll notify you when ready');
-  } else {
-    esShowAuth('Sign in and we\'ll save your spot for curated strands');
-  }
-}
-
 // ── PERSONAL STRANDS — DASHBOARD TAB ──────────────────────────
 // Jump to builder with the personal type pre-selected. Lets users
 // bypass the "what type are you creating this for" picker when they
@@ -1980,11 +1971,10 @@ async function esUnsubscribeBraid(braidId, e) {
 }
 
 // ── LIBRARY STRANDS ───────────────────────────────────────────
+const _LIB_GRIDS = ['dash-library-grid', 'home-library-grid'];
+
 async function esLoadLibraryStrands() {
-  const grid = document.getElementById('dash-library-grid');
-  if (!grid) return;
   if (!_libraryStrands) {
-    grid.innerHTML = '<div style="color:var(--text-faint);font-size:14px;padding:24px 0;grid-column:1/-1;">Loading…</div>';
     try {
       const res = await fetch(`${BACKEND_URL}/api/library/strands`);
       const data = await res.json();
@@ -1998,20 +1988,27 @@ async function esLoadLibraryStrands() {
 
 function esLibFilter(cat, btn) {
   _libraryFilter = cat;
-  document.querySelectorAll('#lib-filter-chips .filter-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  ['lib-filter-chips', 'home-lib-filter-chips'].forEach(id => {
+    document.querySelectorAll('#' + id + ' .filter-chip').forEach(b => {
+      b.classList.toggle('active', (b.getAttribute('onclick') || '').includes("'" + cat + "'"));
+    });
+  });
   esRenderLibraryStrands();
 }
 
 function esRenderLibraryStrands() {
-  const grid = document.getElementById('dash-library-grid');
-  if (!grid) return;
   const filtered = (_libraryStrands || []).filter(s =>
     _libraryFilter === 'all' || s.libraryCategory === _libraryFilter
   );
+  _LIB_GRIDS.forEach(id => {
+    const grid = document.getElementById(id);
+    if (grid) grid.innerHTML = esLibraryCardsHtml(filtered);
+  });
+}
+
+function esLibraryCardsHtml(filtered) {
   if (!filtered.length) {
-    grid.innerHTML = '<div style="color:var(--text-faint);font-size:14px;padding:32px 0;grid-column:1/-1;text-align:center;">No library strands yet — check back soon.</div>';
-    return;
+    return '<div style="color:var(--text-faint);font-size:14px;padding:32px 0;grid-column:1/-1;text-align:center;">No library strands yet — check back soon.</div>';
   }
   const catEmoji = { holiday:'🎉', sport:'⚽', cultural:'🌍', seasonal:'🌿', personal:'📋', general:'📌' };
   const CAT_COLORS = {
@@ -2022,7 +2019,7 @@ function esRenderLibraryStrands() {
     personal:'linear-gradient(135deg,#1a0b48,#7B5EFF)',
     general: 'linear-gradient(135deg,#1a1a2e,#6C8FFF)',
   };
-  grid.innerHTML = filtered.map(s => {
+  return filtered.map(s => {
     const cat   = s.libraryCategory || 'general';
     const emoji = catEmoji[cat] || '📌';
     const bg    = s.color ? `background:${s.color}` : `background:${CAT_COLORS[cat] || CAT_COLORS.general}`;
@@ -4085,6 +4082,17 @@ function esInitSwipe(cardEl, ev) {
 }
 
   window.addEventListener('hashchange', esHandleHash);
+
+// Main nav stays on top in every view: marketing links close the app overlay first
+document.querySelectorAll('#nav-marketing-links a, #nav-build-btn').forEach(a => {
+  a.addEventListener('click', () => {
+    const app = document.getElementById('es-app');
+    if (app && app.style.display !== 'none') esCloseApp();
+  });
+});
+
+// Home page Library section (empty state matches dashboard Library tab)
+esLoadLibraryStrands();
 
 // Restore persisted notes across views
 esRestoreNotes();

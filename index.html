@@ -42,7 +42,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-se
 .mono { font-family: 'JetBrains Mono', monospace; }
 h1,h2,h3 { font-family: 'Fraunces', serif; line-height: 1.15; }
 
-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 64px; background: rgba(4,6,26,0.90); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 250; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 64px; background: rgba(4,6,26,0.90); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
 .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .nav-logo-mark { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--violet)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: white; }
 .nav-logo-text { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
@@ -542,10 +542,10 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 .auth-tab { flex: 1; padding: 10px; border-radius: 8px; border: none; background: none; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; color: var(--text-dim); cursor: pointer; transition: all 0.2s; }
 .auth-tab.active { background: var(--primary); color: white; }
 /* ── APP OVERLAY ── */
-#es-app { display: none; position: fixed; inset: 0; z-index: 200; flex-direction: column; background: var(--bg); overflow-y: auto; }
+#es-app { display: none; position: fixed; inset: 64px 0 0 0; z-index: 200; flex-direction: column; background: var(--bg); overflow-y: auto; }
 .app-view { display: none; flex: 1; padding: 24px 40px 60px; max-width: 900px; width: 100%; margin: 0 auto; box-sizing: border-box; }
 .app-view.active { display: block; }
-.app-topbar { position: sticky; top: 0; z-index: 201; display: flex; align-items: center; padding: 0 40px; height: 64px; background: rgba(4,6,26,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; }
+.app-topbar { position: sticky; top: 0; z-index: 201; display: none; align-items: center; padding: 0 40px; height: 64px; background: rgba(4,6,26,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; }
 
 /* ── AUTH + HANDLE MODALS ── */
 #es-auth-modal, #es-handle-modal, #es-report-modal { display: none; position: fixed; inset: 0; z-index: 300; align-items: center; justify-content: center; padding: 20px; background: rgba(4,6,26,0.82); backdrop-filter: blur(12px); }
@@ -656,6 +656,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
         🔔<span class="nav-notif-dot" id="nav-notif-dot" style="display:none"></span>
       </button>
       <button class="btn btn-ghost" onclick="esGoto('dashboard')">Dashboard</button>
+      <button class="btn btn-ghost" style="font-size:13px;display:none;" id="admin-nav-btn" onclick="esGoto('admin')">🛡 Admin</button>
       <div class="nav-avatar" id="nav-avatar" onclick="esGoto('account')" title="Account"></div>
     </div>
   </div>
@@ -1492,88 +1493,16 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
   <h2 class="section-title">Ready-made strands<br>to install in seconds</h2>
   <p class="section-sub">Holidays, sports seasons, cultural calendars, local rhythms. Pre-built and ready to install — your world fills up before you've scanned a single QR code.</p>
 
-  <div class="library-filters">
-    <button class="filter-chip active" onclick="filterStrands(this,'all')">All</button>
-    <button class="filter-chip" onclick="filterStrands(this,'holiday')">🎉 Holidays</button>
-    <button class="filter-chip" onclick="filterStrands(this,'cultural')">🌍 Cultural</button>
-    <button class="filter-chip" onclick="filterStrands(this,'sport')">⚽ Sports</button>
-    <button class="filter-chip" onclick="filterStrands(this,'seasonal')">🌿 Seasonal</button>
-    <button class="filter-chip" onclick="filterStrands(this,'community')">🏘 Community</button>
-    <button class="filter-chip" onclick="filterStrands(this,'personal')">📋 Personal</button>
+  <div class="library-filters" id="home-lib-filter-chips">
+    <button class="filter-chip active" onclick="esLibFilter('all',this)">All</button>
+    <button class="filter-chip" onclick="esLibFilter('holiday',this)">🎉 Holidays</button>
+    <button class="filter-chip" onclick="esLibFilter('sport',this)">⚽ Sports</button>
+    <button class="filter-chip" onclick="esLibFilter('cultural',this)">🌍 Cultural</button>
+    <button class="filter-chip" onclick="esLibFilter('seasonal',this)">🌿 Seasonal</button>
+    <button class="filter-chip" onclick="esLibFilter('personal',this)">📋 Personal</button>
   </div>
 
-  <div class="strand-grid">
-    <div class="strand-card" data-category="holiday">
-      <div class="strand-card-img" style="background:linear-gradient(135deg,#1a2070,#6C8FFF);"><span style="font-size:32px;position:relative;z-index:1;padding-left:4px;">🎄</span></div>
-      <div class="strand-card-body">
-        <div class="strand-card-name">US Holidays 2026</div>
-        <div class="strand-card-desc">All federal holidays plus popular cultural dates. Includes lead-time suggestions for gift shopping and travel planning.</div>
-      </div>
-      <div class="strand-card-footer">
-        <span class="strand-card-meta">12 events · Annual</span>
-        <button class="strand-install-btn" onclick="esInstallCuratedDemo()">+ Install</button>
-      </div>
-    </div>
-    <div class="strand-card" data-category="cultural">
-      <div class="strand-card-img" style="background:linear-gradient(135deg,#2d1060,#9B6DFF);"><span style="font-size:32px;position:relative;z-index:1;padding-left:4px;">🌈</span></div>
-      <div class="strand-card-body">
-        <div class="strand-card-name">Pride Month 2026</div>
-        <div class="strand-card-desc">June events, parades, and celebrations. Connect your location to see local events auto-added to your portal.</div>
-      </div>
-      <div class="strand-card-footer">
-        <span class="strand-card-meta">Cultural · June</span>
-        <button class="strand-install-btn" onclick="esInstallCuratedDemo()">+ Install</button>
-      </div>
-    </div>
-    <div class="strand-card" data-category="sport">
-      <div class="strand-card-img" style="background:linear-gradient(135deg,#0a1a44,#2050c0);"><span style="font-size:32px;position:relative;z-index:1;padding-left:4px;">🏈</span></div>
-      <div class="strand-card-body">
-        <div class="strand-card-name">NFL Season 2026</div>
-        <div class="strand-card-desc">All game days, playoff schedule, Super Bowl window. Watch party possibilities auto-surfaced on game days.</div>
-      </div>
-      <div class="strand-card-footer">
-        <span class="strand-card-meta">18 weeks · Sport</span>
-        <button class="strand-install-btn" onclick="esInstallCuratedDemo()">+ Install</button>
-      </div>
-    </div>
-    <div class="strand-card" data-category="seasonal">
-      <div class="strand-card-img" style="background:linear-gradient(135deg,#0e3d24,#22D48A);"><span style="font-size:32px;position:relative;z-index:1;padding-left:4px;">🌱</span></div>
-      <div class="strand-card-body">
-        <div class="strand-card-name">Farmers Market Season</div>
-        <div class="strand-card-desc">Weekly Saturday markets, seasonal produce windows, and local vendor schedules. Covers spring through fall.</div>
-      </div>
-      <div class="strand-card-footer">
-        <span class="strand-card-meta">Weekly · May–Oct</span>
-        <button class="strand-install-btn" onclick="esInstallCuratedDemo()">+ Install</button>
-      </div>
-    </div>
-    <div class="strand-card" data-category="cultural">
-      <div class="strand-card-img" style="background:linear-gradient(135deg,#1a2060,#4F8EF7);"><span style="font-size:32px;position:relative;z-index:1;padding-left:4px;">🌙</span></div>
-      <div class="strand-card-body">
-        <div class="strand-card-name">Ramadan 2026</div>
-        <div class="strand-card-desc">Iftar times, Eid celebrations, and community events. Includes local mosque schedules if you connect your location.</div>
-      </div>
-      <div class="strand-card-footer">
-        <span class="strand-card-meta">Cultural · Annual</span>
-        <button class="strand-install-btn" onclick="esInstallCuratedDemo()">+ Install</button>
-      </div>
-    </div>
-    <div class="strand-card" data-category="personal">
-      <div class="strand-card-img" style="background:linear-gradient(135deg,#1a0b48,var(--violet));"><span style="font-size:32px;position:relative;z-index:1;padding-left:4px;">🏠</span></div>
-      <div class="strand-card-body">
-        <div class="strand-card-name">Home Maintenance</div>
-        <div class="strand-card-desc">Seasonal tasks, filter changes, service intervals. A ready-made household upkeep strand you can customize to your home.</div>
-      </div>
-      <div class="strand-card-footer">
-        <span class="strand-card-meta">Personal · 14 tasks</span>
-        <button class="strand-install-btn" onclick="esInstallCuratedDemo()">+ Install</button>
-      </div>
-    </div>
-  </div>
-
-  <div style="text-align:center;margin-top:40px;">
-    <a href="#" class="btn btn-ghost btn-lg" onclick="esShowAuth('Sign in to browse the full strand library')">Browse All Strands →</a>
-  </div>
+  <div id="home-library-grid" class="strand-grid"></div>
 
   <div class="open-banner">
     <h2>The .rcal format belongs to everyone</h2>
@@ -2100,7 +2029,6 @@ upcoming.forEach(event => {
     <button class="nav-notif-btn" onclick="esToggleNotif()" title="Notifications" id="app-bell">
       🔔<span class="nav-notif-dot" id="app-notif-dot" style="display:none"></span>
     </button>
-    <button class="btn btn-ghost" style="font-size:13px;display:none;" id="admin-nav-btn" onclick="esGoto('admin')">🛡 Admin</button>
     <div class="nav-avatar" id="app-avatar" onclick="esGoto('account')" title="Account"></div>
   </nav>
 
