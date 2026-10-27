@@ -49,10 +49,8 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 250; display: flex; a
 .nav-links { display: flex; align-items: center; gap: 8px; list-style: none; }
 .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500; padding: 6px 14px; border-radius: 8px; transition: all 0.2s; }
 .nav-links a:hover { color: var(--text); background: var(--surface); }
-.nav-links a.active { color: var(--primary); }
-.nav-spec-pill { display: inline-flex; align-items: center; padding: 5px 11px; margin-right: 4px; border-radius: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.3px; color: var(--primary); background: var(--primary-glow); border: 1px solid rgba(108,143,255,0.32); text-decoration: none; transition: all 0.2s; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
-.nav-spec-pill:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-@media (max-width: 760px) { .nav-spec-pill { display: none; } }
+.nav-links a.active { color: var(--text); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 8px; text-decoration-color: var(--primary); }
+@media (max-width: 760px) { .nav-spec-btn { display: none; } }
 .nav-cta { display: flex; align-items: center; gap: 10px; }
 
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; border: none; }
@@ -637,8 +635,8 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     <img src="/icon-192.png" alt="EventStrand" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">
     <span class="nav-logo-text">EventStrand</span>
   </a>
-  <a href="/spec" class="nav-spec-pill" title="Read the .rcal specification">.rcal&nbsp;Spec</a>
   <ul class="nav-links" id="nav-marketing-links">
+    <li><a href="#" data-spy="top" onclick="esNavHome();return false;">Home</a></li>
     <li><a href="#concept">About</a></li>
     <li><a href="#how">How It Works</a></li>
     <li><a href="#builder">Builder</a></li>
@@ -648,6 +646,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     <li><a href="#developer">Developers</a></li>
   </ul>
   <div class="nav-cta" id="nav-cta-area">
+    <a href="/spec" class="btn btn-ghost nav-spec-btn" title="Read the .rcal specification">.rcal Spec</a>
     <a href="#builder" class="btn btn-ghost" id="nav-build-btn">Create Strand</a>
     <button class="btn btn-primary" id="nav-signin-btn" onclick="esShowAuth()" style="display:flex">Sign In</button>
     <!-- Authenticated nav items (hidden until signed in) -->

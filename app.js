@@ -1594,6 +1594,7 @@ function esBack() {
 
 function esCloseApp() {
   document.getElementById('es-app').style.display = 'none';
+  setTimeout(() => { if (typeof esNavSpy === 'function') esNavSpy(); }, 0);
   document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
   _navHistory = [];
 }
@@ -1601,6 +1602,7 @@ function esCloseApp() {
 function _showView(view, params) {
   const app = document.getElementById('es-app');
   app.style.display = 'flex';
+  if (typeof esNavSpy === 'function') esNavSpy();
   document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
   const el = document.getElementById('view-' + view);
   if (el) el.classList.add('active');
@@ -4090,6 +4092,26 @@ document.querySelectorAll('#nav-marketing-links a, #nav-build-btn').forEach(a =>
     if (app && app.style.display !== 'none') esCloseApp();
   });
 });
+
+// Underline the nav link for the section currently in view
+function esNavSpy() {
+  const links = [...document.querySelectorAll('#nav-marketing-links a')];
+  const app = document.getElementById('es-app');
+  if (app && getComputedStyle(app).display !== 'none') { links.forEach(l => l.classList.remove('active')); return; }
+  let current = links.find(l => l.dataset.spy === 'top');
+  let best = -Infinity;
+  links.forEach(l => {
+    const id = (l.getAttribute('href') || '').replace('#', '');
+    const sec = id && document.getElementById(id);
+    if (!sec) return;
+    const top = sec.getBoundingClientRect().top;
+    if (top <= 120 && top > best) { best = top; current = l; }
+  });
+  links.forEach(l => l.classList.toggle('active', l === current));
+}
+window.addEventListener('scroll', esNavSpy, { passive: true });
+window.addEventListener('resize', esNavSpy);
+esNavSpy();
 
 // Home page Library section (empty state matches dashboard Library tab)
 esLoadLibraryStrands();
