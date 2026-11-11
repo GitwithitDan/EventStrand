@@ -1110,11 +1110,10 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
       <div class="code-block">
         <div class="code-topbar">
           <span class="code-file">venue.rcal</span>
-          <span class="code-badge">v0.1</span>
         </div>
         <pre><span class="c-comment">// Minimal valid .rcal file</span>
 {
-  <span class="c-key">"rcal"</span>: <span class="c-str">"0.1"</span>,
+  <span class="c-key">"rcal"</span>: <span class="c-str">"strand"</span>,
   <span class="c-key">"meta"</span>: {
     <span class="c-key">"title"</span>: <span class="c-str">"The Rusty Nail"</span>,
     <span class="c-key">"type"</span>: <span class="c-str">"venue"</span>,
@@ -1204,7 +1203,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
       </div>
       <pre><span class="c-comment">// Multi-rule recurrence example</span>
 {
-  <span class="c-key">"rcal"</span>: <span class="c-str">"0.1"</span>,
+  <span class="c-key">"rcal"</span>: <span class="c-str">"strand"</span>,
   <span class="c-key">"meta"</span>: {
     <span class="c-key">"title"</span>: <span class="c-str">"The Rusty Nail"</span>,
     <span class="c-key">"type"</span>: <span class="c-str">"venue"</span>,
@@ -1400,7 +1399,6 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
               <div class="json-preview-topbar">
                 <span class="json-preview-file" id="json-filename">strand.rcal</span>
                 <div style="display:flex;gap:8px;align-items:center;">
-                  <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--primary-glow);color:var(--primary);border:1px solid rgba(108,143,255,.32);font-family:'JetBrains Mono',monospace;">v0.1</span>
                   <button onclick="copyRcalJson()" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;background:var(--surface2);border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;font-family:'Outfit',sans-serif;">Copy JSON</button>
                 </div>
               </div>
@@ -1691,7 +1689,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
   <div class="dev-grid">
     <div class="dev-card">
       <h3>📄 .rcal Specification</h3>
-      <p>Everything the format can do, written down. Fields, recurrence patterns, exception types, versioning. If it's in a .rcal file, it's in here.</p>
+      <p>Everything the format can do, written down. Fields, recurrence patterns, exception types. If it's in a .rcal file, it's in here.</p>
       <div class="dev-links">
         <a href="#" class="dev-link"><span class="dev-link-icon">📋</span>Full field reference</a>
         <a href="#" class="dev-link"><span class="dev-link-icon">🔁</span>Recurrence pattern guide</a>
@@ -1727,7 +1725,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
       <table class="spec-table">
         <thead><tr><th>Field</th><th>Description</th><th>Type</th></tr></thead>
         <tbody>
-          <tr><td>rcal</td><td>Spec version (required)</td><td>"0.1"</td></tr>
+          <tr><td>rcal</td><td>Format marker (required) — use "strand"</td><td>"strand"</td></tr>
           <tr><td>meta.title</td><td>Publisher name</td><td>string</td></tr>
           <tr><td>meta.type</td><td>venue / artist / personal…</td><td>string</td></tr>
           <tr><td>meta.live</td><td>Auto-update from URL</td><td>boolean</td></tr>

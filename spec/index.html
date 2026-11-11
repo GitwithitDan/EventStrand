@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>.rcal Specification v0.2 — EventStrand</title>
+<title>.rcal Specification — EventStrand</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -266,7 +266,6 @@ code {
   font-size: 12px; font-weight: 600;
   font-family: 'JetBrains Mono', monospace;
 }
-.mc-version { background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(108,143,255,0.35); }
 .mc-status  { background: var(--green-glow);   color: var(--green);   border: 1px solid rgba(17,219,166,0.35); }
 .mc-license { background: var(--surface);      color: var(--text-dim); border: 1px solid var(--border2); }
 .mc-date    { background: var(--surface);      color: var(--text-dim); border: 1px solid var(--border2); }
@@ -472,32 +471,6 @@ pre {
 .pattern-desc { font-size: 15px; color: var(--text-dim); line-height: 1.6; }
 .pattern-example { font-size: 14px; color: var(--text); margin-top: 10px; font-style: italic; background: var(--surface2); border-radius: 8px; padding: 8px 12px; border-left: 3px solid var(--primary); }
 
-/* ── CHANGELOG ── */
-.changelog-entry {
-  display: flex; gap: 20px;
-  padding: 20px 0;
-  border-bottom: 1px solid var(--border);
-}
-.changelog-entry:last-child { border-bottom: none; }
-
-.changelog-version {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px; font-weight: 600;
-  color: var(--primary);
-  white-space: nowrap;
-  min-width: 60px;
-}
-
-.changelog-date {
-  font-size: 12px; color: var(--text-faint);
-  font-family: 'JetBrains Mono', monospace;
-  white-space: nowrap;
-  min-width: 90px;
-}
-
-.changelog-notes { color: var(--text-dim); font-size: 14px; line-height: 1.65; }
-.changelog-notes ul { padding-left: 16px; }
-.changelog-notes li { margin-bottom: 4px; }
 
 /* ── SECTION ANCHOR MARKER ── */
 .anchor-link {
@@ -566,7 +539,7 @@ h3:hover .anchor-link { opacity: 1; }
     EventStrand
   </a>
   <div class="topbar-sep"></div>
-  <span class="topbar-title">.rcal Specification<span class="topbar-badge">v0.2</span></span>
+  <span class="topbar-title">.rcal Specification</span>
   <div class="topbar-actions">
     <a href="https://eventstrand.com/#builder" class="topbar-link primary">Strand Builder →</a>
   </div>
@@ -635,7 +608,6 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="sidebar-section">
     <div class="sidebar-heading">Meta</div>
     <div class="sidebar-links">
-      <a class="sidebar-link" href="#changelog"><span class="sidebar-link-dot"></span>Changelog</a>
       <a class="sidebar-link" href="#license"><span class="sidebar-link-dot"></span>License</a>
     </div>
   </div>
@@ -677,7 +649,6 @@ h3:hover .anchor-link { opacity: 1; }
   <h1>.rcal<br>Format Specification</h1>
 
   <div class="intro-meta">
-    <span class="meta-chip mc-version">v0.2</span>
     <span class="meta-chip mc-license">Open — No License Required</span>
     <span class="meta-chip mc-date">March 2026</span>
   </div>
@@ -727,12 +698,12 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="spec-section-label">Schema</div>
   <h2>Top-Level Structure <a href="#structure" class="anchor-link">#</a></h2>
 
-  <p>Every .rcal file represents one strand — a named, themed collection of events from a single publisher. The file has two required top-level keys: <code>rcal</code> (the spec version) and <code>events</code> (an array of event objects). The <code>meta</code> object is optional but strongly recommended.</p>
+  <p>Every .rcal file represents one strand — a named, themed collection of events from a single publisher. The file has two required top-level keys: <code>rcal</code> (the format marker) and <code>events</code> (an array of event objects). The <code>meta</code> object is optional but strongly recommended.</p>
 
   <div class="code-block">
     <div class="code-topbar"><span class="code-filename">structure.rcal</span><span class="code-lang">JSON</span></div>
     <pre>{
-  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,
+  <span class="ck">"rcal"</span>: <span class="cs">"strand"</span>,
   <span class="ck">"meta"</span>: { },
   <span class="ck">"events"</span>: [ ]
 }</pre>
@@ -749,7 +720,7 @@ h3:hover .anchor-link { opacity: 1; }
         <td class="td-field">rcal</td>
         <td class="td-type">string</td>
         <td class="td-req req-yes">Yes</td>
-        <td class="td-desc">Spec version. Must be a valid semver string. Current value: <code>"0.1"</code>. Parsers should warn on unknown versions rather than fail.</td>
+        <td class="td-desc">Format marker. Must be a non-empty string; use <code>"strand"</code>. Parsers identify a file by the presence of this key and must not reject a file because of its value.</td>
       </tr>
       <tr>
         <td class="td-field">meta</td>
@@ -1008,19 +979,25 @@ h3:hover .anchor-link { opacity: 1; }
         <td class="td-field">date</td>
         <td class="td-type">string</td>
         <td class="td-req req-no">No</td>
-        <td class="td-desc">ISO 8601 date for one-off events. E.g. <code>"2026-06-14"</code>. Used instead of <code>recurrence</code> for singular events. See <a href="#one-offs">one-off events</a>.</td>
+        <td class="td-desc">ISO 8601 date for a single, fixed-day occurrence. E.g. <code>"2026-06-14"</code>. May stand alone (a single event is a complete, valid file) or be combined with <code>recurrence</code> and/or <code>dates</code> — all occurrences are merged. See <a href="#one-offs">single dates</a>.</td>
       </tr>
       <tr>
         <td class="td-field">time_start</td>
         <td class="td-type">string</td>
         <td class="td-req req-no">No</td>
-        <td class="td-desc">Start time for one-off events in 24h format. E.g. <code>"19:30"</code>. For recurring events, time is set per recurrence rule.</td>
+        <td class="td-desc">Start time in 24h format. E.g. <code>"19:30"</code>. Applies to <code>date</code> and to plain-string entries in <code>dates</code>. Recurrence rules set their own times.</td>
       </tr>
       <tr>
         <td class="td-field">time_end</td>
         <td class="td-type">string</td>
         <td class="td-req req-no">No</td>
-        <td class="td-desc">End time for one-off events in 24h format. May cross midnight — <code>"02:00"</code> on a Saturday night event means 2am Sunday.</td>
+        <td class="td-desc">End time in 24h format. Applies wherever <code>time_start</code> does. May cross midnight — <code>"02:00"</code> on a Saturday night event means 2am Sunday.</td>
+      </tr>
+      <tr>
+        <td class="td-field">no_time</td>
+        <td class="td-type">boolean</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">If <code>true</code>, no specific time applies to this event — it is all-day, untimed, or the time simply isn't known or relevant (a birthday, a deadline, a market that is open all day). Apps show the date without a time and ignore <code>time_start</code>/<code>time_end</code> alongside it. Defaults to <code>false</code>.</td>
       </tr>
       <tr>
         <td class="td-field">exceptions</td>
@@ -1097,6 +1074,12 @@ h3:hover .anchor-link { opacity: 1; }
         <td class="td-type">string</td>
         <td class="td-req req-no">No</td>
         <td class="td-desc">End time in 24h format. May be earlier than <code>time_start</code> to indicate the event runs past midnight.</td>
+      </tr>
+      <tr>
+        <td class="td-field">no_time</td>
+        <td class="td-type">boolean</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">If <code>true</code>, occurrences from this rule have no specific time (all-day, untimed, or time not applicable). Apps show the date only and ignore <code>time_start</code>/<code>time_end</code> on the same rule. Defaults to <code>false</code>.</td>
       </tr>
       <tr>
         <td class="td-field">season_start</td>
@@ -1224,7 +1207,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="spec-section-label">Schema</div>
   <h2><code>dates[]</code> array <a href="#dates" class="anchor-link">#</a></h2>
 
-  <p>The <code>dates</code> field is used instead of <code>recurrence</code> or <code>date</code> for events that have a persistent strand identity but no predictable schedule. The publisher maintains this list over time, adding new dates as they are confirmed and removing past ones on each update.</p>
+  <p>The <code>dates</code> field is a curated list of dates. Use it on its own for events that have a persistent strand identity but no predictable schedule, or alongside <code>recurrence</code> and <code>date</code> to add specific confirmed dates to a regular pattern. The publisher maintains this list over time, adding new dates as they are confirmed and removing past ones on each update.</p>
 
   <p>This is the right choice for: pop-up events, artists who announce dates as they book them, markets with irregular timing, or any recurring presence that doesn't fit a weekly or monthly pattern.</p>
 
@@ -1287,6 +1270,12 @@ h3:hover .anchor-link { opacity: 1; }
         <td class="td-desc">End time override in 24h format.</td>
       </tr>
       <tr>
+        <td class="td-field">no_time</td>
+        <td class="td-type">boolean</td>
+        <td class="td-req req-no">No</td>
+        <td class="td-desc">If <code>true</code>, this occurrence has no specific time. Overrides any strand-level <code>time_start</code>/<code>time_end</code> for this date only. Defaults to <code>false</code>.</td>
+      </tr>
+      <tr>
         <td class="td-field">note</td>
         <td class="td-type">string</td>
         <td class="td-req req-no">No</td>
@@ -1302,7 +1291,7 @@ h3:hover .anchor-link { opacity: 1; }
   </table>
 
   <h3>Validation rules for <code>dates</code></h3>
-  <p><code>date</code> (singular one-off) is mutually exclusive with <code>recurrence</code> and <code>dates</code>. <code>recurrence</code> and <code>dates</code> may coexist on the same event — a single opening date plus an ongoing weekly pattern, for example. A strand must have at least one schedule field.</p>
+  <p><code>date</code>, <code>dates</code>, and <code>recurrence</code> may be used in any combination on the same event — occurrences from all of them are merged, and an occurrence that appears more than once is shown once. A single opening date plus an ongoing weekly pattern is one example; a single <code>date</code> on its own is another. An event must have at least one schedule field.</p>
   <p>Past dates in a <code>dates</code> array should be treated as informational by parser apps — they may be displayed in history views but should not appear in "what's coming up" queries. Publishers are encouraged (but not required) to remove past dates on each update to keep file size manageable.</p>
   <p>An empty <code>dates</code> array (<code>[]</code>) is valid. It means the strand exists but has no confirmed upcoming dates. Apps may surface it as "coming soon" if the strand has a name and description.</p>
 </div>
@@ -1332,7 +1321,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="callout callout-warn">
     <span class="callout-icon">⚠️</span>
     <div class="callout-text">
-      <strong>Custom vibe tags.</strong> Parsers must not reject files with unrecognised vibe tags — apps should treat unknown tags as informational and not filter on them. The canonical tag list may be extended in future spec versions.
+      <strong>Custom vibe tags.</strong> Parsers must not reject files with unrecognised vibe tags — apps should treat unknown tags as informational and not filter on them. The canonical tag list may be extended over time.
     </div>
   </div>
 </div>
@@ -1545,7 +1534,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="spec-section-label">Concepts</div>
   <h2>One-Off Events <a href="#one-offs" class="anchor-link">#</a></h2>
 
-  <p>An event with only a <code>date</code> field (no <code>recurrence</code>, no <code>dates</code>) is a one-off — it happens once and never repeats. One-off events coexist alongside recurring events in the same strand file. Note that <code>date</code> can also be combined with <code>recurrence</code> — for example, an opening-night date plus a weekly pattern that follows — but it cannot be combined with <code>dates</code>.</p>
+  <p>An event with only a <code>date</code> field (no <code>recurrence</code>, no <code>dates</code>) is a single-date event — it happens once. A single-date event is a complete, valid schedule, and a file containing nothing else is a valid .rcal file. Single-date events coexist alongside recurring events in the same strand file. <code>date</code> can also be combined with <code>recurrence</code> and/or <code>dates</code> — for example, an opening-night date plus a weekly pattern that follows, or a one-time special added to a curated list. With an <code>annual</code> rule, <code>date</code> may be written as <code>MM-DD</code> to anchor the day of the year.</p>
 
   <div class="code-block">
     <div class="code-topbar"><span class="code-filename">one-off.rcal snippet</span><span class="code-lang">JSON</span></div>
@@ -1562,7 +1551,7 @@ h3:hover .anchor-link { opacity: 1; }
 }</pre>
   </div>
 
-  <p>The <code>date</code> field is for a singular event that will never repeat. For an event without a predictable pattern that will have many dates over time, use <code>dates</code> instead — see <a href="#dates">dates array</a>. One-off events should be surfaced in apps up to <code>lead_time_days</code> before the event date, and removed from the portal after the event passes. For live strands, publishers should remove past one-offs from the file on their next update to keep the file clean.</p>
+  <p>The <code>date</code> field is for a single, fixed-day occurrence. For an event that will have many specific dates over time, use <code>dates</code> — see <a href="#dates">dates array</a>. Single dates should be surfaced in apps up to <code>lead_time_days</code> before the event date, and removed from the portal after the event passes. For live strands, publishers should remove past single dates from the file on their next update to keep the file clean.</p>
 </div>
 
 <!-- ══ VALIDATION ══ -->
@@ -1581,10 +1570,8 @@ h3:hover .anchor-link { opacity: 1; }
     <li>Every strand has a non-empty <code>name</code> string.</li>
     <li>Strand <code>id</code> values are unique within the file.</li>
     <li>Every recurrence rule has a <code>pattern</code> field.</li>
-    <li>One-off events (no <code>recurrence</code>, no <code>dates</code>) have a <code>date</code> field.</li>
-    <li><code>date</code> is mutually exclusive with <code>recurrence</code> and <code>dates</code>. A strand with <code>date</code> may not also have either of the others.</li>
-    <li><code>recurrence</code> and <code>dates</code> may coexist on the same event — occurrences from both are merged.</li>
-    <li>A strand must have at least one of <code>recurrence</code>, <code>date</code>, or <code>dates</code>.</li>
+    <li>Every event has at least one of <code>recurrence</code>, <code>date</code>, or <code>dates</code>.</li>
+    <li><code>date</code>, <code>dates</code>, and <code>recurrence</code> may be combined freely — occurrences from all of them are merged. A lone <code>date</code> is a valid schedule.</li>
   </ul>
 
   <h3>Soft requirements (warn, do not reject)</h3>
@@ -1596,6 +1583,7 @@ h3:hover .anchor-link { opacity: 1; }
     <li>An entry in <code>dates</code> that is not a valid ISO 8601 date should be skipped with a warning, not cause full parse failure.</li>
     <li>A <code>monthly_week</code> rule without <code>month_week</code> should be treated as <code>first</code>.</li>
     <li>Times outside 00:00–23:59 should be rejected per-rule with a warning.</li>
+    <li>When <code>no_time</code> is <code>true</code>, any <code>time_start</code>/<code>time_end</code> on the same object is ignored.</li>
   </ul>
 
   <div class="callout callout-info">
@@ -1615,7 +1603,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="code-block">
     <div class="code-topbar"><span class="code-filename">minimal.rcal</span><span class="code-lang">JSON</span></div>
     <pre>{
-  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,
+  <span class="ck">"rcal"</span>: <span class="cs">"strand"</span>,
   <span class="ck">"events"</span>: [
     {
       <span class="ck">"id"</span>: <span class="cs">"open-swim"</span>,
@@ -1641,7 +1629,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="code-block">
     <div class="code-topbar"><span class="code-filename">rusty-nail.rcal</span><span class="code-lang">JSON</span></div>
     <pre>{
-  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,
+  <span class="ck">"rcal"</span>: <span class="cs">"strand"</span>,
   <span class="ck">"meta"</span>: {
     <span class="ck">"title"</span>: <span class="cs">"The Rusty Nail"</span>,
     <span class="ck">"type"</span>: <span class="cs">"venue"</span>,
@@ -1722,7 +1710,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="code-block">
     <div class="code-topbar"><span class="code-filename">my-life.rcal</span><span class="code-lang">JSON</span></div>
     <pre>{
-  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,
+  <span class="ck">"rcal"</span>: <span class="cs">"strand"</span>,
   <span class="ck">"meta"</span>: {
     <span class="ck">"title"</span>: <span class="cs">"My World"</span>,
     <span class="ck">"type"</span>: <span class="cs">"personal"</span>,
@@ -1787,7 +1775,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="code-block">
     <div class="code-topbar"><span class="code-filename">with-oneoff.rcal</span><span class="code-lang">JSON</span></div>
     <pre>{
-  <span class="ck">"rcal"</span>: <span class="cs">"0.1"</span>,
+  <span class="ck">"rcal"</span>: <span class="cs">"strand"</span>,
   <span class="ck">"meta"</span>: {
     <span class="ck">"title"</span>: <span class="cs">"The Hideout"</span>,
     <span class="ck">"type"</span>: <span class="cs">"venue"</span>,
@@ -1845,7 +1833,7 @@ h3:hover .anchor-link { opacity: 1; }
   <div class="code-block">
     <div class="code-topbar"><span class="code-filename">summer.rcal</span><span class="code-lang">JSON</span></div>
     <pre>{
-  <span class="ck">"rcal"</span>: <span class="cs">"0.2"</span>,
+  <span class="ck">"rcal"</span>: <span class="cs">"strand"</span>,
   <span class="ck">"meta"</span>: {
     <span class="ck">"title"</span>: <span class="cs">"Summer"</span>,
     <span class="ck">"type"</span>: <span class="cs">"personal"</span>,
@@ -1874,33 +1862,6 @@ h3:hover .anchor-link { opacity: 1; }
   </div>
 
   <p>Both boundaries are marked <code>fuzzy</code> because the exact solstice and equinox dates shift by 1–2 days each year. Span-aware apps should recalculate the precise dates for the viewed year using the Meeus algorithm or equivalent, and render a <code>~</code> symbol at each fuzzy edge.</p>
-</div>
-
-<!-- ══ CHANGELOG ══ -->
-<div class="spec-section" id="changelog">
-  <div class="spec-section-label">Meta</div>
-  <h2>Changelog <a href="#changelog" class="anchor-link">#</a></h2>
-
-  <div class="changelog-entry">
-    <span class="changelog-version">v0.2</span>
-    <span class="changelog-date">2026-06-16</span>
-    <div class="changelog-notes">
-      Adds day-level precision to seasonal windows and fuzzy boundary signaling for recurrence rules.
-      <ul>
-        <li>New recurrence rule fields: <code>season_start_day</code> and <code>season_end_day</code> (integer, 1–31) — pair with <code>season_start</code>/<code>season_end</code> to specify an exact day within the active month rather than snapping to first/last day of month.</li>
-        <li>New recurrence rule fields: <code>fuzzy_start</code> and <code>fuzzy_end</code> (boolean) — signal that the boundary date shifts year to year (e.g. astronomical seasons). Apps should render a <code>~</code> indicator at fuzzy edges and may recalculate the exact date per year using known algorithms.</li>
-        <li>Motivating use case: seasonal span events (summer, winter, tax season, sports seasons) for consumers such as ManaCal-style dashboards that render date ranges as continuous blocks rather than discrete occurrences.</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="changelog-entry">
-    <span class="changelog-version">v0.1</span>
-    <span class="changelog-date">2026-03-17</span>
-    <div class="changelog-notes">
-      Initial draft specification. Defines top-level structure, <code>meta</code>, <code>location</code>, <code>events</code>, <code>recurrence</code>, and <code>exceptions</code> objects. Renames <code>strands[]</code> to <code>events[]</code> to clarify that the file <em>is</em> the strand and the array contains events. Establishes canonical vibe tag list, category list, price values, recurrence patterns, and day shorthands. Introduces live vs static strand model, one-off event support (<code>date</code>), and manually-curated date list support (<code>dates</code>). Defines schedule authoring modes: <code>recurrence</code> (pattern-based), <code>date</code> (singular one-off, mutually exclusive with <code>dates</code>), <code>dates</code> (curated list). <code>recurrence</code> and <code>dates</code> may coexist on one event; <code>date</code> and <code>recurrence</code> may also coexist.
-    </div>
-  </div>
 </div>
 
 <!-- ══ LICENSE ══ -->
