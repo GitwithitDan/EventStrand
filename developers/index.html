@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Developer Docs — EventStrand API</title>
+<meta name="description" content="EventStrand developer documentation: REST API endpoints, API keys and scopes, rate limits, and the open .rcal schedule format.">
+<link rel="canonical" href="https://eventstrand.com/developers/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -91,7 +93,8 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-se
   margin-left: var(--nav-width);
   padding: 56px 60px 100px;
   max-width: calc(var(--nav-width) + var(--content-max) + 120px);
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 /* ── SECTIONS ── */
@@ -206,6 +209,15 @@ pre code { background: none; border: none; padding: 0; color: var(--text); font-
   .topbar { padding: 0 16px; }
   .topbar-section { display: none; }
   .topbar-sep { display: none; }
+  .content code { overflow-wrap: anywhere; }
+  .content pre code { overflow-wrap: normal; }
+  .content table { display: block; max-width: 100%; overflow-x: auto; }
+  .method { flex-wrap: wrap; }
+  .endpoint-path { overflow-wrap: anywhere; }
+}
+@media (max-width: 480px) {
+  .topbar-links a:not(.cta) { display: none; }
+  .topbar-links a.cta { white-space: nowrap; }
 }
 </style>
 </head>
@@ -279,7 +291,7 @@ pre code { background: none; border: none; padding: 0; color: var(--text); font-
       <div class="section-eyebrow">Developer Docs</div>
       <h1>EventStrand API</h1>
       <p>EventStrand exposes a REST API for reading and writing strand and event data. Use it to build agents, integrations, and tooling on top of the open <a href="/spec">.rcal format</a>.</p>
-      <p>All endpoints return JSON. Authentication uses API keys issued from your account settings. The API is the same interface the EventStrand web app uses — there are no private endpoints.</p>
+      <p>All endpoints return JSON. Authentication uses API keys issued from your account settings. API keys reach the endpoints documented on this page, limited by each key's scopes. Managing an account, its keys, subscriptions and directory listings requires a signed-in session in the web app.</p>
 
       <div class="callout callout-info">
         <span class="callout-icon">ℹ️</span>
@@ -405,9 +417,13 @@ const data = await res.json();
       <pre><code>{
   <span class="k">"events"</span>: [
     {
+      <span class="k">"eventId"</span>:     <span class="s">"665a..."</span>,
       <span class="k">"title"</span>:       <span class="s">"Friday Jazz Night"</span>,
       <span class="k">"date"</span>:        <span class="s">"2026-05-02"</span>,
       <span class="k">"time"</span>:        <span class="s">"21:00"</span>,
+      <span class="k">"timeEnd"</span>:     <span class="s">"23:30"</span>,
+      <span class="k">"noTime"</span>:      false,
+      <span class="k">"note"</span>:        <span class="s">""</span>,
       <span class="k">"venue"</span>:       <span class="s">"The Rusty Nail"</span>,
       <span class="k">"address"</span>:     <span class="s">"123 W Division St, Chicago"</span>,
       <span class="k">"strandId"</span>:    <span class="s">"664f..."</span>,
@@ -622,9 +638,9 @@ const data = await res.json();
 
     <!-- OAUTH -->
     <div class="doc-section" id="oauth-overview">
-      <h2>OAuth 2.0</h2>
-      <p>EventStrand implements OAuth 2.0 with the Authorization Code flow. This is the authentication mechanism used when connecting EventStrand to Claude.ai or any MCP-compatible client that needs to act on behalf of a user.</p>
-      <p>If you are building an agent integration using API keys directly, you do not need OAuth — see <a href="#auth-apikeys">API Keys</a> above. OAuth is required for the Claude.ai connector and any third-party app that needs delegated user authorization.</p>
+      <h2>OAuth 2.0 <span class="chip-soon">Coming Soon</span></h2>
+      <p>OAuth 2.0 with the Authorization Code flow is planned alongside the MCP server. It will be the authentication mechanism for connecting EventStrand to Claude.ai or any MCP-compatible client that needs to act on behalf of a user. <strong>The endpoints in this section describe the planned design and are not live yet.</strong></p>
+      <p>If you are building an agent integration today, use API keys — see <a href="#auth-apikeys">API Keys</a> above. OAuth will be required for the Claude.ai connector and any third-party app that needs delegated user authorization.</p>
 
       <div class="callout callout-info">
         <span class="callout-icon">ℹ️</span>

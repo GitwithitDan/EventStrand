@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EventStrand — Your World, When You Need It</title>
+<meta name="description" content="EventStrand turns a venue's recurring events into a living schedule people can subscribe to. Build a strand once, share it by link or QR code, and export it as an open .rcal file.">
+<link rel="canonical" href="https://eventstrand.com/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -50,8 +52,48 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 250; display: flex; a
 .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500; padding: 6px 14px; border-radius: 8px; transition: all 0.2s; }
 .nav-links a:hover { color: var(--text); background: var(--surface); }
 .nav-links a.active { color: var(--text); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 8px; text-decoration-color: var(--primary); }
-@media (max-width: 760px) { .nav-spec-btn { display: none; } }
 .nav-cta { display: flex; align-items: center; gap: 10px; }
+.nav-links a, .nav-cta .btn { white-space: nowrap; }
+.nav-menu-btn { display: none; width: 40px; height: 40px; align-items: center; justify-content: center; background: transparent; border: 1px solid var(--border2); border-radius: 10px; color: var(--text); font-size: 20px; line-height: 1; cursor: pointer; }
+.nav-menu-btn:hover { background: var(--surface); }
+#nav-mobile-panel { display: none; position: fixed; top: 64px; left: 0; right: 0; z-index: 249; max-height: calc(100vh - 64px); overflow-y: auto; background: rgba(4,6,26,0.98); border-bottom: 1px solid var(--border2); padding: 10px 16px 16px; }
+#nav-mobile-panel.open { display: block; }
+#nav-mobile-panel a { display: block; padding: 12px 10px; color: var(--text); text-decoration: none; font-size: 16px; font-weight: 500; border-radius: 8px; }
+#nav-mobile-panel a:hover { background: var(--surface); }
+#nav-mobile-panel .nav-mobile-sep { height: 1px; background: var(--border); margin: 8px 0; }
+/* Laptop widths: tighten the bar so every link stays on one line. */
+@media (max-width: 1400px) {
+  nav { padding: 0 20px; }
+  .nav-links { gap: 0; }
+  .nav-links a { padding: 6px 8px; font-size: 13.5px; }
+  nav .nav-cta .btn { padding: 8px 12px; font-size: 13.5px; }
+}
+/* Below this the links move into the menu button. */
+@media (max-width: 1180px) {
+  .nav-links { display: none; }
+  .nav-menu-btn { display: inline-flex; }
+}
+@media (max-width: 760px) {
+  nav { padding: 0 14px; }
+  nav .nav-cta { gap: 6px; }
+  nav .nav-cta .nav-spec-btn, nav .nav-cta #nav-build-btn { display: none; }
+  .nav-logo-text { font-size: 18px; }
+}
+/* Single-column layouts: let columns shrink to the screen instead of to their widest child. */
+@media (max-width: 900px) {
+  .hero-inner, .concept-grid, .tab-content.active, .format-split, .builder-wrap, .dev-grid, .user-features, .account-split { grid-template-columns: minmax(0, 1fr) !important; }
+  .hero-inner > *, .concept-grid > *, .tab-content.active > *, .format-split > *, .builder-wrap > *, .dev-grid > *, .user-features > *, .account-split > * { min-width: 0; }
+  .perk > div { min-width: 0; }
+  .perk p, .perk h4, .dev-card p, .dev-card h3 { overflow-wrap: anywhere; }
+  pre { max-width: 100%; overflow-x: auto; }
+  .dev-card table { display: block; max-width: 100%; overflow-x: auto; }
+}
+/* Consent bar */
+#es-consent-bar { display: none; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 400; max-width: 720px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 14px 16px; box-shadow: 0 12px 40px rgba(0,0,0,.5); font-size: 14px; color: var(--text); }
+#es-consent-bar.show { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+#es-consent-bar p { flex: 1 1 260px; margin: 0; line-height: 1.5; color: var(--text); }
+#es-consent-bar a { color: var(--text); text-decoration: underline; }
+#es-consent-bar .es-consent-actions { display: flex; gap: 8px; }
 
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; border: none; }
 .btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border2); }
@@ -343,7 +385,8 @@ textarea.field-input { resize: vertical; min-height: 80px; }
 .qr-text p { font-size: 15px; color: var(--text-dim); line-height: 1.7; max-width: 480px; }
 
 #account { background: var(--bg2); }
-.account-split { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 60px; }
+.account-split { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 60px; margin-top: 60px; }
+.account-split > * { min-width: 0; }
 .login-box { background: var(--bg3); border-radius: 20px; border: 1px solid var(--border2); padding: 40px; }
 .login-box h3 { font-size: 24px; font-weight: 400; margin-bottom: 8px; }
 .login-box .sub { font-size: 14px; color: var(--text-dim); margin-bottom: 28px; }
@@ -510,7 +553,9 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
   .builder-preview { display: none; }
   .dev-grid { grid-template-columns: 1fr; }
   .user-features { grid-template-columns: 1fr; }
-  .account-split { grid-template-columns: 1fr; }
+  .account-split { grid-template-columns: minmax(0,1fr); gap: 32px; }
+  .section-inner { padding: 0 20px; }
+  .login-box { padding: 24px 18px; }
   .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
   .type-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -610,15 +655,14 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
 <meta property="og:type" content="website">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script type="text/javascript">
-  (function(f,b){if(!b.__SV){var e,g,i,h;window.mixpanel=b;b._i=[];b.init=function(e,f,c){function g(a,d){var b=d.split(".");2==b.length&&(a=a[b[0]],d=b[1]);a[d]=function(){a.push([d].concat(Array.prototype.slice.call(arguments,0)))}}var a=b;"undefined"!==typeof c?a=b[c]=[]:c="mixpanel";a.people=a.people||[];a.toString=function(a){var d="mixpanel";"mixpanel"!==c&&(d+="."+c);a||(d+=" (stub)");return d};a.people.toString=function(){return a.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms track_with_groups add_group set_group remove_group register register_once alias unregister identify name_tag set_config reset opt_in_tracking opt_out_tracking has_opted_in_tracking has_opted_out_tracking clear_opt_in_out_tracking start_batch_senders people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user people.remove".split(" ");for(h=0;h<i.length;h++)g(a,i[h]);var j="set set_once union unset remove delete".split(" ");a.get_group=function(){function b(c){d[c]=function(){call2_args=arguments;call2=[c].concat(Array.prototype.slice.call(call2_args,0));a.push([e,call2])}}for(var d={},e=arguments[0],c=1;c<arguments.length;c++)b(arguments[c]);return d};b._i.push([e,f,c])};b.__SV=1.2;e=f.createElement("script");e.type="text/javascript";e.async=!0;e.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===f.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";g=f.getElementsByTagName("script")[0];g.parentNode.insertBefore(e,g)}})(document,window.mixpanel||[]);
-  // Only initialise Mixpanel if the user has accepted analytics cookies,
-  // GPC is not set, and consent has been explicitly given.
-  // Passwords are masked so session recordings cannot capture credentials.
+  // Analytics are opt-in. Until the visitor allows analytics (and never when the
+  // browser sends Global Privacy Control), nothing from Mixpanel is loaded at all.
   (function() {
     if (navigator.globalPrivacyControl) return;
     var consent;
     try { consent = JSON.parse(localStorage.getItem('es_consent_v1') || 'null'); } catch(e){}
     if (!consent || consent.analytics !== true) return;
+    (function(f,b){if(!b.__SV){var e,g,i,h;window.mixpanel=b;b._i=[];b.init=function(e,f,c){function g(a,d){var b=d.split(".");2==b.length&&(a=a[b[0]],d=b[1]);a[d]=function(){a.push([d].concat(Array.prototype.slice.call(arguments,0)))}}var a=b;"undefined"!==typeof c?a=b[c]=[]:c="mixpanel";a.people=a.people||[];a.toString=function(a){var d="mixpanel";"mixpanel"!==c&&(d+="."+c);a||(d+=" (stub)");return d};a.people.toString=function(){return a.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms track_with_groups add_group set_group remove_group register register_once alias unregister identify name_tag set_config reset opt_in_tracking opt_out_tracking has_opted_in_tracking has_opted_out_tracking clear_opt_in_out_tracking start_batch_senders people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user people.remove".split(" ");for(h=0;h<i.length;h++)g(a,i[h]);var j="set set_once union unset remove delete".split(" ");a.get_group=function(){function b(c){d[c]=function(){call2_args=arguments;call2=[c].concat(Array.prototype.slice.call(call2_args,0));a.push([e,call2])}}for(var d={},e=arguments[0],c=1;c<arguments.length;c++)b(arguments[c]);return d};b._i.push([e,f,c])};b.__SV=1.2;e=f.createElement("script");e.type="text/javascript";e.async=!0;e.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===f.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";g=f.getElementsByTagName("script")[0];g.parentNode.insertBefore(e,g)}})(document,window.mixpanel||[]);
     mixpanel.init('c6accac9cb7abaff6168b5a10f9b65c3', {
       autocapture: true,
       record_sessions_percent: 10,
@@ -646,6 +690,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     <li><a href="#developer">Developers</a></li>
   </ul>
   <div class="nav-cta" id="nav-cta-area">
+    <button class="nav-menu-btn" id="nav-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="nav-mobile-panel" onclick="esToggleNavMenu()">☰</button>
     <a href="/spec" class="btn btn-ghost nav-spec-btn" title="Read the .rcal specification">.rcal Spec</a>
     <a href="#builder" class="btn btn-ghost" id="nav-build-btn">Create Strand</a>
     <button class="btn btn-primary" id="nav-signin-btn" onclick="esShowAuth()" style="display:flex">Sign In</button>
@@ -660,6 +705,51 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
     </div>
   </div>
 </nav>
+<div id="nav-mobile-panel" onclick="if(event.target.tagName==='A')esToggleNavMenu(false)">
+  <a href="#" onclick="esNavHome();return false;">Home</a>
+  <a href="#concept">About</a>
+  <a href="#how">How It Works</a>
+  <a href="#builder">Builder</a>
+  <a href="#library">Library</a>
+  <a href="#venue-guides">Venue Guides</a>
+  <a href="#directory">Directory</a>
+  <a href="#developer">Developers</a>
+  <div class="nav-mobile-sep"></div>
+  <a href="/spec">.rcal Spec</a>
+  <a href="#builder">Create Strand</a>
+</div>
+<script>
+  function esToggleNavMenu(open) {
+    var panel = document.getElementById('nav-mobile-panel'), btn = document.getElementById('nav-menu-btn');
+    var show = typeof open === 'boolean' ? open : !panel.classList.contains('open');
+    panel.classList.toggle('open', show);
+    btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+    btn.setAttribute('aria-label', show ? 'Close menu' : 'Open menu');
+    btn.textContent = show ? '✕' : '☰';
+  }
+  window.addEventListener('resize', function () { if (window.innerWidth > 1180) esToggleNavMenu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') esToggleNavMenu(false); });
+</script>
+
+<div id="es-consent-bar" role="region" aria-label="Analytics choice">
+  <p>EventStrand can use optional analytics to see how the site is used. Nothing is collected unless you allow it. <a href="/cookie-policy.html">Cookie policy</a></p>
+  <div class="es-consent-actions">
+    <button class="btn btn-ghost" onclick="esSetConsent(false)">Decline</button>
+    <button class="btn btn-ghost" style="border-color:var(--primary);color:var(--text);" onclick="esSetConsent(true)">Allow analytics</button>
+  </div>
+</div>
+<script>
+  // Shown once, until the visitor chooses. The choice can be changed any time on the cookie policy page.
+  function esSetConsent(allow) {
+    try { localStorage.setItem('es_consent_v1', JSON.stringify({ necessary: true, analytics: !!allow, preferences: false })); } catch (e) {}
+    document.getElementById('es-consent-bar').classList.remove('show');
+  }
+  (function () {
+    var stored = null;
+    try { stored = localStorage.getItem('es_consent_v1'); } catch (e) {}
+    if (!stored && !navigator.globalPrivacyControl) document.getElementById('es-consent-bar').classList.add('show');
+  })();
+</script>
 
 <!-- ══ ACCOUNT / LOGIN ══ -->
 <div id="account" class="section-full" style="background:var(--bg2);">
@@ -1520,7 +1610,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
   <p class="section-sub">Discover verified event spaces with a strand — browsable, filterable, always current.</p>
 
   <div class="directory-filters" id="directoryFilters" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:2rem;">
-    <select id="filterType" class="field-input" style="max-width:200px;font-size:14px;" onchange="esLoadDirectory(true)">
+    <select id="filterType" aria-label="Filter the directory by type" class="field-input" style="max-width:200px;font-size:14px;" onchange="esLoadDirectory(true)">
       <option value="">All Types</option>
       <option value="bar">Bar</option>
       <option value="restaurant">Restaurant</option>
@@ -1557,7 +1647,7 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60
   <p class="section-sub">Once you've published a strand, post the QR code or link on your website so people can find it. Pick your platform below for step-by-step instructions.</p>
 
   <div class="vg-picker-row">
-    <select id="vg-platform-select" class="field-input" style="max-width:320px;font-size:15px;" onchange="esShowVenueGuide(this.value)">
+    <select id="vg-platform-select" aria-label="Choose your platform" class="field-input" style="max-width:320px;font-size:15px;" onchange="esShowVenueGuide(this.value)">
       <option value="">— Pick your platform —</option>
       <option value="squarespace">Squarespace</option>
       <option value="wix">Wix</option>
@@ -2364,6 +2454,31 @@ upcoming.forEach(event => {
       <div class="settings-row">
         <div style="font-size:15px;color:var(--text);">Sign out</div>
         <button class="settings-edit-btn" onclick="esSignOut()" style="color:var(--red);border-color:var(--red);">Sign Out</button>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div style="font-size:15px;color:var(--text);margin-bottom:2px;">Sign out everywhere</div>
+          <div style="font-size:13px;color:var(--text-dim);">Ends every session on every device, including this one.</div>
+        </div>
+        <button class="settings-edit-btn" onclick="esSignOutEverywhere()">Sign out all</button>
+      </div>
+      <div class="settings-row" style="align-items:flex-start;">
+        <div>
+          <div style="font-size:15px;color:var(--text);margin-bottom:2px;">Delete account</div>
+          <div style="font-size:13px;color:var(--text-dim);">Permanently deletes your account, your strands and braids, and your subscriptions. This cannot be undone.</div>
+          <div id="delete-account-form" style="display:none;margin-top:12px;max-width:340px;">
+            <label class="field-label" for="delete-account-confirm">Type DELETE to confirm</label>
+            <input class="field-input" id="delete-account-confirm" type="text" autocomplete="off" placeholder="DELETE">
+            <label class="field-label" for="delete-account-password" style="margin-top:10px;display:block;">Password (leave empty if you only sign in with Google)</label>
+            <input class="field-input" id="delete-account-password" type="password" autocomplete="current-password">
+            <div id="delete-account-error" style="font-size:13px;color:var(--red);min-height:18px;margin-top:6px;"></div>
+            <div style="display:flex;gap:8px;margin-top:6px;">
+              <button class="btn btn-ghost" onclick="document.getElementById('delete-account-form').style.display='none'">Cancel</button>
+              <button class="btn btn-ghost" style="color:var(--red);border-color:var(--red);" onclick="esDeleteAccount()">Delete my account</button>
+            </div>
+          </div>
+        </div>
+        <button class="settings-edit-btn" onclick="document.getElementById('delete-account-form').style.display='block'" style="color:var(--red);border-color:var(--red);">Delete…</button>
       </div>
     </div>
 

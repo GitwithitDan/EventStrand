@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>.rcal Specification — EventStrand</title>
+<meta name="description" content="The .rcal specification: an open JSON format for recurring and one-off event schedules, with seasons, exceptions and location inheritance. Free to use.">
+<link rel="canonical" href="https://eventstrand.com/spec/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -515,6 +517,8 @@ h3:hover .anchor-link { opacity: 1; }
 }
 
 @media (max-width: 600px) {
+  .topbar-title, .topbar-sep { display: none; }
+  .topbar-link { white-space: nowrap; }
   .main { padding: 24px 16px 80px; }
   h1 { font-size: 30px; }
   h2 { font-size: 22px; }
@@ -885,7 +889,7 @@ h3:hover .anchor-link { opacity: 1; }
 
   <div class="callout callout-info">
     <span class="callout-icon">📍</span>
-    <div class="callout-text">
+    <div class="callout-text" id="inheritance" style="scroll-margin-top:80px;">
       <strong>Location inheritance.</strong> A strand without its own <code>location</code> field inherits <code>meta.location</code>. A strand with a <code>location</code> field replaces the meta location entirely — there is no partial merge. If a strand happens at a different venue but you still want to display the publisher's address, repeat it on the strand.
     </div>
   </div>

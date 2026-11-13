@@ -79,6 +79,7 @@ function mkRule() {
     noTime: false,
     date: '', note: '',
     monthWeek: 'first', monthDate: 1,
+    annualMonth: '', annualDay: 1,
     seasonStart: '', seasonEnd: ''
   };
 }
@@ -194,9 +195,9 @@ function buildCardInner(ev) {
     : ev.eventType === 'datelist'
     ? buildDatelistSection(ev.uid, ev, 'dateList')
     : `<div class="oneoff-row">
-       <div class="field-group"><label class="field-label">Date</label><input class="field-input" type="date" value="${ev.date}" onchange="setEvDirect(${ev.uid},'date',this.value)"></div>
-       <div class="field-group"><label class="field-label">Start time</label><input class="field-input" type="time" value="${ev.oneTimeStart}" onchange="setEvDirect(${ev.uid},'oneTimeStart',this.value)" ${ev.noTime?'disabled':''}></div>
-       <div class="field-group"><label class="field-label">End time (optional)</label><input class="field-input" type="time" value="${ev.oneTimeEnd}" onchange="setEvDirect(${ev.uid},'oneTimeEnd',this.value)" ${ev.noTime?'disabled':''}></div>
+       <div class="field-group"><label class="field-label">Date</label><input class="field-input" type="date" value="${esc(ev.date)}" onchange="setEvDirect(${ev.uid},'date',this.value)"></div>
+       <div class="field-group"><label class="field-label">Start time</label><input class="field-input" type="time" value="${esc(ev.oneTimeStart)}" onchange="setEvDirect(${ev.uid},'oneTimeStart',this.value)" ${ev.noTime?'disabled':''}></div>
+       <div class="field-group"><label class="field-label">End time (optional)</label><input class="field-input" type="time" value="${esc(ev.oneTimeEnd)}" onchange="setEvDirect(${ev.uid},'oneTimeEnd',this.value)" ${ev.noTime?'disabled':''}></div>
        </div>
        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:14px;color:var(--text-dim);font-weight:600;cursor:pointer;">
        <input type="checkbox" ${ev.noTime?'checked':''} onchange="toggleEvNoTime(${ev.uid},this.checked)"> No specific time (all day or not applicable)
@@ -212,7 +213,7 @@ function buildCardInner(ev) {
        </div></div>` : '';
 
   return `<div class="ecard-header">
-    <input class="ecard-name-input" type="text" placeholder="Name this event…" value="${(ev.name||'').replace(/"/g,'&quot;')}" oninput="setEvNameLive(${ev.uid},this.value)">
+    <input class="ecard-name-input" type="text" placeholder="Name this event…" value="${esc(ev.name||'')}" oninput="setEvNameLive(${ev.uid},this.value)">
     <span class="ecard-badge ${ev.eventType==='oneoff'?'badge-oneoff':'badge-recurring'}" id="ebadge-${ev.uid}">${ev.eventType==='oneoff'?'One-off':ev.eventType==='datelist'?'Date List':'Recurring'}</span>
     <button class="ecard-collapse" onclick="collapseCard(${ev.uid})" title="Collapse">${ev.collapsed?'▸':'▾'}</button>
     <button class="ecard-remove" onclick="removeEvent(${ev.uid})" title="Remove event" aria-label="Remove event">✕</button>
@@ -228,17 +229,17 @@ function buildCardInner(ev) {
     <div class="ecard-section"><div class="ecard-section-label">Vibe tags</div><div class="evibe-grid">${vibeBtns}</div></div>
     <div class="ecard-section"><div class="ecard-section-label">Price</div>
     <div class="price-row" id="epricerow-${ev.uid}">${priceBtns}</div>
-    <input class="field-input" type="text" placeholder="Price note, e.g. $15 at the door" style="margin-top:8px" value="${ev.priceNote||''}" oninput="setEvDirect(${ev.uid},'priceNote',this.value)"></div>
+    <input class="field-input" type="text" placeholder="Price note, e.g. $15 at the door" style="margin-top:8px" value="${esc(ev.priceNote||'')}" oninput="setEvDirect(${ev.uid},'priceNote',this.value)"></div>
     <div class="ecard-section two-col">
-    <div class="field-group" style="margin-bottom:0"><label class="field-label">Ticket / RSVP URL</label><input class="field-input" type="text" placeholder="https://..." value="${ev.ticketUrl||''}" oninput="setEvDirect(${ev.uid},'ticketUrl',this.value)"></div>
+    <div class="field-group" style="margin-bottom:0"><label class="field-label">Ticket / RSVP URL</label><input class="field-input" type="text" placeholder="https://..." value="${esc(ev.ticketUrl||'')}" oninput="setEvDirect(${ev.uid},'ticketUrl',this.value)"></div>
     <div class="field-group" style="margin-bottom:0"><label class="field-label">Surface how far ahead?</label>
     <select class="field-input" onchange="setEvDirect(${ev.uid},'leadTimeDays',+this.value)">
     ${[0,1,3,7,14,30,60,90,180].map(d=>`<option value="${d}"${ev.leadTimeDays===d?' selected':''}>${d===0?'Day of only':d===1?'1 day':d===7?'1 week':d===14?'2 weeks':d===30?'1 month':d===60?'2 months':d===90?'3 months':d===180?'6 months':d+' days'}</option>`).join('')}
     </select></div></div>
     <div class="ecard-section"><div class="field-group" style="margin-bottom:0"><label class="field-label">.rcal event id (stays the same when you rename)</label>
-    <input class="field-input" type="text" maxlength="80" placeholder="auto-created from the name when first saved or exported" value="${(ev.specId||'').replace(/"/g,'&quot;')}" oninput="setEvSpecId(${ev.uid},this)"></div></div>
+    <input class="field-input" type="text" maxlength="80" placeholder="auto-created from the name when first saved or exported" value="${esc(ev.specId||'')}" oninput="setEvSpecId(${ev.uid},this)"></div></div>
     <div class="ecard-section"><div class="field-group" style="margin-bottom:0"><label class="field-label">Notes for attendees</label>
-    <textarea class="field-input" placeholder="No reservation needed. Bar opens at 7pm…" rows="2" oninput="setEvDirect(${ev.uid},'notes',this.value)">${ev.notes||''}</textarea></div></div>
+    <textarea class="field-input" placeholder="No reservation needed. Bar opens at 7pm…" rows="2" oninput="setEvDirect(${ev.uid},'notes',this.value)">${esc(ev.notes||'')}</textarea></div></div>
     ${excHtml}
   </div>`;
 }
@@ -262,8 +263,11 @@ function buildRuleBlock(uid, r, ri, total) {
   const showDays = ['weekly','weekdays','weekly_alt'].includes(r.pattern) || r.every===2;
   const showMonthWeek = r.pattern === 'monthly_week';
   const showMonthDate = r.pattern === 'monthly_date';
+  const showAnnual = r.pattern === 'annual';
   const showDate = r.pattern === 'specific_date';
   const showSeason = r.pattern !== 'specific_date';
+  const MONTHS12 = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const DAYS31 = Array.from({ length: 31 }, (_, k) => k + 1);
 
   return `<div class="rule-block" id="rblock-${uid}-${ri}">
     <div class="rule-block-header"><span>Rule ${ri+1}</span>
@@ -284,18 +288,27 @@ function buildRuleBlock(uid, r, ri, total) {
     <div class="rule-row2" id="rmd-${uid}-${ri}" style="display:${showMonthDate?'flex':'none'}">
     <span class="rule-lbl">On the</span>
     <select class="rule-select" onchange="setRuleField(${uid},${ri},'monthDate',+this.value)">
-    ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28].map(n=>`<option value="${n}"${r.monthDate===n?' selected':''}>${n}</option>`).join('')}
+    ${DAYS31.map(n=>`<option value="${n}"${r.monthDate===n?' selected':''}>${n}</option>`).join('')}
     </select><span class="rule-lbl">of each month</span></div>
+    <div class="rule-row2" id="rann-${uid}-${ri}" style="display:${showAnnual?'flex':'none'}">
+    <span class="rule-lbl">On</span>
+    <select class="rule-select" aria-label="Month" onchange="setRuleField(${uid},${ri},'annualMonth',this.value);updateUpcomingPreview(${uid})">
+    <option value="">Month…</option>
+    ${MONTHS12.map(m=>`<option value="${m}"${r.annualMonth===m?' selected':''}>${m.charAt(0).toUpperCase()+m.slice(1)}</option>`).join('')}
+    </select>
+    <select class="rule-select" aria-label="Day of the month" onchange="setRuleField(${uid},${ri},'annualDay',+this.value);updateUpcomingPreview(${uid})">
+    ${DAYS31.map(n=>`<option value="${n}"${(r.annualDay||1)===n?' selected':''}>${n}</option>`).join('')}
+    </select><span class="rule-lbl" style="font-weight:400;">or leave the month empty and set a Season below for a yearly span</span></div>
     <div class="rule-row2" id="rdate-${uid}-${ri}" style="display:${showDate?'flex':'none'}">
     <span class="rule-lbl">On</span>
-    <input type="date" class="rule-select" value="${r.date||''}" onchange="setRuleField(${uid},${ri},'date',this.value);updateUpcomingPreview(${uid})"></div>
+    <input type="date" class="rule-select" value="${esc(r.date||'')}" onchange="setRuleField(${uid},${ri},'date',this.value);updateUpcomingPreview(${uid})"></div>
     <div class="rule-row2" id="rnote-${uid}-${ri}" style="display:${showDate?'flex':'none'}">
     <span class="rule-lbl">Note</span>
-    <input type="text" class="rule-select" placeholder="Optional note, e.g. Guest DJ" value="${r.note||''}" oninput="setRuleField(${uid},${ri},'note',this.value)" style="flex:1;min-width:120px"></div>
+    <input type="text" class="rule-select" placeholder="Optional note, e.g. Guest DJ" value="${esc(r.note||'')}" oninput="setRuleField(${uid},${ri},'note',this.value)" style="flex:1;min-width:120px"></div>
     <div class="rule-row2"><span class="rule-lbl">At</span>
-    <input type="time" class="rule-select" value="${r.timeStart}" onchange="setRuleField(${uid},${ri},'timeStart',this.value);updateUpcomingPreview(${uid})" ${r.noTime?'disabled':''}>
+    <input type="time" class="rule-select" value="${esc(r.timeStart)}" onchange="setRuleField(${uid},${ri},'timeStart',this.value);updateUpcomingPreview(${uid})" ${r.noTime?'disabled':''}>
     <span class="rule-lbl">until (optional)</span>
-    <input type="time" class="rule-select" placeholder="optional" value="${r.timeEnd}" onchange="setRuleField(${uid},${ri},'timeEnd',this.value)" ${r.noTime?'disabled':''}></div>
+    <input type="time" class="rule-select" placeholder="optional" value="${esc(r.timeEnd)}" onchange="setRuleField(${uid},${ri},'timeEnd',this.value)" ${r.noTime?'disabled':''}></div>
     <div class="rule-row2">
     <label style="display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text-dim);font-weight:600;cursor:pointer;">
     <input type="checkbox" ${r.noTime?'checked':''} onchange="toggleRuleNoTime(${uid},${ri},this.checked)"> No specific time (all day or not applicable)
@@ -319,10 +332,10 @@ function buildExcItem(uid, x, xi) {
     <div class="exc-item-header"><span class="exc-item-type">${typeLabel}</span>
     <button class="exc-item-remove" onclick="removeEvExc(${uid},${xi})" aria-label="Remove exception">✕</button></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-    <input type="date" class="rule-select" value="${x.date||''}" onchange="setExcField(${uid},${xi},'date',this.value)">
-    ${x.type==='cancelled_range'?`<span class="rule-lbl">to</span><input type="date" class="rule-select" value="${x.date_end||''}" onchange="setExcField(${uid},${xi},'date_end',this.value)">`:''}
-    ${x.type==='modified'?`<input type="time" class="rule-select" value="${x.time_start||''}" onchange="setExcField(${uid},${xi},'time_start',this.value)">`:''}
-    <input type="text" class="rule-select" placeholder="Note (optional)" value="${x.note||''}" oninput="setExcField(${uid},${xi},'note',this.value)" style="flex:2;min-width:120px">
+    <input type="date" class="rule-select" value="${esc(x.date||'')}" onchange="setExcField(${uid},${xi},'date',this.value)">
+    ${x.type==='cancelled_range'?`<span class="rule-lbl">to</span><input type="date" class="rule-select" value="${esc(x.date_end||'')}" onchange="setExcField(${uid},${xi},'date_end',this.value)">`:''}
+    ${x.type==='modified'?`<input type="time" class="rule-select" value="${esc(x.time_start||'')}" onchange="setExcField(${uid},${xi},'time_start',this.value)">`:''}
+    <input type="text" class="rule-select" placeholder="Note (optional)" value="${esc(x.note||'')}" oninput="setExcField(${uid},${xi},'note',this.value)" style="flex:2;min-width:120px">
     </div></div>`;
 }
 
@@ -378,9 +391,9 @@ function setEvType(uid, type) {
     schedEl.innerHTML = buildDatelistSection(uid, ev, 'dateList');
   } else {
     schedEl.innerHTML = `<div class="oneoff-row">
-      <div class="field-group"><label class="field-label">Date</label><input class="field-input" type="date" value="${ev.date}" onchange="setEvDirect(${uid},'date',this.value)"></div>
-      <div class="field-group"><label class="field-label">Start time</label><input class="field-input" type="time" value="${ev.oneTimeStart}" onchange="setEvDirect(${uid},'oneTimeStart',this.value)" ${ev.noTime?'disabled':''}></div>
-      <div class="field-group"><label class="field-label">End time (optional)</label><input class="field-input" type="time" value="${ev.oneTimeEnd}" onchange="setEvDirect(${uid},'oneTimeEnd',this.value)" ${ev.noTime?'disabled':''}></div>
+      <div class="field-group"><label class="field-label">Date</label><input class="field-input" type="date" value="${esc(ev.date)}" onchange="setEvDirect(${uid},'date',this.value)"></div>
+      <div class="field-group"><label class="field-label">Start time</label><input class="field-input" type="time" value="${esc(ev.oneTimeStart)}" onchange="setEvDirect(${uid},'oneTimeStart',this.value)" ${ev.noTime?'disabled':''}></div>
+      <div class="field-group"><label class="field-label">End time (optional)</label><input class="field-input" type="time" value="${esc(ev.oneTimeEnd)}" onchange="setEvDirect(${uid},'oneTimeEnd',this.value)" ${ev.noTime?'disabled':''}></div>
       </div>
       <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:14px;color:var(--text-dim);font-weight:600;cursor:pointer;">
       <input type="checkbox" ${ev.noTime?'checked':''} onchange="toggleEvNoTime(${uid},this.checked)"> No specific time (all day or not applicable)
@@ -482,6 +495,8 @@ function setRulePattern(uid, ri, val) {
   const daysRow = document.getElementById(`rdays-${uid}-${ri}`);
   const mwRow  = document.getElementById(`rmw-${uid}-${ri}`);
   const mdRow  = document.getElementById(`rmd-${uid}-${ri}`);
+  const annRow = document.getElementById(`rann-${uid}-${ri}`);
+  if (annRow) annRow.style.display = val === 'annual' ? 'flex' : 'none';
   const dateRow = document.getElementById(`rdate-${uid}-${ri}`);
   const noteRow = document.getElementById(`rnote-${uid}-${ri}`);
   const seasonRow = document.getElementById(`rseason-${uid}-${ri}`);
@@ -591,8 +606,8 @@ function bRenderPreviewEvents() {
       : ev.rules[0] ? (ev.rules[0].days.slice(0,2).map(d=>d.charAt(0).toUpperCase()+d.slice(1)).join('/') + ' · ' + (ev.rules[0].noTime ? 'No set time' : (ev.rules[0].timeStart||''))) : 'Recurring';
     const tags = ev.vibes.slice(0,2).map(v => `<span class="preview-event-tag">${esc(v)}</span>`).join('');
     return `<div class="preview-event">
-      <div class="preview-event-name">${ev.name||'Unnamed Event'}</div>
-      <div class="preview-event-time">${timeStr}</div>
+      <div class="preview-event-name">${esc(ev.name||'Unnamed Event')}</div>
+      <div class="preview-event-time">${esc(timeStr)}</div>
       ${tags ? `<div class="preview-event-tags">${tags}</div>` : ''}
       </div>`;
   }).join('');
@@ -604,9 +619,9 @@ function buildDatelistSection(uid, ev, listField) {
   const list = ev[listField] || [];
   const defaultTimeRow = `<div class="datelist-times" id="datelist-times-${listField}-${uid}" style="margin-bottom:8px;">
     <span class="rule-lbl" style="flex-shrink:0">Default time</span>
-    <input type="time" class="rule-select" value="${ev.oneTimeStart||'21:00'}" onchange="setEvDirect(${uid},'oneTimeStart',this.value)" placeholder="start" ${ev.noTimeDefault?'disabled':''}>
+    <input type="time" class="rule-select" value="${esc(ev.oneTimeStart||'21:00')}" onchange="setEvDirect(${uid},'oneTimeStart',this.value)" placeholder="start" ${ev.noTimeDefault?'disabled':''}>
     <span class="rule-lbl">–</span>
-    <input type="time" class="rule-select" value="${ev.oneTimeEnd||''}" onchange="setEvDirect(${uid},'oneTimeEnd',this.value)" placeholder="end (optional)" ${ev.noTimeDefault?'disabled':''}>
+    <input type="time" class="rule-select" value="${esc(ev.oneTimeEnd||'')}" onchange="setEvDirect(${uid},'oneTimeEnd',this.value)" placeholder="end (optional)" ${ev.noTimeDefault?'disabled':''}>
     </div>
     <label style="display:flex;align-items:center;gap:6px;margin-bottom:12px;font-size:14px;color:var(--text-dim);font-weight:600;cursor:pointer;">
     <input type="checkbox" ${ev.noTimeDefault?'checked':''} onchange="toggleEvNoTimeDefault(${uid},'${listField}',this.checked)"> No specific time (default for new dates)
@@ -627,13 +642,13 @@ function buildDateEntry(uid, d, di, listField) {
   listField = listField || 'dateList';
   const hasOverride = d.timeStart || d.timeEnd || d.note || d.noTime;
   return `<div class="datelist-entry" id="dentry-${listField}-${uid}-${di}">
-    <input type="date" class="field-input datelist-entry-date" value="${d.date||''}" onchange="setDateField(${uid},'${listField}',${di},'date',this.value)">
+    <input type="date" class="field-input datelist-entry-date" value="${esc(d.date||'')}" onchange="setDateField(${uid},'${listField}',${di},'date',this.value)">
     <span class="datelist-override-toggle" onclick="toggleDateOverride(${uid},'${listField}',${di})" id="dtoggle-${listField}-${uid}-${di}">${hasOverride?'− times/note':'+ override'}</span>
     <div id="doverride-${listField}-${uid}-${di}" style="display:${hasOverride?'flex':'none'};gap:6px;align-items:center;flex-wrap:wrap;flex:1">
-    <input type="time" class="rule-select" value="${d.timeStart||''}" placeholder="start" onchange="setDateField(${uid},'${listField}',${di},'timeStart',this.value)" ${d.noTime?'disabled':''}>
-    <input type="time" class="rule-select" value="${d.timeEnd||''}" placeholder="end (optional)" onchange="setDateField(${uid},'${listField}',${di},'timeEnd',this.value)" ${d.noTime?'disabled':''}>
+    <input type="time" class="rule-select" value="${esc(d.timeStart||'')}" placeholder="start" onchange="setDateField(${uid},'${listField}',${di},'timeStart',this.value)" ${d.noTime?'disabled':''}>
+    <input type="time" class="rule-select" value="${esc(d.timeEnd||'')}" placeholder="end (optional)" onchange="setDateField(${uid},'${listField}',${di},'timeEnd',this.value)" ${d.noTime?'disabled':''}>
     <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--text-dim);cursor:pointer;"><input type="checkbox" ${d.noTime?'checked':''} onchange="setDateField(${uid},'${listField}',${di},'noTime',this.checked)"> All day</label>
-    <input type="text" class="rule-select" value="${d.note||''}" placeholder="Note (e.g. Guest DJ)" style="flex:2;min-width:100px" oninput="setDateField(${uid},'${listField}',${di},'note',this.value)">
+    <input type="text" class="rule-select" value="${esc(d.note||'')}" placeholder="Note (e.g. Guest DJ)" style="flex:2;min-width:100px" oninput="setDateField(${uid},'${listField}',${di},'note',this.value)">
     </div>
     <button class="datelist-entry-remove" onclick="removeDateEntry(${uid},'${listField}',${di})" aria-label="Remove date entry">✕</button>
     </div>`;
@@ -756,8 +771,11 @@ function buildRcalObj() {
           if (r.timeStart) rule.time_start = r.timeStart;
           if (r.timeEnd) rule.time_end = r.timeEnd;
         }
-        if (r.seasonStart) rule.season_start = r.seasonStart;
-        if (r.seasonEnd) rule.season_end = r.seasonEnd;
+        // A yearly date is written as that month plus the day of the month.
+        const yearlyDate = r.pattern === 'annual' && r.annualMonth;
+        if (yearlyDate) { rule.season_start = r.annualMonth; rule.season_end = r.annualMonth; rule.month_date = r.annualDay || 1; }
+        if (!yearlyDate && r.seasonStart) rule.season_start = r.seasonStart;
+        if (!yearlyDate && r.seasonEnd) rule.season_end = r.seasonEnd;
         if (r.x) Object.assign(rule, r.x);
         return rule;
       });
@@ -837,6 +855,8 @@ function rcalExportProblems() {
     if (ev.eventType === 'datelist' && !ev.dateList.some(d => d.date)) probs.push(label + ' has no dates.');
     if (ev.eventType === 'recurring' && !ev.rules.some(r => r.pattern !== 'specific_date' || r.date) && !(ev.recDates || []).some(d => d.date))
       probs.push(label + ' has no schedule.');
+    if (ev.eventType === 'recurring' && ev.rules.some(r => r.pattern === 'annual' && !r.annualMonth && !r.seasonStart))
+      probs.push(label + ' repeats once a year but has no month and day.');
   });
   const ids = {};
   events.forEach(ev => { if (ev.specId) { if (ids[ev.specId]) probs.push('Two events share the id "' + ev.specId + '".'); ids[ev.specId] = 1; } });
@@ -849,10 +869,16 @@ function rcalSpecLocation(loc) {
   const t = String(loc).trim();
   return t ? { address: t } : undefined;
 }
+// Fields that control who may open a strand on EventStrand. They are account
+// settings, not part of the schedule, and never go into a downloaded file.
+function rcalStripAccess(meta) {
+  if (meta) { delete meta.access_code; delete meta.visibility; }
+  return meta;
+}
 function buildRcalSpecObj() {
   const obj = buildRcalObj();
   const used = new Set(obj.events.map(e => e.spec_id).filter(Boolean));
-  const meta = { ...obj.meta };
+  const meta = rcalStripAccess({ ...obj.meta });
   const loc = {};
   if (pub.address) loc.address = pub.address;
   if (pub.city) loc.city = pub.city;
@@ -932,6 +958,10 @@ function esc(s) {
   const m = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
   return String(s ?? '').replace(/[&<>"']/g, c => m[c]);
 }
+// A CSS colour that is safe to drop into a style attribute; anything else falls back.
+function safeColor(c, fallback) {
+  return (typeof c === 'string' && /^[#a-zA-Z0-9(),.% -]{1,30}$/.test(c)) ? c : (fallback || 'var(--primary)');
+}
 function escAttr(s) {
   // 1. JSON-stringify to escape \, ", control chars, newlines
   // 2. swap remaining ' → \' so the JS string literal stays intact
@@ -940,9 +970,23 @@ function escAttr(s) {
   return js.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── SESSION ───────────────────────────────────────────────────
+// The session lives in an httpOnly cookie set by the API, which page scripts
+// cannot read. Every API call is sent with credentials so the cookie goes
+// along. A token is kept in localStorage only for a session that began before
+// cookie sessions existed (or against an older API); it is dropped as soon as
+// the API confirms the cookie is in place.
 function esGetJwt() { try { return localStorage.getItem('es_jwt'); } catch(e){return null;} }
 function esSetJwt(t) { try { localStorage.setItem('es_jwt',t); } catch(e){} }
+function esDropLegacyJwt() { try { localStorage.removeItem('es_jwt'); } catch(e){} }
 function esClearJwt() { try { localStorage.removeItem('es_jwt'); localStorage.removeItem('es_user'); } catch(e){} }
+function esAuthHeaders() { const jwt = esGetJwt(); return jwt ? { 'Authorization': 'Bearer ' + jwt } : {}; }
+function esApiFetch(url, opts = {}) { return fetch(url, { credentials: 'include', ...opts }); }
+// Call with the JSON of any sign-in response.
+function esStoreSession(data) {
+  if (data && data.cookieSession) esDropLegacyJwt();
+  else if (data && data.token) esSetJwt(data.token);
+}
 function esGetStoredUser() { try { const u=localStorage.getItem('es_user'); return u?JSON.parse(u):null; } catch(e){return null;} }
 function esSetStoredUser(u) { try { localStorage.setItem('es_user',JSON.stringify(u)); } catch(e){} }
 
@@ -954,14 +998,14 @@ function esClearPendingSub() { try { localStorage.removeItem('es_pending_sub'); 
 
 async function esAuthWithGoogle(googleUser) {
   try {
-    const res = await fetch(BACKEND_URL + '/api/auth/google', {
+    const res = await esApiFetch(BACKEND_URL + '/api/auth/google', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ credential: googleUser.credential })
     });
     const data = await res.json();
     if (!res.ok) { showToast('Sign in failed — ' + (data.error||'try again'), 'error'); return; }
-    esSetJwt(data.token);
+    esStoreSession(data);
     ES_USER = data.user;
     esSetStoredUser(data.user);
     if (!data.user.handle) {
@@ -1012,7 +1056,7 @@ function esRenderNavAuth() {
   if (ES_USER.picture) {
     [document.getElementById('nav-avatar'), document.getElementById('app-avatar')].forEach(el => {
       if (!el) return;
-      el.innerHTML = `<img src="${ES_USER.picture}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+      el.innerHTML = `<img src="${esc(ES_USER.picture)}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
     });
   }
 }
@@ -1222,7 +1266,7 @@ async function esSubmitForgotPassword() {
   msg.textContent = 'Sending…';
   msg.style.color = 'var(--text-dim)';
   try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/forgot-password`, {
+    const res = await esApiFetch(`${BACKEND_URL}/api/auth/forgot-password`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ email }),
@@ -1259,7 +1303,7 @@ async function esSubmitResetPassword() {
   if (pw !== pw2)    { msg.textContent = 'Passwords don\'t match'; return; }
   msg.textContent = '';
   try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/reset-password`, {
+    const res = await esApiFetch(`${BACKEND_URL}/api/auth/reset-password`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ token: _esResetToken, password: pw }),
@@ -1267,8 +1311,9 @@ async function esSubmitResetPassword() {
     const d = await res.json().catch(() => ({}));
     if (!res.ok) { msg.textContent = d.error || 'Could not reset password'; return; }
     if (d.token && d.user) {
-      ES_USER = { ...d.user, jwt: d.token };
-      try { localStorage.setItem('es_user', JSON.stringify(ES_USER)); } catch(_) {}
+      ES_USER = d.user;
+      esStoreSession(d);
+      esSetStoredUser(ES_USER);
       if (typeof esRenderAuthState === 'function') esRenderAuthState();
     }
     showToast('✓ Password reset — you\'re signed in');
@@ -1291,7 +1336,7 @@ async function esHandleVerifyToken(token) {
     return;
   }
   try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/verify-email`, {
+    const res = await esApiFetch(`${BACKEND_URL}/api/auth/verify-email`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ token }),
@@ -1344,9 +1389,9 @@ async function esResendVerification(btn) {
   if (!ES_USER) return;
   btn.disabled = true; btn.textContent = 'Sending…';
   try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/resend-verification`, {
+    const res = await esApiFetch(`${BACKEND_URL}/api/auth/resend-verification`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + esGetJwt()},
+      headers: {'Content-Type':'application/json', ...esAuthHeaders()},
     });
     if (res.ok) { btn.textContent = 'Sent ✓'; showToast('Verification email sent — check your inbox'); }
     else {
@@ -1412,7 +1457,7 @@ async function esAuthSubmit() {
     : { email, password };
 
   try {
-    const res  = await fetch(BACKEND_URL + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const res  = await esApiFetch(BACKEND_URL + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     const data = await res.json();
     if (!res.ok) { errEl.textContent = data.error || 'Something went wrong.'; return; }
     // B-5: backend returns { ok: true } (no token/user) when email already exists,
@@ -1422,7 +1467,7 @@ async function esAuthSubmit() {
       errEl.textContent = 'Check your inbox — if an account already exists for this email, we sent you a sign-in reminder.';
       return;
     }
-    esSetJwt(data.token);
+    esStoreSession(data);
     ES_USER = data.user;
     esSetStoredUser(data.user);
     if (!data.user.handle) {
@@ -1459,8 +1504,7 @@ function esCheckHandle(val) {
   status.textContent = 'Checking…'; status.style.color = 'var(--text-faint)';
   _handleTimer = setTimeout(async () => {
     try {
-      const jwt = esGetJwt();
-      const res = await fetch(`${BACKEND_URL}/api/auth/check-handle?handle=${encodeURIComponent(val)}`, { headers: jwt ? {'Authorization':'Bearer '+jwt} : {} });
+      const res = await esApiFetch(`${BACKEND_URL}/api/auth/check-handle?handle=${encodeURIComponent(val)}`, { headers: esAuthHeaders() });
       const d = await res.json();
       if (d.available) { status.textContent = '✓ ' + val + ' is available'; status.style.color = 'var(--green)'; }
       else { status.textContent = '✗ That handle is taken'; status.style.color = 'var(--red)'; }
@@ -1472,9 +1516,9 @@ async function esConfirmHandle() {
   const val = document.getElementById('handle-input').value.trim();
   if (!val || !/^[a-zA-Z0-9_-]{3,30}$/.test(val)) { showToast('Enter a valid handle first', 'error'); return; }
   try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/set-handle`, {
+    const res = await esApiFetch(`${BACKEND_URL}/api/auth/set-handle`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + esGetJwt() },
+      headers: { 'Content-Type': 'application/json', ...esAuthHeaders() },
       body: JSON.stringify({ handle: val })
     });
     const d = await res.json();
@@ -1517,11 +1561,11 @@ async function esLoadApiKeys() {
     list.innerHTML = data.keys.map(k => `
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;">${k.label}</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-faint);">${k.prefix}••••••••</div>
-          <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">${k.scopes.join(' · ')}${k.lastUsed?' · Last used '+new Date(k.lastUsed).toLocaleDateString():' · Never used'}</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;">${esc(k.label)}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-faint);">${esc(k.prefix)}••••••••</div>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:4px;">${esc((k.scopes||[]).join(' · '))}${k.lastUsed?' · Last used '+new Date(k.lastUsed).toLocaleDateString():' · Never used'}</div>
         </div>
-        <button onclick="esRevokeApiKey('${k.id}')" style="background:none;border:1px solid var(--border2);border-radius:8px;color:var(--text-faint);font-size:12px;padding:6px 12px;cursor:pointer;" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--text-faint)';this.style.borderColor='var(--border2)'">Revoke</button>
+        <button onclick="esRevokeApiKey('${escAttr(k.id)}')" style="background:none;border:1px solid var(--border2);border-radius:8px;color:var(--text-faint);font-size:12px;padding:6px 12px;cursor:pointer;" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--text-faint)';this.style.borderColor='var(--border2)'">Revoke</button>
       </div>`).join('');
   } catch(e) {
     list.innerHTML = '<div style="font-size:13px;color:var(--text-faint);">Could not load keys.</div>';
@@ -1566,6 +1610,8 @@ function esCloseApiKeyReveal() {
 async function esSignOut() {
   // B-QA2: sign-out fired immediately with no confirmation.
   if (!confirm('Sign out of EventStrand?')) return;
+  // Clear the session cookie on the server; the local state goes either way.
+  esApiFetch(BACKEND_URL + '/api/auth/logout', { method: 'POST', headers: esAuthHeaders() }).catch(() => {});
   ES_USER = null;
   ES_WORKSPACES = [];
   esClearJwt();
@@ -1746,6 +1792,7 @@ async function esLoadUpcoming() {
       return;
     }
     const grouped = {};
+    _esFeedEvents = [];
     data.events.forEach(ev => { (grouped[ev.date] = grouped[ev.date]||[]).push(ev); });
     list.innerHTML = Object.keys(grouped).sort().map(date => {
       const d = new Date(date+'T00:00:00');
@@ -1757,10 +1804,11 @@ async function esLoadUpcoming() {
           <div class="efi-date"><div class="efi-date-day">${d.getDate()}</div><div class="efi-date-mon">${d.toLocaleString('en-US',{month:'short'})}</div></div>
           <div class="efi-body">
             <div class="efi-name">${esc(ev.title||ev.name||'Event')}</div>
-            <div class="efi-meta">${esc(ev.venue||'')}${ev.noTime?' · No set time':(ev.time?' · '+esc(ev.time):'')}</div>
+            <div class="efi-meta">${esc(ev.venue||'')}${ev.noTime?' · No set time':(ev.time?' · '+esc(ev.time)+(ev.timeEnd?'–'+esc(ev.timeEnd):''):'')}</div>
+            ${ev.note ? `<div class="efi-meta" style="font-style:italic;">${esc(ev.note)}</div>` : ''}
             <div class="efi-strand">→ ${esc(ev.strandTitle||'')}</div>
             <div class="efi-actions">
-              <button class="efi-btn-star${esIsInterested(ev.id||ev._id,ev.date)?' active':''}" onclick="esToggleInterested(this,${JSON.stringify(ev).replace(/'/g,'&#39;')})" title="Star this event">${esIsInterested(ev.id||ev._id,ev.date)?'★':'☆'}</button>
+              <button class="efi-btn-star${esIsInterested(ev)?' active':''}" onclick="esToggleInterested(this, _esFeedEvents[${_esFeedEvents.push(ev) - 1}])" title="Star this event" aria-label="Star this event">${esIsInterested(ev)?'★':'☆'}</button>
             </div>
           </div>
         </div>`).join('');
@@ -1855,7 +1903,7 @@ async function esRenderMyStrands() {
     list.innerHTML = data.strands.map(s => `
       <div class="strand-card">
         <div class="strand-card-header">
-          <div class="strand-card-dot" style="background:${s.color||'var(--primary)'}"></div>
+          <div class="strand-card-dot" style="background:${safeColor(s.color)}"></div>
           <div class="strand-card-name">${esc(s.title)}</div>
           <span class="pub-status-badge ${s.published?'live':'draft'}">${s.published?'● Live':'○ Draft'}</span>
           ${s.directoryStatus==='verified'?'<span class="pub-status-badge" style="background:rgba(0,210,110,.12);color:#00d26a;border-color:rgba(0,210,110,.3);">✓ Directory</span>':
@@ -1926,7 +1974,10 @@ async function esSubscribeToStrand(strandId, workspaceId) {
   try {
     const res = await esFetch('/api/user/strands', {
       method:'POST',
-      body: JSON.stringify({ strandId, workspaceId: workspaceId || (ES_WORKSPACES[0]?._id) })
+      body: JSON.stringify({
+        strandId, workspaceId: workspaceId || (ES_WORKSPACES[0]?._id),
+        ...(_esPubPasscode && _esPubPasscode.id === String(strandId) ? { passcode: _esPubPasscode.code } : {}),
+      })
     });
     if (res.ok) {
       showToast('✓ Subscribed — this strand is now in your dashboard');
@@ -1960,7 +2011,10 @@ async function esSubscribeToBraid(braidId, workspaceId) {
   try {
     const res = await esFetch('/api/user/braids', {
       method:'POST',
-      body: JSON.stringify({ braidId, workspaceId: workspaceId || (ES_WORKSPACES[0]?._id) })
+      body: JSON.stringify({
+        braidId, workspaceId: workspaceId || (ES_WORKSPACES[0]?._id),
+        ...(_esBraidPasscode && _esBraidPasscode.id === String(braidId) ? { passcode: _esBraidPasscode.code } : {}),
+      })
     });
     if (res.ok) showToast('✓ Braid subscribed — all strands added to your dashboard');
     else { const d = await res.json(); showToast(d.error||'Could not subscribe', 'error'); }
@@ -1982,7 +2036,7 @@ const _LIB_GRIDS = ['dash-library-grid', 'home-library-grid'];
 async function esLoadLibraryStrands() {
   if (!_libraryStrands) {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/library/strands`);
+      const res = await esApiFetch(`${BACKEND_URL}/api/library/strands`);
       const data = await res.json();
       _libraryStrands = data.strands || [];
     } catch(e) {
@@ -2028,7 +2082,7 @@ function esLibraryCardsHtml(filtered) {
   return filtered.map(s => {
     const cat   = s.libraryCategory || 'general';
     const emoji = catEmoji[cat] || '📌';
-    const bg    = s.color ? `background:${s.color}` : `background:${CAT_COLORS[cat] || CAT_COLORS.general}`;
+    const bg    = `background:${safeColor(s.color, CAT_COLORS[cat] || CAT_COLORS.general)}`;
     const evc   = s.events?.length || 0;
     const subs  = s.subscriberCount || 0;
     const wsOpts = ES_USER ? ES_WORKSPACES.map(w =>
@@ -2245,10 +2299,7 @@ function computePastOccurrences(event) {
 // the backend had no way to know a signed-in viewer already subscribes —
 // the Subscribe button always rendered as "Subscribe", even on reload.
 // Attach the stored JWT when present; the endpoint stays public either way.
-function esPublicAuthHeaders() {
-  const jwt = esGetJwt();
-  return jwt ? { 'Authorization': 'Bearer ' + jwt } : {};
-}
+function esPublicAuthHeaders() { return esAuthHeaders(); }
 
 async function esLoadPublicStrand(handle, strandId, src) {
   esGoto('strand');
@@ -2258,27 +2309,42 @@ async function esLoadPublicStrand(handle, strandId, src) {
   gate.style.display = 'none';
   try {
     const srcParam = src ? `?src=${encodeURIComponent(src)}` : '';
-    const res = await fetch(`${BACKEND_URL}/api/public/strand/${handle}/${strandId}${srcParam}`, { headers: esPublicAuthHeaders() });
+    const res = await esApiFetch(`${BACKEND_URL}/api/public/strand/${encodeURIComponent(handle)}/${encodeURIComponent(strandId)}${srcParam}`, { headers: esPublicAuthHeaders() });
     if (res.status === 403) { gate.style.display = 'block'; gate.dataset.handle=handle; gate.dataset.strandId=strandId; return; }
     const data = await res.json();
     if (data.redirect) { history.replaceState(null, '', '#/s/' + data.redirect + '/' + strandId); return esLoadPublicStrand(data.redirect, strandId, src); }
+    if (!res.ok || !data.strand) throw new Error(data.error || 'not found');
     data.strand.subscribed = !!data.subscribed;
-    esRenderStrandView(data.strand);
+    esRenderStrandView(data.strand, data);
   } catch(e) {
     document.getElementById('pub-strand-content').innerHTML = '<div style="text-align:center;padding:60px;color:var(--text-dim);">Could not load strand</div>';
   }
 }
 
+// Passcode the visitor entered for the protected strand on screen, kept in
+// memory only so that subscribing to it can prove the same access.
+let _esPubPasscode = null;
+
 async function esSubmitPasscode() {
   const gate = document.getElementById('pub-passcode-gate');
   const code = document.getElementById('passcode-input').value;
   try {
-    const res = await fetch(`${BACKEND_URL}/api/public/strand/${gate.dataset.handle}/${gate.dataset.strandId}?passcode=${encodeURIComponent(code)}`, { headers: esPublicAuthHeaders() });
+    const base = `${BACKEND_URL}/api/public/strand/${encodeURIComponent(gate.dataset.handle)}/${encodeURIComponent(gate.dataset.strandId)}`;
+    // The passcode travels in a header, never in the address.
+    let res = await esApiFetch(base, { headers: { ...esPublicAuthHeaders(), 'X-Passcode': code } });
+    let data = await res.json().catch(() => ({}));
+    if (res.status === 403 && !data.passcodeHeader) {
+      // An API that predates the header only reads the address.
+      res = await esApiFetch(`${base}?passcode=${encodeURIComponent(code)}`, { headers: esPublicAuthHeaders() });
+      data = await res.json().catch(() => ({}));
+    }
+    if (res.status === 429) { showToast(data.error || 'Too many attempts — try again later', 'error'); return; }
     if (res.status === 403) { showToast('Incorrect passcode', 'error'); return; }
-    const data = await res.json();
+    if (!res.ok || !data.strand) { showToast(data.error || 'Could not load strand', 'error'); return; }
     data.strand.subscribed = !!data.subscribed;
+    _esPubPasscode = { id: String(data.strand._id), code };
     gate.style.display = 'none';
-    esRenderStrandView(data.strand);
+    esRenderStrandView(data.strand, data);
   } catch(e) { if (e.message !== '401') showToast('Connection error', 'error'); }
 }
 
@@ -2296,7 +2362,41 @@ function esSubscribeButtonHtml(strand) {
     : `<button class="btn btn-primary" onclick="esSubscribeToStrand('${strand._id}')">Subscribe</button>`;
 }
 
-function esRenderStrandView(strand) {
+// "2026-11-20" -> "Fri, Nov 20"
+function esPrettyDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if (!m) return String(iso || '');
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getUTCDay()] + ', '
+    + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2] - 1] + ' ' + (+m[3]);
+}
+
+// An event's schedule in plain words. The API sends this ready-made; this is
+// the fallback for an API response that doesn't include it.
+function esDescribeSchedule(ev) {
+  const time = o => (hasNoTime(o) || !o.time_start) ? '' : o.time_start + (o.time_end ? '–' + o.time_end : '');
+  const cap = s => String(s || '').replace(/^./, c => c.toUpperCase());
+  const parts = [];
+  if (ev.date) parts.push([ev.date, time(ev)].filter(Boolean).join(' · '));
+  (ev.recurrence || []).forEach(r => {
+    const days = (r.days || []).map(cap).join(', ');
+    const every = r.every > 1 ? (r.every === 2 ? 'other ' : r.every + 'th ') : '';
+    let base = '';
+    if (r.pattern === 'daily') base = every ? `Every ${every}day` : 'Daily';
+    else if (r.pattern === 'weekdays') base = 'Every weekday';
+    else if (r.pattern === 'weekly') base = every ? `Every ${every}week${days ? ' on ' + days : ''}` : (days ? `Every ${days}` : 'Weekly');
+    else if (r.pattern === 'monthly_week') base = `${cap(r.month_week || 'first')} ${days || 'week'} of the month`;
+    else if (r.pattern === 'monthly_date') base = `Day ${r.month_date || 1} of each month`;
+    else if (r.pattern === 'annual') base = 'Yearly' + (r.season_start ? ' · ' + cap(r.season_start) + (r.month_date ? ' ' + r.month_date : '') : '');
+    const season = r.pattern !== 'annual' && (r.season_start || r.season_end) ? [cap(r.season_start), cap(r.season_end)].filter(Boolean).join('–') : '';
+    if (base) parts.push([base, season, time(r)].filter(Boolean).join(' · '));
+  });
+  const n = (ev.dates || []).length;
+  if (n) parts.push((parts.length ? '+' : '') + n + ' listed date' + (n === 1 ? '' : 's'));
+  return parts.join(' + ');
+}
+
+function esRenderStrandView(strand, extra) {
   const inner = document.getElementById('pub-strand-inner');
   const header = document.getElementById('pub-strand-header');
   const evList = document.getElementById('pub-strand-events');
@@ -2307,28 +2407,49 @@ function esRenderStrandView(strand) {
     <div class="pub-strand-type-badge">🧵 Strand</div>
     <div class="pub-strand-title">${esc(strand.title)}</div>
     <div class="pub-strand-venue">${esc(strand.venue||'')}${strand.address?` · ${esc(strand.address)}`:''}</div>
+    ${strand.description ? `<div class="pub-event-note" style="margin:10px 0 2px;font-size:15px;">${esc(strand.description)}</div>` : ''}
     <div class="pub-strand-meta">
       ${strand.publisherHandle?`<span>@${esc(strand.publisherHandle)}</span>`:''}
-      <span class="view-count-badge">👁 ${strand.viewCount||0} views</span>
+      <span class="view-count-badge">👁 ${Number(strand.viewCount)||0} views</span>
     </div>
-    <div class="pub-subscribe-row" id="pub-subscribe-row" data-strand-id="${strand._id}">
+    <div class="pub-subscribe-row" id="pub-subscribe-row" data-strand-id="${esc(strand._id)}">
       ${esSubscribeButtonHtml(strand)}
       <button class="btn btn-ghost" onclick="navigator.clipboard?.writeText(window.location.href);showToast('📋 Link copied')">Share</button>
-      <button class="btn btn-ghost" style="font-size:13px;" onclick="esOpenReportModal('${strand._id}')" title="Report an issue with this strand">⚑ Report</button>
+      <button class="btn btn-ghost" style="font-size:13px;" onclick="esOpenReportModal('${escAttr(strand._id)}')" title="Report an issue with this strand">⚑ Report</button>
     </div>`;
 
-  const now = new Date();
-  const upcoming = (strand.events||[]).filter(e => {
-    if (e.date) return new Date(e.date+'T23:59:59') >= now;
-    return true;
-  }).slice(0, 8);
+  const sectionLabel = s => `<div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);margin:18px 0 8px;">${s}</div>`;
+  const schedules = (extra && extra.schedules) || {};
+  const allEvents = strand.events || [];
 
-  evList.innerHTML = upcoming.map(ev => `
+  // Coming up: real dates for the next 90 days, worked out by the API.
+  let upcomingHtml = '';
+  if (extra && Array.isArray(extra.upcoming)) {
+    const rows = extra.upcoming.slice(0, 20).map(o => `
+    <div class="pub-event-row">
+      <div class="pub-event-name">${esc(o.title || 'Event')}</div>
+      <div class="pub-event-time">${esc(esPrettyDate(o.date))}${!o.noTime && o.timeStart ? ' · ' + esc(o.timeStart) + (o.timeEnd ? '–' + esc(o.timeEnd) : '') : ''}</div>
+      ${o.note ? `<div class="pub-event-note">${esc(o.note)}</div>` : ''}
+    </div>`).join('');
+    upcomingHtml = sectionLabel('Coming up') + (rows || '<div style="color:var(--text-faint);padding:12px 0;">Nothing scheduled in the next 90 days.</div>');
+  }
+
+  // Schedule: every event with when it happens, in plain words.
+  const scheduleHtml = allEvents.map(ev => {
+    const when = schedules[String(ev._id)] || esDescribeSchedule(ev);
+    const price = ev.price && ev.price !== 'free' ? ev.price.replace(/_/g, ' ') : '';
+    return `
     <div class="pub-event-row">
       <div class="pub-event-name">${esc(ev.title||ev.name||'Event')}</div>
-      <div class="pub-event-time">${ev.date||'Recurring'}${ev.time_start?' · '+ev.time_start:''}</div>
+      <div class="pub-event-time">${esc(when || 'No schedule set')}${price ? ' · ' + esc(price) : ''}</div>
+      ${ev.notes ? `<div class="pub-event-note">${esc(ev.notes)}</div>` : ''}
       ${ev.vibes?.length ? `<div class="pub-event-vibes">${ev.vibes.map(v=>`<span class="pub-vibe-tag">${esc(v)}</span>`).join('')}</div>` : ''}
-    </div>`).join('') || '<div style="color:var(--text-faint);padding:20px;text-align:center;">No upcoming events listed</div>';
+    </div>`;
+  }).join('');
+
+  evList.innerHTML = allEvents.length
+    ? upcomingHtml + sectionLabel('Schedule') + scheduleHtml
+    : '<div style="color:var(--text-faint);padding:20px;text-align:center;">No upcoming events listed</div>';
 
   // Past dates section — compute occurrences for all events, merge, sort descending
   const pastEl = document.getElementById('pub-strand-past');
@@ -2356,7 +2477,7 @@ function esRenderStrandView(strand) {
             ${pastSlice.map(item => `
               <div class="pub-event-row${item.cancelled ? ' pub-event-cancelled' : ''}">
                 <div class="pub-event-name">${esc(item.eventTitle)}${item.cancelled ? '<span class="cancelled-badge" style="margin-left:8px;">Cancelled</span>' : ''}${item.modified ? '<span style="margin-left:8px;font-size:11px;color:var(--text-faint);">modified</span>' : ''}</div>
-                <div class="pub-event-time">${item.date}${item.time_start ? ' · ' + item.time_start : ''}</div>
+                <div class="pub-event-time">${esc(esPrettyDate(item.date))}${item.time_start ? ' · ' + esc(item.time_start) : ''}</div>
                 ${item.exNote ? `<div class="pub-event-note">${esc(item.exNote)}</div>` : ''}
                 ${item.note ? `<div class="pub-event-note">${esc(item.note)}</div>` : ''}
               </div>`).join('')}
@@ -2412,15 +2533,39 @@ async function esSubmitReport() {
 }
 
 // ── PUBLIC BRAID VIEW ─────────────────────────────────────────
-async function esLoadPublicBraid(handle, braidId, src) {
+// Passcode entered for the protected braid on screen (memory only).
+let _esBraidPasscode = null;
+
+async function esLoadPublicBraid(handle, braidId, src, passcode) {
   esGoto('braid');
   const content = document.getElementById('pub-braid-content');
   content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-faint);">Loading…</div>';
   try {
     const srcParam = src ? `?src=${encodeURIComponent(src)}` : '';
-    const res = await fetch(`${BACKEND_URL}/api/public/braid/${handle}/${braidId}${srcParam}`);
-    const data = await res.json();
+    const res = await esApiFetch(`${BACKEND_URL}/api/public/braid/${encodeURIComponent(handle)}/${encodeURIComponent(braidId)}${srcParam}`,
+      passcode ? { headers: { 'X-Passcode': passcode } } : {});
+    const data = await res.json().catch(() => ({}));
     if (data.redirect) { history.replaceState(null, '', '#/b/' + data.redirect + '/' + braidId); return esLoadPublicBraid(data.redirect, braidId, src); }
+    if (res.status === 403 || res.status === 429) {
+      if (passcode) showToast(res.status === 429 ? (data.error || 'Too many attempts — try again later') : 'Incorrect passcode', 'error');
+      content.innerHTML = `
+        <div class="pub-strand-header" style="text-align:center;">
+          <div class="pub-strand-type-badge">🪢 Braid</div>
+          <div class="pub-strand-title" style="font-size:20px;">Passcode required</div>
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px;">
+            <input type="password" id="braid-passcode-input" class="rule-select" placeholder="Passcode" aria-label="Braid passcode" autocomplete="off"
+              onkeydown="if(event.key==='Enter')document.getElementById('braid-passcode-go').click()">
+            <button class="btn btn-primary" id="braid-passcode-go">Open braid</button>
+          </div>
+        </div>`;
+      document.getElementById('braid-passcode-go').onclick = () => {
+        const code = document.getElementById('braid-passcode-input').value;
+        if (code) esLoadPublicBraid(handle, braidId, src, code);
+      };
+      return;
+    }
+    if (!res.ok || !data.braid) throw new Error(data.error || 'not found');
+    _esBraidPasscode = passcode ? { id: String(data.braid._id), code: passcode } : null;
     const b = data.braid;
     const wsOptions = ES_USER ? ES_WORKSPACES.map(w => `<option value="${w._id}">${esc(w.icon||'')} ${esc(w.name)}</option>`).join('') : '';
     content.innerHTML = `
@@ -2431,18 +2576,18 @@ async function esLoadPublicBraid(handle, braidId, src) {
         <div class="pub-strand-meta">${b.publisherHandle?`<span>@${esc(b.publisherHandle)}</span>`:''}</div>
         <div class="pub-subscribe-row">
           ${ES_USER?`${wsOptions?`<select id="braid-ws-sel">${wsOptions}</select>`:''}
-            <button class="btn btn-primary" onclick="esSubscribeToBraid('${b._id}',document.getElementById('braid-ws-sel')?.value)">Subscribe to all strands</button>`
-          :`<button class="btn btn-primary" onclick="esSubscribeToBraid('${b._id}')">Subscribe to all strands</button>`}
+            <button class="btn btn-primary" onclick="esSubscribeToBraid('${escAttr(b._id)}',document.getElementById('braid-ws-sel')?.value)">Subscribe to all strands</button>`
+          :`<button class="btn btn-primary" onclick="esSubscribeToBraid('${escAttr(b._id)}')">Subscribe to all strands</button>`}
         </div>
       </div>
       <h3 style="font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);margin-bottom:14px;">Strands in this braid</h3>
       ${(b.strands||[]).map(s => `
-        <div class="pub-strand-header" style="margin-bottom:12px;cursor:pointer;" onclick="esLoadPublicStrand('${s.publisherHandle}','${s._id}')">
+        <div class="pub-strand-header" style="margin-bottom:12px;cursor:pointer;" onclick="esLoadPublicStrand('${escAttr(s.publisherHandle||handle)}','${escAttr(s._id)}')">
           <div class="pub-strand-title" style="font-size:18px;">${esc(s.title)}</div>
           <div class="pub-strand-venue">${esc(s.venue||s.publisherHandle||'')} </div>
           <div style="display:flex;gap:8px;margin-top:10px;">
             ${ES_USER?`<button class="sc-btn primary" onclick="event.stopPropagation();esSubscribeToStrand('${s._id}')">Subscribe</button>`:''}
-            <button class="sc-btn" onclick="event.stopPropagation();esLoadPublicStrand('${s.publisherHandle||handle}','${s._id}')">View strand →</button>
+            <button class="sc-btn" onclick="event.stopPropagation();esLoadPublicStrand('${escAttr(s.publisherHandle||handle)}','${escAttr(s._id)}')">View strand →</button>
           </div>
         </div>`).join('')}`;
   } catch(e) {
@@ -2456,7 +2601,7 @@ async function esLoadPublicProfile(handle) {
   const content = document.getElementById('pub-profile-content');
   content.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-faint);">Loading…</div>';
   try {
-    const res = await fetch(`${BACKEND_URL}/api/public/profile/${handle}`);
+    const res = await esApiFetch(`${BACKEND_URL}/api/public/profile/${handle}`);
     const data = await res.json();
     if (data.redirect) { history.replaceState(null, '', '#/p/' + data.redirect); return esLoadPublicProfile(data.redirect); }
     const p = data.profile;
@@ -2472,7 +2617,7 @@ async function esLoadPublicProfile(handle) {
       ${(p.strands||[]).map(s => `
         <div class="strand-card" style="cursor:pointer;" onclick="esLoadPublicStrand('${handle}','${s._id}')">
           <div class="strand-card-header">
-            <div class="strand-card-dot" style="background:${s.color||'var(--primary)'}"></div>
+            <div class="strand-card-dot" style="background:${safeColor(s.color)}"></div>
             <div class="strand-card-name">${esc(s.title)}</div>
             <div class="strand-card-subs">${s.subscriberCount||0} subscribers</div>
           </div>
@@ -2616,7 +2761,9 @@ async function esEditStrand(strandId) {
         days: r.days||['fri'], timeStart: r.time_start||'', timeEnd: r.time_end||'',
         noTime: hasNoTime(r),
         monthWeek: r.month_week||'first', monthDate: r.month_date||1,
-        seasonStart: r.season_start||'', seasonEnd: r.season_end||'',
+        ...((r.pattern === 'annual' && r.month_date && r.season_start && (!r.season_end || r.season_end === r.season_start))
+          ? { annualMonth: r.season_start, annualDay: r.month_date, seasonStart: '', seasonEnd: '' }
+          : { annualMonth: '', annualDay: 1, seasonStart: r.season_start||'', seasonEnd: r.season_end||'' }),
         x: (() => { const o = {}; ['start_date','end_date','season_start_day','season_end_day','fuzzy_start','fuzzy_end'].forEach(k => { if (r[k] !== undefined && r[k] !== null && r[k] !== '') o[k] = r[k]; }); return Object.keys(o).length ? o : undefined; })()
       }));
       e.nextRid      = e.rules.length;
@@ -2701,7 +2848,7 @@ function esShowQRModal(url, title) {
   modal.id = 'es-qr-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(4,6,26,0.85);display:flex;align-items:center;justify-content:center;';
   modal.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:32px;max-width:360px;width:90%;text-align:center;">
-    <div style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:16px;color:var(--text);">${title}</div>
+    <div style="font-family:'Fraunces',serif;font-size:20px;margin-bottom:16px;color:var(--text);">${esc(title)}</div>
     <canvas id="qr-canvas" style="border-radius:12px;margin-bottom:16px;"></canvas>
     <div class="strand-url" style="margin-bottom:16px;">${url}</div>
     <div style="display:flex;gap:8px;">
@@ -2758,7 +2905,7 @@ async function esRenderBraidBuilder() {
     picker.innerHTML = d.strands.map(s => `
       <div class="strand-picker-row" id="spick-${s._id}" onclick="esToggleBraidStrand('${s._id}',this)">
         <div class="strand-picker-check"></div>
-        <div>${s.title}</div>
+        <div>${esc(s.title)}</div>
         <div style="font-size:12px;color:var(--text-faint);margin-left:auto;">${s.events?.length||0} events</div>
       </div>`).join('');
   } catch(e) {
@@ -2787,12 +2934,12 @@ function esSearchPublicStrands(val) {
   if (!val || val.length < 2) { if(results) results.innerHTML = ''; return; }
   _braidSearchTimer = setTimeout(async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/public/strands/search?q=${encodeURIComponent(val)}`);
+      const res = await esApiFetch(`${BACKEND_URL}/api/public/strands/search?q=${encodeURIComponent(val)}`);
       const d = await res.json();
       if (results) results.innerHTML = (d.strands||[]).slice(0,5).map(s =>
         `<div class="strand-picker-row" id="spick-pub-${s._id}" onclick="esToggleBraidStrand('${s._id}',this)">
           <div class="strand-picker-check"></div>
-          <div>${s.title}</div>
+          <div>${esc(s.title)}</div>
           <div style="font-size:12px;color:var(--text-faint);margin-left:auto;">@${s.publisherHandle}</div>
         </div>`).join('');
     } catch(e) {}
@@ -2823,7 +2970,7 @@ async function esPublishBraid() {
     panel.style.display = 'block';
     panel.innerHTML = `<div class="strand-url">${url}</div>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="esShowBraidQR('${d.braid._id}','${name}')">⬛ Show QR Code</button>
+        <button class="btn btn-primary" onclick="esShowBraidQR('${escAttr(d.braid._id)}','${escAttr(name)}')">⬛ Show QR Code</button>
         <button class="btn btn-ghost" onclick="navigator.clipboard?.writeText('${url}');showToast('📋 Copied')">Copy Link</button>
         <button class="btn btn-ghost" onclick="esGoto('dashboard')" title="View in dashboard">View in Dashboard</button>
       </div>`;
@@ -2856,7 +3003,7 @@ async function esRenderWorkspaces() {
   if (!list) return;
   list.innerHTML = ES_WORKSPACES.map(ws => `
     <div class="ws-card" onclick="esOpenWorkspace('${ws._id}')" title="Open this workspace">
-      <div class="ws-icon">${ws.icon||'📁'}</div>
+      <div class="ws-icon">${esc(ws.icon||'📁')}</div>
       <div style="flex:1;">
         <div class="ws-name">${esc(ws.name)}</div>
         <div class="ws-meta">${ws.strandCount||0} strands · ${ws.braidCount||0} braids</div>
@@ -3306,7 +3453,7 @@ async function esRenderAdmin() {
         ${r.details ? `<div class="admin-report-details">${esc(r.details)}</div>` : ''}
         <div class="admin-report-actions">
           ${r.strand ? `<button class="btn btn-ghost" onclick="window.open('/#/s/${esc(r.strand.handle||'')}/${esc(r.strand.id)}','_blank')">View strand</button>` : ''}
-          ${r.publisherEmail ? `<button class="btn btn-ghost" onclick="esAdminContact('${esc(r.publisherEmail)}','${esc(r.strand?.title||'')}')">✉ Contact publisher</button>` : ''}
+          ${r.publisherEmail ? `<button class="btn btn-ghost" onclick="esAdminContact('${escAttr(r.publisherEmail)}','${escAttr(r.strand?.title||'')}')">✉ Contact publisher</button>` : ''}
           ${r.strand?.published ? `<button class="btn btn-ghost" onclick="esAdminUnpublish('${r.strand.id}','${r.id}')">Unpublish</button>` : ''}
           ${r.strand ? `<button class="btn btn-ghost" style="color:#ff6b6b;" onclick="esAdminDelete('${r.strand.id}','${r.id}')">Delete strand</button>` : ''}
           <button class="btn btn-primary" onclick="esAdminDismiss('${r.id}')">Dismiss</button>
@@ -3549,6 +3696,9 @@ async function esSaveStrand() {
   const obj = buildRcalObj();
   obj.visibility = pub.visibility || 'public';
   if (pub.accessCode) obj.accessCode = pub.accessCode;
+  // A field left empty is sent empty, so clearing it in the builder clears it for real.
+  ['description', 'website'].forEach(k => { if (!(k in obj.meta)) obj.meta[k] = ''; });
+  if (pub.city) obj.meta.city = pub.city;
   const wasNew = !_builderStrandId;
   const endpoint = _builderStrandId
     ? `/api/strands/${_builderStrandId}`
@@ -3663,6 +3813,19 @@ function esLoadRcalClick() {
   document.getElementById('rcal-load-input')?.click();
 }
 
+// mon / monday / weekday / weekend, any case -> ['mon', ...] in week order.
+function _esRcalDays(days) {
+  const d3 = ['sun','mon','tue','wed','thu','fri','sat'];
+  const full = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const out = new Set();
+  (Array.isArray(days) ? days : []).forEach(d => {
+    const v = String(d || '').trim().toLowerCase();
+    if (v === 'weekday' || v === 'weekdays') ['mon','tue','wed','thu','fri'].forEach(x => out.add(x));
+    else if (v === 'weekend' || v === 'weekends') { out.add('sat'); out.add('sun'); }
+    else { const i = full.indexOf(v) >= 0 ? full.indexOf(v) : d3.indexOf(v); if (i >= 0) out.add(d3[i]); }
+  });
+  return d3.filter(x => out.has(x));
+}
 function _esRcalToBackend(raw, fallbackTitle) {
   const errors = [], warnings = [];
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -3680,7 +3843,10 @@ function _esRcalToBackend(raw, fallbackTitle) {
     else ids.add(ev.id);
     if (!ev.name && !ev.title) errors.push(`Event ${label} is missing "name".`);
     if (!ev.date && !ev.recurrence && !ev.dates) warnings.push(`Event ${label} has no schedule (no date, recurrence or dates).`);
-    (ev.recurrence || []).forEach(r => { if (!r || !r.pattern) errors.push(`Event ${label} has a recurrence rule without "pattern".`); });
+    if (ev.recurrence !== undefined && !Array.isArray(ev.recurrence)) errors.push(`Event ${label}: "recurrence" must be a list of rules.`);
+    if (ev.dates !== undefined && !Array.isArray(ev.dates)) errors.push(`Event ${label}: "dates" must be a list.`);
+    if (ev.exceptions !== undefined && !Array.isArray(ev.exceptions)) errors.push(`Event ${label}: "exceptions" must be a list.`);
+    (Array.isArray(ev.recurrence) ? ev.recurrence : []).forEach(r => { if (!r || !r.pattern) errors.push(`Event ${label} has a recurrence rule without "pattern".`); });
   });
   const m = raw.meta || {};
   if (!m.title) warnings.push(`No meta.title — will be named "${fallbackTitle || 'Imported strand'}".`);
@@ -3704,8 +3870,14 @@ function _esRcalToBackend(raw, fallbackTitle) {
     out.notes = ev.notes || ev.description;
     const flat = l => (l && typeof l === 'object') ? [l.name, l.address, l.city, l.state, l.country].filter(Boolean).join(', ') : l;
     out.location = flat(ev.location);
-    (out.dates || []).forEach(dd => { if (dd && dd.location) dd.location = flat(dd.location); });
-    (out.exceptions || []).forEach(xx => { if (xx && xx.location) xx.location = flat(xx.location); });
+    if (out.recurrence) out.recurrence = out.recurrence.map(r => {
+      const rule = { ...r };
+      if (rule.days !== undefined) rule.days = _esRcalDays(rule.days);
+      ['season_start', 'season_end'].forEach(k => { if (typeof rule[k] === 'string') rule[k] = rule[k].trim().toLowerCase().slice(0, 3); });
+      return rule;
+    });
+    if (out.dates) out.dates = out.dates.map(dd => (dd && typeof dd === 'object') ? { ...dd, ...(dd.location ? { location: flat(dd.location) } : {}) } : dd);
+    if (out.exceptions) out.exceptions = out.exceptions.map(xx => (xx && typeof xx === 'object') ? { ...xx, ...(xx.location ? { location: flat(xx.location) } : {}) } : xx);
     ['id','name','vibe_tags'].forEach(k => delete out[k]);
     Object.keys(out).forEach(k => out[k] === undefined && delete out[k]);
     return out;
@@ -3720,8 +3892,8 @@ function _esRcalScheduleSummary(ev) {
     parts.push(`${ev.recurrence?.length || ev.dates?.length ? 'Date' : 'One-off'} · ${ev.date}${timed ? ' · ' + ev.time_start + (ev.time_end ? '–' + ev.time_end : '') : ''}`);
   }
   (ev.recurrence || []).forEach(r => {
-    let p = r.pattern.replace(/_/g, ' ');
-    if (r.days?.length) p += ' ' + r.days.join('/');
+    let p = String(r.pattern || '').replace(/_/g, ' ');
+    if (Array.isArray(r.days) && r.days.length) p += ' ' + r.days.join('/');
     if (r.month_week) p = r.month_week + ' ' + p;
     if (r.time_start && !hasNoTime(r)) p += ' · ' + r.time_start + (r.time_end ? '–' + r.time_end : '');
     parts.push(p);
@@ -3836,11 +4008,28 @@ function esSetBuilderVis(vis, btn) {
   if (pc) pc.style.display = vis === 'protected' ? 'block' : 'none';
 }
 
+// Checks the stored sign-in against the API once per page load. This moves an
+// older token-based session onto the httpOnly cookie, refreshes the profile,
+// and quietly signs out a session the API no longer accepts.
+async function esConfirmSession() {
+  try {
+    const res = await esApiFetch(BACKEND_URL + '/api/auth/me', { headers: esAuthHeaders() });
+    if (res.status === 401) {
+      ES_USER = null; ES_WORKSPACES = []; esClearJwt();
+      esRenderNavAuth(); esRenderMarketingAuth();
+      return;
+    }
+    if (!res.ok) return;
+    const d = await res.json();
+    if (d.cookieSession) esDropLegacyJwt();
+    if (d.user) { ES_USER = d.user; esSetStoredUser(d.user); esRenderNavAuth(); esRenderMarketingAuth(); }
+  } catch (e) { /* offline — keep the stored sign-in */ }
+}
+
 // ── UTILITY: authenticated fetch ──────────────────────────────
 async function esFetch(path, opts={}) {
-  const jwt = esGetJwt();
-  const headers = { 'Content-Type': 'application/json', ...(jwt?{'Authorization':'Bearer '+jwt}:{}) };
-  const res = await fetch(BACKEND_URL + path, { ...opts, headers: {...headers,...(opts.headers||{})} });
+  const headers = { 'Content-Type': 'application/json', ...esAuthHeaders() };
+  const res = await esApiFetch(BACKEND_URL + path, { ...opts, headers: {...headers,...(opts.headers||{})} });
   if (res.status === 401) {
     ES_USER = null; esClearJwt();
     esRenderNavAuth(); esRenderMarketingAuth();
@@ -3900,12 +4089,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore user from localStorage
   const stored = esGetStoredUser();
-  if (stored && esGetJwt()) {
+  if (stored) {
+    delete stored.jwt; // older builds kept a copy of the token here
     ES_USER = stored;
+    esSetStoredUser(stored);
     esRenderNavAuth();
     esRenderMarketingAuth();
     esLoadWorkspaces();
     esLoadNotifications();
+    esConfirmSession();
   }
 
   // Init Google Identity Services (retry if script not yet loaded)
@@ -3931,15 +4123,27 @@ function esSaveInterested(list) {
   try { localStorage.setItem(ES_INTERESTED_KEY, JSON.stringify(list)); } catch(e) {}
 }
 
-function esIsInterested(eventId, date) {
-  if (!eventId) return false;
-  const key = eventId + '_' + date;
+// Events shown in the dashboard feed; star buttons refer to them by position
+// so no event data is ever written into a click handler.
+let _esFeedEvents = [];
+
+// One star per event per date. Feeds that carry no event id fall back to the
+// strand and title, so two events on the same date never share a star.
+function esInterestedKey(ev) {
+  const id = ev.eventId || ev.id || ev._id || ((ev.strandId || '') + ':' + (ev.title || ev.name || ''));
+  return id + '_' + ev.date;
+}
+
+function esIsInterested(ev) {
+  if (!ev) return false;
+  const key = esInterestedKey(ev);
   return esGetInterested().some(i => i.key === key);
 }
 
 function esToggleInterested(btn, ev) {
-  const eventId = ev.id || ev._id || '';
-  const key = eventId + '_' + ev.date;
+  if (!ev) return;
+  const eventId = ev.eventId || ev.id || ev._id || '';
+  const key = esInterestedKey(ev);
   let list = esGetInterested();
   const idx = list.findIndex(i => i.key === key);
   if (idx >= 0) {
@@ -4021,11 +4225,11 @@ function esRenderInterestedList() {
     <div class="interested-item" style="${isExpired ? 'opacity:0.45;' : ''}">
       <div style="font-size:20px;color:var(--amber);">★</div>
       <div class="interested-item-body">
-        <div class="interested-item-name">${item.title}</div>
-        <div class="interested-item-meta">${item.venue}${item.strand ? ' · ' + item.strand : ''}</div>
-        <div class="interested-item-time">${isExpired ? '<span style="color:var(--text-faint)">Expired</span>' : item.date + (item.time ? ' at ' + item.time : '')}</div>
+        <div class="interested-item-name">${esc(item.title)}</div>
+        <div class="interested-item-meta">${esc(item.venue)}${item.strand ? ' · ' + esc(item.strand) : ''}</div>
+        <div class="interested-item-time">${isExpired ? '<span style="color:var(--text-faint)">Expired</span>' : esc(item.date) + (item.time ? ' at ' + esc(item.time) : '')}</div>
       </div>
-      <button class="interested-item-remove" onclick="esRemoveInterested('${item.key}')" title="Remove" aria-label="Remove from saved">✕</button>
+      <button class="interested-item-remove" onclick="esRemoveInterested('${escAttr(item.key)}')" title="Remove" aria-label="Remove from saved">✕</button>
     </div>`;
 
   container.innerHTML =
@@ -4202,7 +4406,7 @@ async function esMktSubmit() {
     : { email, password };
 
   try {
-    const res  = await fetch(BACKEND_URL + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const res  = await esApiFetch(BACKEND_URL + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     const data = await res.json();
     if (!res.ok) { errEl.textContent = data.error || 'Something went wrong.'; return; }
     // B-5: backend returns { ok: true } (no token/user) when email already exists.
@@ -4211,7 +4415,7 @@ async function esMktSubmit() {
       errEl.textContent = 'Check your inbox — if an account already exists for this email, we sent you a sign-in reminder.';
       return;
     }
-    esSetJwt(data.token);
+    esStoreSession(data);
     ES_USER = data.user;
     esSetStoredUser(data.user);
     if (!data.user.handle) {
@@ -4246,7 +4450,7 @@ async function esLoadDirectory(resetPage = false) {
   if (city) params.append('city', city);
 
   try {
-    const res  = await fetch(`${BACKEND_URL}/api/directory/public/directory?${params}`);
+    const res  = await esApiFetch(`${BACKEND_URL}/api/directory/public/directory?${params}`);
     const data = await res.json();
 
     if (!data.strands || data.strands.length === 0) {
@@ -4256,11 +4460,11 @@ async function esLoadDirectory(resetPage = false) {
     }
 
     grid.innerHTML = data.strands.map(s => {
-      const strandUrl = `${BACKEND_URL.replace('api.', '')}/s/${s.publisherHandle}/${s._id}`;
-      const bg = s.color || '#6C8FFF';
+      const strandUrl = `${BACKEND_URL.replace('api.', '')}/s/${encodeURIComponent(s.publisherHandle||'')}/${encodeURIComponent(s._id)}`;
+      const bg = safeColor(s.color, '#6C8FFF');
       const meta = [s.type, s.venue, s.city].filter(Boolean).join(' · ');
       return `
-        <div class="dir-card" onclick="window.open('${strandUrl}', '_blank')">
+        <div class="dir-card" onclick="window.open('${escAttr(strandUrl)}', '_blank', 'noopener')">
           <div class="dir-card-header" style="background:${bg};"></div>
           <div class="dir-card-body">
             <div class="dir-card-title">${esc(s.title)}</div>
@@ -4308,3 +4512,39 @@ function esDebounceDirectory() {
   }, { threshold: 0.1 });
   obs.observe(section);
 })();
+
+// ── ACCOUNT: sign out everywhere / delete account ─────────────
+async function esSignOutEverywhere() {
+  if (!ES_USER) return;
+  if (!confirm('Sign out of EventStrand on every device?')) return;
+  try {
+    const res = await esFetch('/api/auth/logout-all', { method: 'POST' });
+    if (!res.ok) { showToast('Could not sign out everywhere — try again', 'error'); return; }
+  } catch (e) { if (e.message !== '401') { showToast('Connection error', 'error'); return; } }
+  ES_USER = null; ES_WORKSPACES = [];
+  esClearJwt();
+  esRenderNavAuth(); esRenderMarketingAuth(); esCloseApp();
+  showToast('Signed out everywhere');
+}
+
+async function esDeleteAccount() {
+  const errEl = document.getElementById('delete-account-error');
+  const confirmText = document.getElementById('delete-account-confirm').value.trim();
+  const password = document.getElementById('delete-account-password').value;
+  errEl.textContent = '';
+  if (confirmText !== 'DELETE') { errEl.textContent = 'Type DELETE (in capitals) to confirm.'; return; }
+  try {
+    const res = await esApiFetch(BACKEND_URL + '/api/auth/account', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', ...esAuthHeaders() },
+      body: JSON.stringify({ confirm: 'DELETE', ...(password ? { password } : {}) }),
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) { errEl.textContent = d.error || 'Could not delete the account.'; return; }
+  } catch (e) { errEl.textContent = 'Connection error — nothing was deleted.'; return; }
+  ES_USER = null; ES_WORKSPACES = [];
+  esClearJwt();
+  try { localStorage.removeItem('es_interested_v1'); localStorage.removeItem('es_pending_sub'); } catch (e) {}
+  esRenderNavAuth(); esRenderMarketingAuth(); esCloseApp();
+  showToast('Your account has been deleted');
+}

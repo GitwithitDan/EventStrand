@@ -273,40 +273,40 @@ footer {
         </thead>
         <tbody>
           <tr>
-            <td>es_session</td>
+            <td>es_jwt (cookie)</td>
             <td><span class="badge badge-necessary">Necessary</span></td>
-            <td>Maintains your authenticated session so you stay logged in while navigating the app.</td>
-            <td>Session</td>
+            <td>Keeps you signed in. It is set by api.eventstrand.com, sent only over HTTPS, and cannot be read by scripts on the page.</td>
+            <td>90 days, or until you sign out</td>
           </tr>
           <tr>
-            <td>es_csrf</td>
+            <td>es_user (local storage)</td>
             <td><span class="badge badge-necessary">Necessary</span></td>
-            <td>Cross-site request forgery protection token. Required for all form submissions.</td>
-            <td>Session</td>
+            <td>Remembers your display name, handle and photo so the page can show you as signed in without waiting for the server.</td>
+            <td>Until you sign out</td>
           </tr>
           <tr>
-            <td>es_consent_v1</td>
+            <td>es_consent_v1 (local storage)</td>
             <td><span class="badge badge-necessary">Necessary</span></td>
-            <td>Stores your cookie consent preferences so we don't show the banner on every visit.</td>
-            <td>12 months</td>
+            <td>Stores your analytics choice so the consent bar is not shown on every visit.</td>
+            <td>Until you clear site data</td>
           </tr>
           <tr>
-            <td>es_auth_token</td>
+            <td>es_pending_sub (local storage)</td>
             <td><span class="badge badge-necessary">Necessary</span></td>
-            <td>Secure JWT used to authenticate API requests to the EventStrand backend.</td>
-            <td>7 days</td>
+            <td>Remembers the strand or braid you asked to subscribe to while you sign in.</td>
+            <td>Until the subscription completes</td>
           </tr>
           <tr>
-            <td>_es_analytics</td>
-            <td><span class="badge badge-analytics">Analytics</span></td>
-            <td>Aggregated, anonymised usage statistics to help us understand how the product is used and improve it.</td>
-            <td>12 months</td>
-          </tr>
-          <tr>
-            <td>es_prefs</td>
+            <td>es_interested_v1, es_notes, es_pwa_dismissed (local storage)</td>
             <td><span class="badge badge-preference">Preferences</span></td>
-            <td>Remembers your UI configuration, layout choices, and other personalisation settings.</td>
-            <td>12 months</td>
+            <td>Your starred events, your quick notes, and whether you dismissed the "install app" prompt. These stay in your browser and are not sent to us.</td>
+            <td>Until you clear site data</td>
+          </tr>
+          <tr>
+            <td>mp_* (cookie and local storage, set by Mixpanel)</td>
+            <td><span class="badge badge-analytics">Analytics</span></td>
+            <td>Usage statistics, and a recording of a sample of sessions with password fields masked, that help us understand how the product is used. Set only if you choose "Allow analytics".</td>
+            <td>Up to 12 months</td>
           </tr>
         </tbody>
       </table>
