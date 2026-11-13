@@ -1348,7 +1348,7 @@ async function esHandleVerifyToken(token) {
       return;
     }
     if (titleEl) titleEl.textContent = 'Email verified ✓';
-    if (msgEl) msgEl.textContent = `${d.email} is confirmed. You're all set.`;
+    if (msgEl) msgEl.textContent = `${d.email} is confirmed. ` + (ES_USER ? "You're all set." : 'You can sign in now.');
     if (ES_USER) {
       ES_USER.emailVerified = true;
       try { localStorage.setItem('es_user', JSON.stringify(ES_USER)); } catch(_) {}
@@ -1464,7 +1464,7 @@ async function esAuthSubmit() {
     // to prevent enumeration. Show a helpful message instead of crashing on data.user.handle.
     if (!data.token || !data.user) {
       errEl.style.color = 'var(--primary)';
-      errEl.textContent = 'Check your inbox — if an account already exists for this email, we sent you a sign-in reminder.';
+      errEl.textContent = 'Check your inbox — we sent a link to confirm your email. Open it, then sign in here.';
       return;
     }
     esStoreSession(data);
@@ -4412,7 +4412,7 @@ async function esMktSubmit() {
     // B-5: backend returns { ok: true } (no token/user) when email already exists.
     if (!data.token || !data.user) {
       errEl.style.color = 'var(--primary)';
-      errEl.textContent = 'Check your inbox — if an account already exists for this email, we sent you a sign-in reminder.';
+      errEl.textContent = 'Check your inbox — we sent a link to confirm your email. Open it, then sign in here.';
       return;
     }
     esStoreSession(data);
